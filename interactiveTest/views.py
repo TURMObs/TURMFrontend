@@ -5,7 +5,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.http import require_POST
-from pkg_resources import require
 
 
 # Create your views here.
