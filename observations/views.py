@@ -11,7 +11,8 @@ from observations.serializers import ExoplanetObservationSerializer
 
 # Create your views here.
 
-@api_view(['POST'])
+
+@api_view(["POST"])
 def create_observation(request):
     serializer = ExoplanetObservationSerializer(data=request.data)
     if serializer.is_valid():
