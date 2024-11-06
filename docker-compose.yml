@@ -2,20 +2,21 @@ services:
   db:
     image: postgres
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ${DB_VOLUME:-db-data}:/var/lib/postgresql/data
     environment:
-        POSTGRES_DB: ${POSTGRES_DB}
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
 
   web:
     build: .
     command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "./wait-for-it.sh db:5432 -t 120 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
+      - ./wait-for-it.sh:/wait-for-it.sh
     ports:
       - "8000:8000"
     depends_on:
@@ -24,3 +25,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+volumes:
+  db-data: {}
