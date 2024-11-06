@@ -10,7 +10,7 @@
     | `POSTGRES_USER`          | Superuser of the Postgres Database                                                                                                                            | **Yes**      | `admin`                                           |
     | `POSTGRES_PASSWORD`      | Superuser password                                                                                                                                            | **Yes**      | Secure password                                   |
     | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False)                                                                                                 | **No**       | `True` for development, `False` for deployment    |
-|  | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder           |
+    | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder           |
     
     
     
