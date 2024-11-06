@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Modal (hidden by default) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* Modal success style */
+        .modal-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Modal error style */
+        .modal-error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* Close button */
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hello, World!</h1>
+
+    <div class="button-container">
+        <button onclick="window.location.href='/interactiveTest/'">Go to Interactive Test</button>
+        <button onclick="fetchData()">Fetch Data</button>
+    </div>
+
+    <h2>Observatory GIF</h2>
+    <iframe src="https://giphy.com/embed/FlodpfQUBSp20" width="480" height="370" style="max-width: 100%; height: auto;" frameBorder="0" class="giphy-embed" allowFullScreen></iframe>
+
+    <div class="modal" id="responseModal">
+        <div class="modal-content" id="modalContent">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <p id="modalMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        function fetchData() {
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+              "target": {
+                "name": "test",
+                "coordinates": "nach süden gucken"
+              },
+              "filter_set": "some",
+              "observatory": "nr 1"
+            });
+
+            const requestOptions = {
+              method: "POST",
+              headers: myHeaders,
+              body: raw,
+              redirect: "follow"
+            };
+
+            fetch("http://localhost:8000/observations/create/", requestOptions)
+              .then((response) => response.json())
+              .then((result) => {
+                  console.log(result);
+                  showModal('success', 'Success!', 'Data fetched successfully!');
+              })
+              .catch((error) => {
+                  console.error(error);
+                  showModal('error', 'Error!', 'Failed to fetch data. Please try again.');
+              });
+        }
+
+        // Function to show the modal
+        function showModal(type, title, message) {
+            const modal = document.getElementById("responseModal");
+            const modalContent = document.getElementById("modalContent");
+            const modalTitle = document.getElementById("modalTitle");
+            const modalMessage = document.getElementById("modalMessage");
+
+            modal.style.display = "block";
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+
+            // Add appropriate class for success or error
+            if (type === 'success') {
+                modalContent.className = "modal-content modal-success";
+            } else if (type === 'error') {
+                modalContent.className = "modal-content modal-error";
+            }
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            const modal = document.getElementById("responseModal");
+            modal.style.display = "none";
+        }
+
+        // Close modal if clicked outside the modal content
+        window.onclick = function(event) {
+            const modal = document.getElementById("responseModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>
