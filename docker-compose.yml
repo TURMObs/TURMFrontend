@@ -16,7 +16,7 @@ services:
       sh -c "./wait-for-it.sh db:5432 -t 120 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
-      - ./wait-for-it.sh:/wait-for-it.sh
+      - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
     ports:
       - "8000:8000"
     depends_on:
