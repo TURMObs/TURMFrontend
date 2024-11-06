@@ -1,14 +1,14 @@
 # Deployement
 ## Prerequisites
 1. [Docker](https://www.docker.com/get-started)
-
-2. Environment variables:
+2. [Docker Compose](https://docs.docker.com/compose/install/)
+3. Environment variables:
 
     | **Environment Variable** | **Description**                                               | **Required** | **Recommended Value**                          |
     |--------------------------|---------------------------------------------------------------|--------------|------------------------------------------------|
     | ``POSTGRES_DB``          | Name of the Postgres database                                 | **Yes**      | `TURMFrontend`                                 |
     | `POSTGRES_USER`          | Superuser of the Postgres Database                            | **Yes**      | `admin`                                        |
-    | `POSTGRES_PASSWORD`      | Superuser password                                            | **YES**      | Secure password                                |
+    | `POSTGRES_PASSWORD`      | Superuser password                                            | **Yes**      | Secure password                                |
     | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False) | **No**       | `True` for development, `False` for deployment |
     
     
