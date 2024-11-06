@@ -4,21 +4,23 @@
 2. [Docker Compose](https://docs.docker.com/compose/install/) (already packaged in Docker Desktop)
 3. Environment variables:
 
-    | **Environment Variable** | **Description**                                               | **Required** | **Recommended Value**                          |
-    |--------------------------|---------------------------------------------------------------|--------------|------------------------------------------------|
-    | ``POSTGRES_DB``          | Name of the Postgres database                                 | **Yes**      | `TURMFrontend`                                 |
-    | `POSTGRES_USER`          | Superuser of the Postgres Database                            | **Yes**      | `admin`                                        |
-    | `POSTGRES_PASSWORD`      | Superuser password                                            | **Yes**      | Secure password                                |
-    | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False) | **No**       | `True` for development, `False` for deployment |
+    | **Environment Variable** | **Description**                                                                                                                                               | **Required** | **Recommended Value**                             |
+    |--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|---------------------------------------------------|
+    | ``POSTGRES_DB``          | Name of the Postgres database                                                                                                                                 | **Yes**      | `TURMFrontend`                                    |
+    | `POSTGRES_USER`          | Superuser of the Postgres Database                                                                                                                            | **Yes**      | `admin`                                           |
+    | `POSTGRES_PASSWORD`      | Superuser password                                                                                                                                            | **Yes**      | Secure password                                   |
+    | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False)                                                                                                 | **No**       | `True` for development, `False` for deployment    |
+    | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder           |
     
     
     
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
-DEBUG=True
 POSTGRES_DB=TURMFrontend
 POSTGRES_USER=<user>
 POSTGRES_PASSWORD=<password>
+DEBUG=True
+DB_VOLUME=./data/db
 ```
 
 ## Docker Compose
