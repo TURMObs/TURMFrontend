@@ -31,3 +31,7 @@ NEXTCLOUD_PORT=8080
 Run using `docker-compose up` in the root directory of the project. The application will be available at `http://localhost:8000`.
 Hot reloading is supported. The data will be saved in a PostgreSQL database, inside the `data` folder.
 Optionally use `docker-compose --profile test up` to run a (non-persisting) Nextcloud Container useful for testing.
+
+# Known Limitations
+- The Nextcloud container is not persistent. This is by design, as the Nextcloud container is only used for testing purposes.
+  - This also means that the Nextcloud has to be initialized every time the container is started by visiting `http://localhost:8080` and setting up the Nextcloud instance with the same password and user defined in the Environment.
