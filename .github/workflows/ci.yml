@@ -18,6 +18,6 @@ jobs:
       - name: Run Ruff
         run: ruff check --output-format=github .
       - name: Check for typos
-        uses: crate-ci/typos@1.27.2
+        uses: crate-ci/typos@v1.27.2
         with:
           config: ./typos.toml
