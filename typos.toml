@@ -4,4 +4,6 @@ ignore-hidden = false
 extend-exclude = [
     ".git/",
 ]
+
+[default]
 check-filename = true
