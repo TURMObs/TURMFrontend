@@ -1,0 +1,12 @@
+[files]
+ignore-files = true
+ignore-hidden = false
+extend-exclude = [
+    ".git/",
+]
+
+[default]
+extend-ignore-re = [
+    # Add a list of words to ignore here, if necessary, in this format: "someword"
+]
+check-filename = true

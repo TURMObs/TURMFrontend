@@ -1,8 +1,10 @@
-# Deployement
+# Deployment
+
 ## Prerequisites
 1. [Docker](https://www.docker.com/get-started)
 2. [Docker Compose](https://docs.docker.com/compose/install/) (already packaged in Docker Desktop)
 3. Environment variables:
+
 
     | **Environment Variable** | **Description**                                                                                                                                               | **Required** | **Recommended Value**                          |
     |--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|------------------------------------------------|
