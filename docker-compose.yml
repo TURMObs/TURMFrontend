@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
 
   web:
     build: .
@@ -18,7 +18,7 @@ services:
       - .:/code
       - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
     ports:
-      - "8000:8000"
+      - "${WEB_PORT}:8000"
     depends_on:
       - db
     environment:
@@ -26,5 +26,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
+  nextcloud:
+    image: nextcloud
+    profiles:
+      - test
+    environment:
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: admin
+    ports:
+      - "${NEXTCLOUD_PORT}:80"
+
 volumes:
-  db-data: {}
+  db-data: { }
