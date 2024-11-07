@@ -15,7 +15,7 @@ Environment Variables:
 import os
 from os import PathLike
 
-from nc_py_api import Nextcloud, NextcloudException
+from nc_py_api import Nextcloud
 from dotenv import load_dotenv
 
 nc: Nextcloud
