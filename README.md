@@ -1,4 +1,5 @@
-# Deployement
+# Deployment
+
 ## Prerequisites
 1. [Docker](https://www.docker.com/get-started)
 2. [Docker Compose](https://docs.docker.com/compose/install/) (already packaged in Docker Desktop)
@@ -11,9 +12,7 @@
     | `POSTGRES_PASSWORD`      | Superuser password                                                                                                                                            | **Yes**      | Secure password                                   |
     | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False)                                                                                                 | **No**       | `True` for development, `False` for deployment    |
     | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder           |
-    
-    
-    
+
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
 POSTGRES_DB=TURMFrontend
