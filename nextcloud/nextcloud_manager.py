@@ -23,7 +23,8 @@ nc: Nextcloud
 
 def initialize_connection() -> None:
     """
-    Initializes the connection to the Nextcloud server using the credentials from the .env file
+    Initializes the connection to the Nextcloud server using the credentials from the .env file.
+    Needs to be run once before using other functions of this manager
     """
     global nc
     load_dotenv()
@@ -45,6 +46,7 @@ def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     :param nc_path: Files path on the Nextcloud server
     :param local_path: Local path of the file to upload
     """
+    _check_is_initialized()
     with open(local_path, "rb") as file:
         nc.files.upload_stream(nc_path, file)
 
@@ -59,14 +61,12 @@ def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     :param local_path: Local path to save the file
     :raises NextcloudException: If the file does not exist on the server
     """
+    _check_is_initialized()
     with open(local_path, "wb") as file:
-        try:
-            file.write(nc.files.download(nc_path))
-        except NextcloudException as e:
-            raise e
+        file.write(nc.files.download(nc_path))
 
 
-def download_folder(nc_path, local_path):
+def download_folder(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
     Downloads a folder from the Nextcloud server into a zip file
 
@@ -77,7 +77,15 @@ def download_folder(nc_path, local_path):
 
     :raises NextcloudException: If the folder does not exist on the server
     """
+    _check_is_initialized()
+    nc.files.download_directory_as_zip(nc_path, local_path)
+
+def _check_is_initialized():
+    """
+    Checks whether the Nextcloud connection was initialized
+    :raises Exception: If connection has not been initialized
+    """
     try:
-        nc.files.download_directory_as_zip(nc_path, local_path)
-    except NextcloudException as e:
-        raise e
+        nc
+    except NameError:
+        raise Exception("Call initialize_connection() first to initialize the Nextcloud connection")
