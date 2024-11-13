@@ -22,5 +22,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("interactiveTest/", include("interactiveTest.urls")),
     path("observations/", include("observations.urls")),
+    path("authentication/", include("authentication.urls")),
     path("", include("root.urls")),
 ]

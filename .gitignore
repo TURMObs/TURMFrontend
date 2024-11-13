@@ -140,3 +140,4 @@ GitHub.sublime-settings
 # Custom
 .idea
 data
+.ruff_cache
