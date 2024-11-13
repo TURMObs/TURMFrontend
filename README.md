@@ -15,7 +15,9 @@
     | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder        |
     | `DB_PORT`                | Local Port that the Postgres DB can be accessed on (outside the container)                                                                                    | **Yes**      | `5432`                                         |
     | `WEB_PORT`               | Local Port used for the website                                                                                                                               | **Yes**      | `8000`                                         | 
-    | `NEXTCLOUD_PORT`         | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, is only required for Nextcloud testing | 
+    | `NC_PORT`         | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, only required for Nextcloud testing | 
+    | `NC_USER`         | User for the Nextcloud instance                                                                                                                               | **No**       | Nextcloud User                                        |
+    | `NC_PASSWORD`     | Password for the Nextcloud instance                                                                                                                           | **No**       | Nextcloud password                                |
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
@@ -26,7 +28,9 @@ DB_VOLUME=./data/db
 DEBUG=True
 DB_PORT=5432
 WEB_PORT=8000
-NEXTCLOUD_PORT=8080
+NC_PORT=8080
+NC_USER=<user>
+NC_PASSWORD=<password>
 ```
 
 ## Docker Compose

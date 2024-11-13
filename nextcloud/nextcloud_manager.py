@@ -8,8 +8,8 @@ Functions:
 
 Environment Variables:
     - NC_URL: The URL of the Nextcloud server
-    - NC_AUTH_USER: The username to authenticate with
-    - NC_AUTH_PASSWORD: The password to authenticate with
+    - NC_USER: The username to authenticate with
+    - NC_PASSWORD: The password to authenticate with
 """
 
 import os
@@ -29,8 +29,8 @@ def initialize_connection() -> None:
     global nc
     load_dotenv()
     nc_url = os.getenv("NC_URL")
-    nc_auth_user = os.getenv("NC_AUTH_USER")
-    nc_auth_pass = os.getenv("NC_AUTH_PASSWORD")
+    nc_auth_user = os.getenv("NC_USER")
+    nc_auth_pass = os.getenv("NC_PASSWORD")
 
     nc = Nextcloud(
         nextcloud_url=nc_url, nc_auth_user=nc_auth_user, nc_auth_pass=nc_auth_pass
