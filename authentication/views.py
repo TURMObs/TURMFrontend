@@ -15,3 +15,13 @@ def index(request):
             return render(request, 'authentication/index.html', {'error': 'Invalid username or password'})
     else:
         return render(request, 'authentication/index.html')
+
+def generate_invitation_link(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        link = generate_url(email)
+        return render(request, 'authentication/generate_invitation_link.html', {'link': link})
+    return render(request, 'authentication/generate_invitation_link.html')
+
+def generate_url(email):
+    return f"https://example.com/invitation/{email}"

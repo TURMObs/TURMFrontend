@@ -87,25 +87,31 @@
         <div style="position: absolute; top: 10px; left: 10px">
             <button onclick="window.location.href='/'">Home</button>
         </div>
-        <h1>Authentication</h1>
-        {% if user.is_authenticated %}
-        <p>You are logged in as: {{ user.username }}</p>
-        <button onclick="window.location.href='generate-invitation-link'">
-            Generate Invitation Link
-        </button>
-        {% else %}
+        <h1>Generate Invitation Link</h1>
         <form method="post">
             {% csrf_token %}
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required />
-            <br />
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required />
-            <br />
-            <button type="submit">Login</button>
+            <label for="email">E-Mail:</label>
+            <input type="text" name="email" id="email" required />
+            <button type="submit">Generate</button>
         </form>
-        {% if error is not None %}
-        <p style="color: red">Invalid username or password</p>
-        {% endif %} {% endif %}
+        {%if link is not None %}
+        <p>Link: {{link}}</p>
+        <button onclick="copyLink()">Copy Link</button>
+        <script>
+            function copyLink() {
+                var linkText = document
+                    .querySelector("p")
+                    .textContent.split(": ")[1];
+                navigator.clipboard.writeText(linkText).then(
+                    function () {
+                        alert("Link copied to clipboard!");
+                    },
+                    function (err) {
+                        console.error("Could not copy text: ", err);
+                    },
+                );
+            }
+        </script>
+        {%endif%}
     </body>
 </html>
