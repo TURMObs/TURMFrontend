@@ -84,9 +84,25 @@
         </style>
     </head>
     <body>
-        <h1>Authentication</h1>
-        <div class="button-container">
-            <button>Login</button>
+        <div style="position: absolute; top: 10px; left: 10px">
+            <button onclick="window.location.href='/'">Home</button>
         </div>
+        <h1>Authentication</h1>
+        {% if user.is_authenticated %}
+        <p>You are logged in as: {{ user.username }}</p>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required />
+            <br />
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required />
+            <br />
+            <button type="submit">Login</button>
+        </form>
+        {% if error is not None %}
+        <p style="color: red">Invalid username or password</p>
+        {% endif %} {% endif %}
     </body>
 </html>
