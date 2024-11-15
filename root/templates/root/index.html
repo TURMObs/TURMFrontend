@@ -89,7 +89,7 @@
 
     <div class="button-container">
         <button onclick="window.location.href='/interactiveTest/'">Go to Interactive Test</button>
-        <button onclick="fetchData()">Fetch Data</button>
+        <button onclick="fetchData()">Upload Data</button>
         <button onclick="window.location.href='/authentication/'">Login</button>
     </div>
 
@@ -129,7 +129,7 @@
               .then((response) => response.json())
               .then((result) => {
                   console.log(result);
-                  showModal('success', 'Success!', 'Data fetched successfully!');
+                  showModal('success', 'Success!', 'Data uploaded successfully!');
               })
               .catch((error) => {
                   console.error(error);
