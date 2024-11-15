@@ -92,12 +92,14 @@
         {% if error %}
         <p style="color: red">Invalid invitation link</p>
         {% else %}
-        <form method="post">
-            {% csrf_token %}
-            <p>Email: {{ email }}</p>
-            {{ form.as_p }}
-            <button type="submit">Set Password and Register</button>
-        </form>
+        <div>
+            <form method="post">
+                {% csrf_token %}
+                <p>Email: {{ email }}</p>
+                {{ form.as_p }}
+                <button type="submit">Set Password and Register</button>
+            </form>
+        </div>
         {% endif %}
     </body>
 </html>

@@ -31,6 +31,12 @@ def generate_invitation_link(request):
     if request.method == "POST":
         email = request.POST.get("email")
         link = generate_url(request, email)
+        if link is None:
+            return render(
+                request,
+                "authentication/generate_invitation_link.html",
+                {"error": "Email already registered"},
+            )
         return render(
             request, "authentication/generate_invitation_link.html", {"link": link}
         )
@@ -70,9 +76,13 @@ def register(request, token):
         {"form": form, "email": invitation.email},
     )
 
-
 def generate_url(request, email):
-    # TODO: check if email is already registered
+    # Check if email is already registered
+    if User.objects.filter(email=email).exists():
+        return None
+    if InvitationToken.objects.filter(email=email).exists():
+        return None
+
     invitation = InvitationToken.objects.create(email=email)
     current_site = get_current_site(request)
     invitation_link = f"http://{current_site.domain}{reverse('register_from_invitation', args=[str(invitation.token)])}"
