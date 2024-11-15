@@ -90,6 +90,10 @@
         <h1>Authentication</h1>
         {% if user.is_authenticated %}
         <p>You are logged in as: {{ user.username }}</p>
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
         {% if user.is_superuser %}
         <button onclick="window.location.href='generate-invitation-link'">
             Generate Invitation Link
