@@ -6,7 +6,7 @@ from .models import InvitationToken, generate_invitation_link
 
 class GenerateInvitationLinkTest(TestCase):
     def setUp(self):
-        self.base_url = "http://testserver/invite/"
+        self.base_url = "http://testserver/invite"
         self.email = "test@example.com"
 
     def test_generate_invitation_link_new_email(self):
@@ -17,7 +17,7 @@ class GenerateInvitationLinkTest(TestCase):
         # Check that an InvitationToken was created
         token = InvitationToken.objects.get(email=self.email)
         self.assertIsNotNone(token)
-        self.assertEqual(link, f"{self.base_url}{token.token}")
+        self.assertEqual(link, f"{self.base_url}/{token.token}")
 
     def test_generate_invitation_link_existing_user(self):
         User.objects.create_user(

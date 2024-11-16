@@ -15,12 +15,10 @@ def generate_invitation_link(base_url: str, email: str) -> Optional[str]:
     """
     Generate an invitation link for a user with a given email address.
 
-    Args:
-        base_url (str): The base URL for the invitation link.
-        email (str): The email address of the user to invite.
+    :param base_url: The base URL for the invitation link (e.g. http://localhost:8000/invite)
+    :param email: The email address of the user to invite
 
-    Returns:
-        Optional[str]: The generated invitation link, or None if a user with the given email already exists.
+    :return: The generated invitation link, or None if a user with the given email already exists.
     """
 
     # Check if email is already registered

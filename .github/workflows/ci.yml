@@ -28,3 +28,5 @@ jobs:
         uses: crate-ci/typos@v1.27.2
         with:
           config: ./typos.toml
+      - name: Run tests
+        run: python manage.py test

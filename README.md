@@ -14,8 +14,8 @@
     | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False)                                                                                                 | **No**       | `True` for development, `False` for deployment |
     | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder        |
     | `DB_PORT`                | Local Port that the Postgres DB can be accessed on (outside the container)                                                                                    | **Yes**      | `5432`                                         |
-    | `WEB_PORT`               | Local Port used for the website                                                                                                                               | **Yes**      | `8000`                                         | 
-    | `NC_PORT`         | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, only required for Nextcloud testing | 
+    | `WEB_PORT`               | Local Port used for the website                                                                                                                               | **Yes**      | `8000`                                         |
+    | `NC_PORT`         | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, only required for Nextcloud testing |
     | `NC_USER`         | User for the Nextcloud instance                                                                                                                               | **No**       | Nextcloud User                                        |
     | `NC_PASSWORD`     | Password for the Nextcloud instance                                                                                                                           | **No**       | Nextcloud password                                |
 
@@ -38,6 +38,7 @@ NC_PASSWORD=<password>
 To develop the project locally, install the dependencies using `pip install -r requirements_dev.txt`.
 Run the server using `docker-compose up`.
 To format the code, run `scripts/format.sh`.
+To run the tests, run `python manage.py test`.
 
 ## Docker Compose
 Run using `docker-compose up` in the root directory of the project. The application will be available at `http://localhost:8000`.
