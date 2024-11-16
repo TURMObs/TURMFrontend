@@ -33,6 +33,12 @@ NC_USER=<user>
 NC_PASSWORD=<password>
 ```
 
+## Development
+
+To develop the project locally, install the dependencies using `pip install -r requirements_dev.txt`.
+Run the server using `docker-compose up`.
+To format the code, run `scripts/format.sh`.
+
 ## Docker Compose
 Run using `docker-compose up` in the root directory of the project. The application will be available at `http://localhost:8000`.
 Hot reloading is supported. The data will be saved in a PostgreSQL database, inside the `data` folder.

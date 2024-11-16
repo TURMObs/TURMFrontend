@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>test123</title>
-</head>
-<body>
-    <h1> local templates </h1>
-    <button id="create_json_button"> press me </button>
-    <pre id="response_output"></pre>
-    <script>
+    <head>
+        <meta charset="UTF-8">
+        <title>test123</title>
+    </head>
+    <body>
+        <h1>local templates</h1>
+        <button id="create_json_button">press me</button>
+        <pre id="response_output"></pre>
+        <script>
         document.getElementById("create_json_button").addEventListener("click", function() {
             const jsonData = {
                 message: 'test',
@@ -28,6 +28,6 @@
                 })
                 .catch(error => console.error("error: ", error))
         });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
