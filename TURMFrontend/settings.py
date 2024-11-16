@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "observations",
     "root",
+    "observationRequest"
 ]
 
 MIDDLEWARE = [

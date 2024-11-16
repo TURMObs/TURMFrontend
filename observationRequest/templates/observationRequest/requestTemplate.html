@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>This is the Forms Test</title>
+</head>
+<style>
+    * {
+        box-sizing: border-box;
+
+    }
+    body {
+        margin: 0;
+        background-color: #242424;
+    }
+    header {
+        background-color: #313131;
+        margin-bottom: 2em;
+
+        color: white;
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    .container_center {
+        display: flex;
+        justify-content: center;
+    }
+
+    .container_column {
+        display: flex;
+        flex-flow: column;
+    }
+
+    .form_body {
+        background-color: #313131;
+
+        width: 1140px;
+
+        margin-bottom: 1.5em;
+
+        border-radius: 5px;
+
+        padding: 1em 30px;
+
+        color: white;
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    label {
+        font-size: 1.15em;
+    }
+
+    .input_text {
+        display: block;
+
+        margin-top: 0.25em;
+        margin-bottom: 0.75em;
+
+        border: .1em solid transparent;
+        border-radius: 5px;
+
+        padding: 0.5em;
+
+        width: 100%;
+
+
+        background-color: #242424;
+
+        color: white;
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 1.15em;
+    }
+
+    .input_text:hover {
+
+    }
+
+    .input_text:focus {
+        outline: none;
+
+        border: .1em solid white;
+    }
+
+
+</style>
+<body>
+<header class="container_center">
+    <h1> simple Observation request Form: </h1>
+</header>
+<div class="container_center">
+    <div class="container_column">
+        <article class="form_body">
+            <div class="container_center">
+                <h1> Form 123 </h1>
+            </div>
+        </article>
+
+        <article class="form_body">
+            <h2> Project </h2>
+            <form class="form_center">
+                {{ form_project }}
+            </form>
+        </article>
+
+        <article class="form_body">
+            <h2> Target </h2>
+            <form>
+                {{ form_target }}
+            </form>
+        </article>
+
+        <button> submit </button>
+    </div>
+</div>
+
+</body>
+</html>

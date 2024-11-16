@@ -23,4 +23,5 @@ urlpatterns = [
     path("interactiveTest/", include("interactiveTest.urls")),
     path("observations/", include("observations.urls")),
     path("", include("root.urls")),
+    path("observationRequest/", include("observationRequest.urls")),
 ]
