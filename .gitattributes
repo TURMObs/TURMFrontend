@@ -1,2 +1,2 @@
 # See https://delitescere.medium.com/docker-file-permissions-and-line-endings-9aced07d70f8
-* text eol=lf
+*.sh eol=lf
