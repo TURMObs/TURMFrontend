@@ -1,11 +1,9 @@
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
-from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import redirect, render
-from django.urls import reverse
 
-from .models import InvitationToken
+from .models import InvitationToken, generate_invitation_link
 
 
 def index(request):
@@ -25,20 +23,21 @@ def index(request):
     else:
         return render(request, "authentication/index.html")
 
-def generate_invitation_link(request):
+def generate_invitation(request):
     if request.method == "POST":
         email = request.POST.get("email")
-        link = generate_url(request, email)
+        base_url = request.build_absolute_uri("register")
+        link = generate_invitation_link(base_url, email)
         if link is None:
             return render(
                 request,
-                "authentication/generate_invitation_link.html",
+                "authentication/generate_invitation.html",
                 {"error": "Email already registered"},
             )
         return render(
-            request, "authentication/generate_invitation_link.html", {"link": link}
+            request, "authentication/generate_invitation.html", {"link": link}
         )
-    return render(request, "authentication/generate_invitation_link.html")
+    return render(request, "authentication/generate_invitation.html")
 
 def register(request, token):
     try:
@@ -72,15 +71,3 @@ def register(request, token):
         "authentication/register_from_invitation.html",
         {"form": form, "email": invitation.email},
     )
-
-def generate_url(request, email):
-    # Check if email is already registered
-    if User.objects.filter(email=email).exists():
-        return None
-    if InvitationToken.objects.filter(email=email).exists():
-        return None
-
-    invitation = InvitationToken.objects.create(email=email)
-    current_site = get_current_site(request)
-    invitation_link = f"http://{current_site.domain}{reverse('register_from_invitation', args=[str(invitation.token)])}"
-    return invitation_link
