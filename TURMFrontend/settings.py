@@ -85,12 +85,12 @@ WSGI_APPLICATION = "TURMFrontend.wsgi.application"
 
 load_dotenv()
 
-if 'test' in sys.argv:
+if "test" in sys.argv:
     # Use in-memory SQLite database for testing
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
         }
     }
 else:

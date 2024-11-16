@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
@@ -88,20 +88,17 @@
             <button onclick="window.location.href='/'">Home</button>
         </div>
         <h1>Generate Invitation Link</h1>
-        {%if error is not None %}
-        <p style="color: red">{{error}}</p>
-        {%endif%}
-
+        {% if error is not None %}<p style="color: red">{{ error }}</p>{% endif %}
         <form method="post">
             {% csrf_token %}
             <label for="email">E-Mail:</label>
             <input type="text" name="email" id="email" required />
             <button type="submit">Generate</button>
         </form>
-        {%if link is not None %}
-        <p id="invitationLink">{{link}}</p>
-        <button onclick="copyLink()">Copy Link</button>
-        <script>
+        {% if link is not None %}
+            <p id="invitationLink">{{ link }}</p>
+            <button onclick="copyLink()">Copy Link</button>
+            <script>
             function copyLink() {
                 var linkText =
                     document.getElementById("invitationLink").textContent;
@@ -114,7 +111,7 @@
                     },
                 );
             }
-        </script>
-        {%endif%}
+            </script>
+        {% endif %}
     </body>
 </html>

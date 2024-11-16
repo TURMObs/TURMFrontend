@@ -23,6 +23,7 @@ def index(request):
     else:
         return render(request, "authentication/index.html")
 
+
 def generate_invitation(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -38,6 +39,7 @@ def generate_invitation(request):
             request, "authentication/generate_invitation.html", {"link": link}
         )
     return render(request, "authentication/generate_invitation.html")
+
 
 def register(request, token):
     try:

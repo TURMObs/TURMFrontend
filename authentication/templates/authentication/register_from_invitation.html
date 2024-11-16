@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
@@ -88,18 +88,17 @@
             <button onclick="window.location.href='/'">Home</button>
         </div>
         <h1>Create account</h1>
-
         {% if error %}
-        <p style="color: red">Invalid invitation link</p>
+            <p style="color: red">Invalid invitation link</p>
         {% else %}
-        <div>
-            <form method="post">
-                {% csrf_token %}
-                <p>Email: {{ email }}</p>
-                {{ form.as_p }}
-                <button type="submit">Set Password and Register</button>
-            </form>
-        </div>
+            <div>
+                <form method="post">
+                    {% csrf_token %}
+                    <p>Email: {{ email }}</p>
+                    {{ form.as_p }}
+                    <button type="submit">Set Password and Register</button>
+                </form>
+            </div>
         {% endif %}
     </body>
 </html>

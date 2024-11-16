@@ -10,6 +10,7 @@ class InvitationToken(models.Model):
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+
 def generate_invitation_link(base_url: str, email: str) -> Optional[str]:
     """
     Generate an invitation link for a user with a given email address.
