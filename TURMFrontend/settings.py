@@ -116,9 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = {
-    "django.contrib.auth.backends.ModelBackend"
-}
+AUTHENTICATION_BACKENDS = {"django.contrib.auth.backends.ModelBackend"}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

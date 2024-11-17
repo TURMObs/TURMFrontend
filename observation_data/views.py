@@ -22,6 +22,12 @@ observation_type_to_serializer = {
 
 @api_view(["POST"])
 def create_observation(request):
+    """
+    Create an observation based on the observation type.
+    Note that the user must be authenticated to create an observation and staff to create an expert observation.
+    :param request: HTTP request
+    :return: HTTP response
+    """
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"},

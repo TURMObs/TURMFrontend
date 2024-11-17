@@ -1,3 +1,8 @@
+"""
+Serializers for the observation_data app models.
+For a usage example, see the create_observation view in the views.py file.
+"""
+
 from rest_framework import serializers
 
 from .models import (
@@ -26,14 +31,23 @@ base_fields = [
     "filter_set",
 ]
 
-def create_observation(validated_data, observation_type, model):
+
+def _create_observation(validated_data, observation_type, model):
+    """
+    Create an instance of an observation model.
+    :param validated_data: Data to create the observation
+    :param observation_type: Type of observation
+    :param model: Model to create
+    :return: Created observation
+
+    """
     target_data = validated_data.pop("target")
     target_catalog_id = target_data.get("catalog_id")
     created_target, created = CelestialTarget.objects.get_or_create(
         catalog_id=target_catalog_id,
-        name = target_data.get("name"),
-        ra = target_data.get("ra"),
-        dec = target_data.get("dec"),
+        name=target_data.get("name"),
+        ra=target_data.get("ra"),
+        dec=target_data.get("dec"),
     )
 
     validated_data["project_status"] = "Pending Upload"
@@ -43,10 +57,12 @@ def create_observation(validated_data, observation_type, model):
     observation = model.objects.create(target=created_target, **validated_data)
     return observation
 
+
 class CelestialTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelestialTarget
         fields = ["catalog_id", "name", "ra", "dec"]
+
 
 class ObservatorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -60,6 +76,7 @@ class ObservatorySerializer(serializers.ModelSerializer):
             "filter_set",
         ]
 
+
 class ImagingObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
 
@@ -67,10 +84,8 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
         model = ImagingObservation
         fields = base_fields + ["frames_per_filter"]
 
-
     def create(self, validated_data):
-        return create_observation(validated_data, "Imaging", ImagingObservation)
-
+        return _create_observation(validated_data, "Imaging", ImagingObservation)
 
 
 class ExoplanetObservationSerializer(serializers.ModelSerializer):
@@ -84,7 +99,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        return create_observation(validated_data, "Exoplanet", ExoplanetObservation)
+        return _create_observation(validated_data, "Exoplanet", ExoplanetObservation)
 
 
 class VariableObservationSerializer(serializers.ModelSerializer):
@@ -95,7 +110,7 @@ class VariableObservationSerializer(serializers.ModelSerializer):
         fields = base_fields + ["minimum_altitude"]
 
     def create(self, validated_data):
-        return create_observation(validated_data, "Variable", VariableObservation)
+        return _create_observation(validated_data, "Variable", VariableObservation)
 
 
 class MonitoringObservationSerializer(serializers.ModelSerializer):
@@ -111,7 +126,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        return create_observation(validated_data, "Monitoring", MonitoringObservation)
+        return _create_observation(validated_data, "Monitoring", MonitoringObservation)
 
 
 class ExpertObservationSerializer(serializers.ModelSerializer):
@@ -134,8 +149,8 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "moon_separation_angle",
             "moon_separation_width",
             "minimum_altitude",
-            "priority"
+            "priority",
         ]
 
     def create(self, validated_data):
-        return create_observation(validated_data, "Expert", ExpertObservation)
+        return _create_observation(validated_data, "Expert", ExpertObservation)

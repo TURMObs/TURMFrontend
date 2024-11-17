@@ -1,10 +1,8 @@
 # Create your tests here.
 import django.test
-from django.db.models import DurationField
 
 from observation_data.models import Observatory, CelestialTarget
-from django.contrib.auth.models import User, Permission
-from django.test import TestCase
+from django.contrib.auth.models import User
 
 
 class ObservationCreationTestCase(django.test.TestCase):

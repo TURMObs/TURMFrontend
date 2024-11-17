@@ -1,8 +1,16 @@
+"""
+All database models for the observation requests, targets and observatories.
+"""
+
 from django.contrib.auth.models import User
 from django.db import models
 
 
 class CelestialTarget(models.Model):
+    """
+    Model for the celestial targets that can be observed.
+    """
+
     catalog_id = models.CharField(max_length=50)
     name = models.CharField(max_length=100)
     ra = models.CharField(max_length=25)
@@ -10,6 +18,10 @@ class CelestialTarget(models.Model):
 
 
 class Observatory(models.Model):
+    """
+    Model for the observatories that can be used for the observations.
+    """
+
     name = models.CharField(max_length=100, primary_key=True)
     horizon_offset = models.DecimalField(max_digits=5, decimal_places=2)
     min_stars = models.IntegerField()
@@ -19,6 +31,11 @@ class Observatory(models.Model):
 
 
 class AbstractObservation(models.Model):
+    """
+    Abstract class for the different types of observations including common fields.
+    Note that this means that each observation will have a corresponding row in the AbstractObservation table.
+    """
+
     class ObservationType(models.TextChoices):
         IMAGING = "Imaging"
         EXOPLANET = "Exoplanet"
@@ -30,7 +47,7 @@ class AbstractObservation(models.Model):
         Observatory,
         on_delete=models.PROTECT,
         related_name="+",  # prevents backward relation
-        db_column="observatory"
+        db_column="observatory",
     )
     target = models.ForeignKey(
         CelestialTarget,
