@@ -52,19 +52,19 @@ class Migration(migrations.Migration):
                         parent_link=True,
                         primary_key=True,
                         serialize=False,
-                        to="observations.abstractobservation",
+                        to="observation_data.abstractobservation",
                     ),
                 ),
                 ("filter_set", models.CharField(max_length=100)),
             ],
-            bases=("observations.abstractobservation",),
+            bases=("observation_data.abstractobservation",),
         ),
         migrations.AddField(
             model_name="abstractobservation",
             name="target",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
-                to="observations.celestialtarget",
+                to="observation_data.celestialtarget",
             ),
         ),
     ]

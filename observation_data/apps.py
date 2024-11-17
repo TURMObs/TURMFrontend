@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ObservationsConfig(AppConfig):
+class ObservationsDataConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "observations"
+    name = "observation_data"

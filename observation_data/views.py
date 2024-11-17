@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from observations.serializers import ExoplanetObservationSerializer
+from observation_data.serializers import ExoplanetObservationSerializer
 
 
 # Create your views here.

@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "interactiveTest",
     "rest_framework",
-    "observations",
+    "observation_data",
     "root",
 ]
 

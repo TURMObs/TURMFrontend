@@ -11,7 +11,7 @@ class CelestialTarget(models.Model):
 class AbstractObservation(models.Model):
     observatory = models.CharField(max_length=100)
     target = models.ForeignKey(
-        CelestialTarget, on_delete=models.CASCADE, related_name="observations"
+        CelestialTarget, on_delete=models.DO_NOTHING, related_name="observation_data"
     )
 
 
