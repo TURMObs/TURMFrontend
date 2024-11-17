@@ -37,7 +37,8 @@ def create_observation(validated_data, observation_type, model):
     )
 
     validated_data["project_status"] = "Pending Upload"
-    validated_data["priority"] = priorities[observation_type]
+    if observation_type in priorities:
+        validated_data["priority"] = priorities[observation_type]
 
     observation = model.objects.create(target=created_target, **validated_data)
     return observation
@@ -74,8 +75,6 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
 
 class ExoplanetObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
-    start_observation = serializers.DateTimeField()
-    end_observation = serializers.DateTimeField()
 
     class Meta:
         model = ExoplanetObservation
@@ -90,7 +89,6 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
 
 class VariableObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
-    minimum_altitude = serializers.DecimalField(max_digits=5, decimal_places=2)
 
     class Meta:
         model = VariableObservation
@@ -102,10 +100,6 @@ class VariableObservationSerializer(serializers.ModelSerializer):
 
 class MonitoringObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
-    frames_per_filter = serializers.IntegerField()
-    start_scheduling = serializers.DateTimeField()
-    end_scheduling = serializers.DateTimeField()
-    cadence = serializers.DurationField()
 
     class Meta:
         model = MonitoringObservation
@@ -122,20 +116,6 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
 
 class ExpertObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
-    frames_per_filter = serializers.IntegerField()
-    dither_every = serializers.DecimalField(max_digits=5, decimal_places=2)
-    binning = serializers.CharField(max_length=50)
-    subframe = serializers.CharField(max_length=50)
-    gain = serializers.IntegerField()
-    offset = serializers.IntegerField()
-    start_observation = serializers.DateTimeField()
-    end_observation = serializers.DateTimeField()
-    start_scheduling = serializers.DateTimeField()
-    end_scheduling = serializers.DateTimeField()
-    cadence = serializers.DurationField()
-    moon_separation_angle = serializers.DecimalField(max_digits=5, decimal_places=2)
-    moon_separation_width = serializers.IntegerField()
-    minimum_altitude = serializers.DecimalField(max_digits=5, decimal_places=2)
 
     class Meta:
         model = ExpertObservation
@@ -154,6 +134,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "moon_separation_angle",
             "moon_separation_width",
             "minimum_altitude",
+            "priority"
         ]
 
     def create(self, validated_data):

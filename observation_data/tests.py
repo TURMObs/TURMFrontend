@@ -1,8 +1,10 @@
 # Create your tests here.
 import django.test
+from django.db.models import DurationField
 
 from observation_data.models import Observatory, CelestialTarget
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.test import TestCase
 
 
 class ObservationCreationTestCase(django.test.TestCase):
@@ -12,6 +14,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user = User.objects.create_user(
             username="testuser", password="testpassword", email="test@gmail.com"
         )
+        self.client.force_login(self.user)
+
         # Create an observatory
         Observatory.objects.create(
             name="TURMX",
@@ -40,6 +44,13 @@ class ObservationCreationTestCase(django.test.TestCase):
             "exposure_time": 60.0,
             "filter_set": "L",
         }
+
+    def test_no_user(self):
+        self.client.logout()
+        response = self.client.post(
+            path="/observation_data/create/", data={}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403, response.json())
 
     def test_missing_type(self):
         response = self.client.post(
@@ -74,6 +85,74 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
         self.assertEqual(response.status_code, 201, response.json())
 
+    def test_exoplanet_insert(self):
+        data = self.base_request
+        data["observation_type"] = "Exoplanet"
+        data["start_observation"] = "2021-01-01T00:00:00Z"
+        data["end_observation"] = "2021-01-01T01:00:00Z"
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_variable_insert(self):
+        data = self.base_request
+        data["observation_type"] = "Variable"
+        data["minimum_altitude"] = 30.0
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_monitoring_insert(self):
+        data = self.base_request
+        data["observation_type"] = "Monitoring"
+        data["frames_per_filter"] = 1
+        data["start_scheduling"] = "2021-01-01T00:00:00Z"
+        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["cadence"] = "PT1H"
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_expert_insert(self):
+        self.user.is_staff = True
+        self.user.save()
+        data = self.base_request
+        data["observation_type"] = "Expert"
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = "1x1"
+        data["subframe"] = "Full"
+        data["gain"] = 1
+        data["offset"] = 1
+        data["start_observation"] = "2021-01-01T00:00:00Z"
+        data["end_observation"] = "2021-01-01T01:00:00Z"
+        data["start_scheduling"] = "2021-01-01T00:00:00Z"
+        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["cadence"] = "PT1H"
+        data["moon_separation_angle"] = 30.0
+        data["moon_separation_width"] = 30.0
+        data["minimum_altitude"] = 35
+        data["priority"] = 100
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_no_expert_user(self):
+        data = self.base_request
+        data["observation_type"] = "Expert"
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = "1x1"
+        data["subframe"] = "Full"
+        data["gain"] = 1
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403, response.json())
 
     def test_wrong_observatory(self):
         data = self.base_request

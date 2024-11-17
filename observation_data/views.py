@@ -11,41 +11,45 @@ from observation_data.serializers import (
     ExpertObservationSerializer,
 )
 
+observation_type_to_serializer = {
+    "Exoplanet": ExoplanetObservationSerializer,
+    "Imaging": ImagingObservationSerializer,
+    "Variable": VariableObservationSerializer,
+    "Monitoring": MonitoringObservationSerializer,
+    "Expert": ExpertObservationSerializer,
+}
+
 
 @api_view(["POST"])
 def create_observation(request):
-    # TODO: Check and test user authentication
-    """
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"},
             status=HTTP_401_UNAUTHORIZED,
         )
-    """
+    request_data = request.data
+    request_data["user"] = request.user.id
 
-    if not request.data.get("observation_type"):
+    if not request_data.get("observation_type"):
         return Response(
             {"error": "Observation type missing"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    observation_type_to_serializer = {
-        "Exoplanet": ExoplanetObservationSerializer,
-        "Imaging": ImagingObservationSerializer,
-        "Variable": VariableObservationSerializer,
-        "Monitoring": MonitoringObservationSerializer,
-        "Expert": ExpertObservationSerializer,
-    }
-
-    serializer_class = observation_type_to_serializer.get(
-        request.data.get("observation_type")
-    )
+    observation_type = request_data.get("observation_type")
+    if observation_type == "Expert":
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+    serializer_class = observation_type_to_serializer.get(observation_type)
     if not serializer_class:
         return Response(
             {"error": "Invalid observation type"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    serializer = serializer_class(data=request.data)
+    serializer = serializer_class(data=request_data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
