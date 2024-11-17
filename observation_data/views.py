@@ -24,9 +24,10 @@ observation_type_to_serializer = {
 def create_observation(request):
     """
     Create an observation based on the observation type.
+    The passed data must include satisfy the is_valid() method of the corresponding serializer.
     Note that the user must be authenticated to create an observation and staff to create an expert observation.
-    :param request: HTTP request
-    :return: HTTP response
+    :param request: HTTP request with observation data
+    :return: HTTP response with the created observation data or error message
     """
     if not request.user.is_authenticated:
         return Response(
