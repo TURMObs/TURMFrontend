@@ -15,7 +15,7 @@ class Observatory(models.Model):
     min_stars = models.IntegerField()
     max_HFR = models.DecimalField(max_digits=5, decimal_places=2)
     max_guide_error = models.DecimalField(max_digits=15, decimal_places=2)
-    filter_Set = models.CharField(max_length=100) # comma separated list of filters
+    filter_set = models.CharField(max_length=100)  # comma separated list of filters
 
 
 class AbstractObservation(models.Model):
@@ -27,19 +27,23 @@ class AbstractObservation(models.Model):
         EXPERT = "Expert"
 
     observatory = models.ForeignKey(
-        Observatory, on_delete=models.PROTECT, related_name="+" # prevents backward relation
+        Observatory,
+        on_delete=models.PROTECT,
+        related_name="+",  # prevents backward relation
     )
     target = models.ForeignKey(
-        CelestialTarget, on_delete=models.PROTECT, related_name="+" # prevents backward relation
+        CelestialTarget,
+        on_delete=models.PROTECT,
+        related_name="+",  # prevents backward relation
     )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    observation_type = models.CharField(
+        choices=ObservationType.choices, db_column="type"
     )
-    observation_type = models.CharField(choices=ObservationType.choices, db_column="type")
     project_status = models.CharField(max_length=50)
     priority = models.IntegerField()
     exposure_time = models.DecimalField(max_digits=10, decimal_places=2)
-    filter_set = models.CharField(max_length=100) # comma separated list of filters
+    filter_set = models.CharField(max_length=100)  # comma separated list of filters
 
 
 class ImagingObservation(AbstractObservation):
@@ -50,14 +54,17 @@ class ExoplanetObservation(AbstractObservation):
     start_observation = models.DateTimeField()
     end_observation = models.DateTimeField()
 
+
 class VariableObservation(AbstractObservation):
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+
 
 class MonitoringObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
     start_scheduling = models.DateTimeField()
     end_scheduling = models.DateTimeField()
     cadence = models.DurationField()
+
 
 class ExpertObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
