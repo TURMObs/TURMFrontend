@@ -26,87 +26,49 @@ base_fields = [
     "filter_set",
 ]
 
+def create_observation(validated_data, observation_type, model):
+    target_data = validated_data.pop("target")
+    target_catalog_id = target_data.get("catalog_id")
+    created_target, created = CelestialTarget.objects.get_or_create(
+        catalog_id=target_catalog_id,
+        name = target_data.get("name"),
+        ra = target_data.get("ra"),
+        dec = target_data.get("dec"),
+    )
+
+    validated_data["project_status"] = "Pending Upload"
+    validated_data["priority"] = priorities[observation_type]
+
+    observation = model.objects.create(target=created_target, **validated_data)
+    return observation
 
 class CelestialTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelestialTarget
         fields = ["catalog_id", "name", "ra", "dec"]
 
-    def validate(self, data):
-        return data
-
-def create_observation(data, target_data, observation_type, model):
-    created_target, _ = CelestialTarget.objects.get_or_create(
-        catalog_id=target_data["catalog_id"],
-        defaults={
-            "name": target_data["name"],
-            "ra": target_data["ra"],
-            "dec": target_data["dec"],
-        },
-    )
-
-    data["project_status"] = "Pending Upload"
-    if observation_type in priorities:
-        data["priority"] = priorities[observation_type]
-
-    observation = model.objects.create(target=created_target, **data)
-    return observation
-
-
 class ObservatorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Observatory
         fields = [
             "name",
-            "horizonOffset",
+            "horizon_offset",
             "min_stars",
             "max_HFR",
             "max_guide_error",
             "filter_set",
         ]
 
-
-
 class ImagingObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
-    frames_per_filter = serializers.IntegerField()
 
     class Meta:
         model = ImagingObservation
         fields = base_fields + ["frames_per_filter"]
 
-    def resolve_target(self, data):
-        target_data = data.pop("target")
-        created_target, _ = CelestialTarget.objects.get_or_create(
-            catalog_id=target_data["catalog_id"],
-            defaults={
-                "name": target_data["name"],
-                "ra": target_data["ra"],
-                "dec": target_data["dec"],
-            },
-        )
-        target_serializer = CelestialTargetSerializer(created_target)
-        print("created_target: ", target_serializer.data)
-        data["target"] = target_serializer.data
-        return data
-
 
     def create(self, validated_data):
-        target_data = validated_data.pop("target")
-        created_target, _ = CelestialTarget.objects.get_or_create(
-            catalog_id=target_data["catalog_id"],
-            defaults={
-                "name": target_data["name"],
-                "ra": target_data["ra"],
-                "dec": target_data["dec"],
-            },
-        )
-
-        validated_data["project_status"] = "Pending Upload"
-        validated_data["priority"] = priorities["Imaging"]
-
-        observation = ImagingObservation.objects.create(target=created_target, **validated_data)
-        return observation
+        return create_observation(validated_data, "Imaging", ImagingObservation)
 
 
 

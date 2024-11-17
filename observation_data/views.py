@@ -46,7 +46,6 @@ def create_observation(request):
         )
 
     serializer = serializer_class(data=request.data)
-    serializer.resolve_target(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)

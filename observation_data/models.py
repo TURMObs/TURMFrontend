@@ -3,7 +3,7 @@ from django.db import models
 
 
 class CelestialTarget(models.Model):
-    catalog_id = models.CharField(max_length=50, primary_key=True)
+    catalog_id = models.CharField(max_length=50)
     name = models.CharField(max_length=100)
     ra = models.CharField(max_length=25)
     dec = models.CharField(max_length=25)
@@ -11,7 +11,7 @@ class CelestialTarget(models.Model):
 
 class Observatory(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
-    horizonOffset = models.DecimalField(max_digits=5, decimal_places=2)
+    horizon_offset = models.DecimalField(max_digits=5, decimal_places=2)
     min_stars = models.IntegerField()
     max_HFR = models.DecimalField(max_digits=5, decimal_places=2)
     max_guide_error = models.DecimalField(max_digits=15, decimal_places=2)
@@ -30,6 +30,7 @@ class AbstractObservation(models.Model):
         Observatory,
         on_delete=models.PROTECT,
         related_name="+",  # prevents backward relation
+        db_column="observatory"
     )
     target = models.ForeignKey(
         CelestialTarget,
