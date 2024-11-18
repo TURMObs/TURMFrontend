@@ -67,7 +67,7 @@ class AbstractObservation(models.Model):
     project_status = models.CharField(
         choices=ObservationStatus.choices
     )
-    progress_completion = models.DecimalField(max_digits=5, decimal_places=2)
+    project_completion = models.DecimalField(max_digits=5, decimal_places=2)
     priority = models.IntegerField()
     exposure_time = models.DecimalField(max_digits=10, decimal_places=2)
     filter_set = models.CharField(max_length=100)  # comma separated list of filters
