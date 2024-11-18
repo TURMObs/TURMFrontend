@@ -43,6 +43,12 @@ class AbstractObservation(models.Model):
         MONITORING = "Monitoring"
         EXPERT = "Expert"
 
+    class ObservationStatus(models.TextChoices):
+        PENDING = "Pending Upload"
+        UPLOADED = "Uploaded"
+        ERROR = "Error"
+        COMPLETED = "Completed"
+
     observatory = models.ForeignKey(
         Observatory,
         on_delete=models.PROTECT,
@@ -58,7 +64,10 @@ class AbstractObservation(models.Model):
     observation_type = models.CharField(
         choices=ObservationType.choices, db_column="type"
     )
-    project_status = models.CharField(max_length=50)
+    project_status = models.CharField(
+        choices=ObservationStatus.choices
+    )
+    progress_completion = models.DecimalField(max_digits=5, decimal_places=2)
     priority = models.IntegerField()
     exposure_time = models.DecimalField(max_digits=10, decimal_places=2)
     filter_set = models.CharField(max_length=100)  # comma separated list of filters

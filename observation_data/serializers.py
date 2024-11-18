@@ -51,6 +51,7 @@ def _create_observation(validated_data, observation_type, model):
     )
 
     validated_data["project_status"] = "Pending Upload"
+    validated_data["project_completion"] = 0.0
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
 
