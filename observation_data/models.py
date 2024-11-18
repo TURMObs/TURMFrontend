@@ -61,6 +61,7 @@ class AbstractObservation(models.Model):
         related_name="+",  # prevents backward relation
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField()
     observation_type = models.CharField(
         choices=ObservationType.choices, db_column="type"
     )

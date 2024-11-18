@@ -2,6 +2,7 @@
 Serializers for the observation_data app models.
 For a usage example, see the create_observation view in the views.py file.
 """
+from datetime import datetime, timezone
 
 from rest_framework import serializers
 
@@ -52,6 +53,8 @@ def _create_observation(validated_data, observation_type, model):
 
     validated_data["project_status"] = "Pending Upload"
     validated_data["project_completion"] = 0.0
+    validated_data["created_at"] = datetime.now(timezone.utc)
+
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
 
