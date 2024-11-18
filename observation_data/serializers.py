@@ -61,20 +61,13 @@ def _create_observation(validated_data, observation_type, model):
 class CelestialTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelestialTarget
-        fields = ["catalog_id", "name", "ra", "dec"]
+        fields = '__all__'
 
 
 class ObservatorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Observatory
-        fields = [
-            "name",
-            "horizon_offset",
-            "min_stars",
-            "max_HFR",
-            "max_guide_error",
-            "filter_set",
-        ]
+        fields = '__all__'
 
 
 class ImagingObservationSerializer(serializers.ModelSerializer):
@@ -97,6 +90,22 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
             "start_observation",
             "end_observation",
         ]
+
+    def validate(self, attrs):
+        start_observation = attrs.get("start_observation")
+        end_observation = attrs.get("end_observation")
+        if start_observation and end_observation and start_observation >= end_observation:
+            raise serializers.ValidationError(
+                "Start observation must be before end observation"
+            )
+        # check if an overlapping observation exists
+        overlapping = ExoplanetObservation.objects.filter(
+            start_observation__lt=end_observation, end_observation__gt=start_observation
+        )
+        if overlapping.exists():
+            overlapping_data = ExoplanetObservationSerializer(overlapping, many=True).data
+            raise serializers.ValidationError({"overlapping_observations": overlapping_data})
+        return attrs
 
     def create(self, validated_data):
         return _create_observation(validated_data, "Exoplanet", ExoplanetObservation)

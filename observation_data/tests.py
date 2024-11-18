@@ -1,4 +1,6 @@
 # Create your tests here.
+from datetime import datetime, timezone
+
 import django.test
 
 from observation_data.models import Observatory, CelestialTarget
@@ -7,6 +9,7 @@ from django.contrib.auth.models import User
 
 class ObservationCreationTestCase(django.test.TestCase):
     def setUp(self):
+        self.maxDiff = None
         self.client = django.test.Client()
         # Create a user
         self.user = User.objects.create_user(
@@ -48,7 +51,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self.client.post(
             path="/observation_data/create/", data={}, content_type="application/json"
         )
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
 
     def test_missing_type(self):
         response = self.client.post(
@@ -172,6 +175,81 @@ class ObservationCreationTestCase(django.test.TestCase):
             path="/observation_data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_whole_overlap_exoplanet(self):
+        data = self.base_request
+        data["observation_type"] = "Exoplanet"
+        data["start_observation"] = datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc)
+        data["end_observation"] = datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc)
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        data["start_observation"] = datetime(2020, 1, 1, 0, 15)
+        data["end_observation"] = datetime(2020, 1, 1, 0, 45)
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400, response.json())
+
+        overlapping = response.json().get("overlapping_observations", [])
+        self.assertIsInstance(overlapping, list)
+        self.assertEqual(len(overlapping), 1)
+        self.assertEqual(datetime.fromisoformat(overlapping[0]["start_observation"]), datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc))
+        self.assertEqual(datetime.fromisoformat(overlapping[0]["end_observation"]), datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc))
+
+
+    def test_partial_overlap_exoplanet(self):
+        data = self.base_request
+        data["observation_type"] = "Exoplanet"
+        data["start_observation"] = datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc)
+        data["end_observation"] = datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc)
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        data["start_observation"] = datetime(2020, 1, 1, 1, 15)
+        data["end_observation"] = datetime(2020, 1, 1, 2, 30)
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400, response.json())
+
+        overlapping = response.json().get("overlapping_observations", [])
+        self.assertIsInstance(overlapping, list)
+        self.assertEqual(len(overlapping), 1)
+        self.assertEqual(datetime.fromisoformat(overlapping[0]["start_observation"]), datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc))
+        self.assertEqual(datetime.fromisoformat(overlapping[0]["end_observation"]), datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc))
+
+        data["start_observation"] = datetime(2020, 1, 1, 0, 0)
+        data["end_observation"] = datetime(2020, 1, 1, 1, 15)
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400, response.json())
+
+        overlapping = response.json().get("overlapping_observations", [])
+        self.assertIsInstance(overlapping, list)
+        self.assertEqual(len(overlapping), 1)
+        self.assertEqual(datetime.fromisoformat(overlapping[0]["start_observation"]), datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc))
+        self.assertEqual(datetime.fromisoformat(overlapping[0]["end_observation"]), datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc))
+
+
+    def test_no_overlap_exoplanet(self):
+        data = self.base_request
+        data["observation_type"] = "Exoplanet"
+        data["start_observation"] = datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc)
+        data["end_observation"] = datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc)
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        data["start_observation"] = datetime(2020, 1, 1, 1, 0)
+        data["end_observation"] = datetime(2020, 1, 1, 2, 0)
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
         )
