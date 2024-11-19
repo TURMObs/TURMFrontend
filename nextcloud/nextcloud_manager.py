@@ -80,6 +80,7 @@ def download_folder(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     _check_is_initialized()
     nc.files.download_directory_as_zip(nc_path, local_path)
 
+
 def _check_is_initialized():
     """
     Checks whether the Nextcloud connection was initialized
@@ -88,4 +89,6 @@ def _check_is_initialized():
     try:
         nc
     except NameError:
-        raise Exception("Call initialize_connection() first to initialize the Nextcloud connection")
+        raise Exception(
+            "Call initialize_connection() first to initialize the Nextcloud connection"
+        )
