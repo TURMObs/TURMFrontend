@@ -2,11 +2,9 @@
 Serializers for the observation_data app models.
 For a usage example, see the create_observation view in the views.py file.
 """
-from datetime import datetime, timezone
-from turtledemo.penrose import start
-from typing import List
 
-from django.db.models import QuerySet
+from datetime import datetime, timezone
+
 from rest_framework import serializers
 
 from .models import (
@@ -16,7 +14,7 @@ from .models import (
     VariableObservation,
     MonitoringObservation,
     ExpertObservation,
-    Observatory, AbstractObservation,
+    Observatory,
 )
 
 priorities = {
@@ -64,6 +62,7 @@ def _create_observation(validated_data, observation_type, model):
     observation = model.objects.create(target=created_target, **validated_data)
     return observation
 
+
 def _check_overlapping_observation(start_observation, end_observation) -> list:
     """
     Check if an observation overlaps with any existing observations.
@@ -71,15 +70,20 @@ def _check_overlapping_observation(start_observation, end_observation) -> list:
     :param end_observation: End time of the observation
     :return: List of overlapping observations
     """
-    overlapping_exoplanet = list(ExoplanetObservation.objects.filter(
-        start_observation__lt=end_observation,
-        end_observation__gt=start_observation,
-    ))
-    overlapping_expert = list(ExpertObservation.objects.filter(
-        start_observation__lt=end_observation,
-        end_observation__gt=start_observation,
-    ))
+    overlapping_exoplanet = list(
+        ExoplanetObservation.objects.filter(
+            start_observation__lt=end_observation,
+            end_observation__gt=start_observation,
+        )
+    )
+    overlapping_expert = list(
+        ExpertObservation.objects.filter(
+            start_observation__lt=end_observation,
+            end_observation__gt=start_observation,
+        )
+    )
     return overlapping_exoplanet + overlapping_expert
+
 
 def _validate_time_range(start_time, end_time):
     """
@@ -94,19 +98,21 @@ def _validate_time_range(start_time, end_time):
     overlapping = _check_overlapping_observation(start_time, end_time)
     if len(overlapping) != 0:
         overlapping_data = ExoplanetObservationSerializer(overlapping, many=True).data
-        raise serializers.ValidationError({"overlapping_observations": overlapping_data})
+        raise serializers.ValidationError(
+            {"overlapping_observations": overlapping_data}
+        )
 
 
 class CelestialTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelestialTarget
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ObservatorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Observatory
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ImagingObservationSerializer(serializers.ModelSerializer):
@@ -131,7 +137,9 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_time_range(attrs.get("start_observation"), attrs.get("end_observation"))
+        _validate_time_range(
+            attrs.get("start_observation"), attrs.get("end_observation")
+        )
         return attrs
 
     def create(self, validated_data):
@@ -189,7 +197,9 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_time_range(attrs.get("start_observation"), attrs.get("end_observation"))
+        _validate_time_range(
+            attrs.get("start_observation"), attrs.get("end_observation")
+        )
         return attrs
 
     def create(self, validated_data):

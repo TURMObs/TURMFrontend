@@ -4,8 +4,6 @@ from observation_data.models import Observatory, CelestialTarget
 from django.contrib.auth.models import User
 
 
-
-
 class ObservationCreationTestCase(django.test.TestCase):
     def setUp(self):
         self.maxDiff = None
@@ -68,11 +66,15 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_missing_type(self):
         response = self._send_post_request({})
-        self._assert_error_response(response, 400, {"error": "Observation type missing"})
+        self._assert_error_response(
+            response, 400, {"error": "Observation type missing"}
+        )
 
     def test_invalid_type(self):
         response = self._send_post_request({"observation_type": "Invalid"})
-        self._assert_error_response(response, 400, {"error": "Invalid observation type"})
+        self._assert_error_response(
+            response, 400, {"error": "Invalid observation type"}
+        )
 
     def test_missing_fields(self):
         response = self._send_post_request({"type": "Imaging"})
@@ -90,42 +92,51 @@ class ObservationCreationTestCase(django.test.TestCase):
         self._test_observation_insert("Imaging", {"frames_per_filter": 1})
 
     def test_exoplanet_insert(self):
-        self._test_observation_insert("Exoplanet", {
-            "start_observation": "2021-01-01T00:00:00Z",
-            "end_observation": "2021-01-01T01:00:00Z"
-        })
+        self._test_observation_insert(
+            "Exoplanet",
+            {
+                "start_observation": "2021-01-01T00:00:00Z",
+                "end_observation": "2021-01-01T01:00:00Z",
+            },
+        )
 
     def test_variable_insert(self):
         self._test_observation_insert("Variable", {"minimum_altitude": 30.0})
 
     def test_monitoring_insert(self):
-        self._test_observation_insert("Monitoring", {
-            "frames_per_filter": 1,
-            "start_scheduling": "2021-01-01T00:00:00Z",
-            "end_scheduling": "2021-01-01T01:00:00Z",
-            "cadence": "PT1H"
-        })
+        self._test_observation_insert(
+            "Monitoring",
+            {
+                "frames_per_filter": 1,
+                "start_scheduling": "2021-01-01T00:00:00Z",
+                "end_scheduling": "2021-01-01T01:00:00Z",
+                "cadence": "PT1H",
+            },
+        )
 
     def test_expert_insert(self):
         self.user.is_superuser = True
         self.user.save()
-        self._test_observation_insert("Expert", {
-            "frames_per_filter": 1,
-            "dither_every": 1.0,
-            "binning": "1x1",
-            "subframe": "Full",
-            "gain": 1,
-            "offset": 1,
-            "start_observation": "2021-01-01T00:00:00Z",
-            "end_observation": "2021-01-01T01:00:00Z",
-            "start_scheduling": "2021-01-01T00:00:00Z",
-            "end_scheduling": "2021-01-01T01:00:00Z",
-            "cadence": "PT1H",
-            "moon_separation_angle": 30.0,
-            "moon_separation_width": 30.0,
-            "minimum_altitude": 35,
-            "priority": 100
-        })
+        self._test_observation_insert(
+            "Expert",
+            {
+                "frames_per_filter": 1,
+                "dither_every": 1.0,
+                "binning": "1x1",
+                "subframe": "Full",
+                "gain": 1,
+                "offset": 1,
+                "start_observation": "2021-01-01T00:00:00Z",
+                "end_observation": "2021-01-01T01:00:00Z",
+                "start_scheduling": "2021-01-01T00:00:00Z",
+                "end_scheduling": "2021-01-01T01:00:00Z",
+                "cadence": "PT1H",
+                "moon_separation_angle": 30.0,
+                "moon_separation_width": 30.0,
+                "minimum_altitude": 35,
+                "priority": 100,
+            },
+        )
 
     def test_no_expert_user(self):
         data = self.base_request.copy()
@@ -174,8 +185,12 @@ class ObservationCreationTestCase(django.test.TestCase):
             overlapping = response.json().get("overlapping_observations", [])
             self.assertIsInstance(overlapping, list)
             self.assertEqual(len(overlapping), 1)
-            self.assertEqual(datetime.fromisoformat(overlapping[0]["start_observation"]), start1)
-            self.assertEqual(datetime.fromisoformat(overlapping[0]["end_observation"]), end1)
+            self.assertEqual(
+                datetime.fromisoformat(overlapping[0]["start_observation"]), start1
+            )
+            self.assertEqual(
+                datetime.fromisoformat(overlapping[0]["end_observation"]), end1
+            )
 
     def test_whole_overlap_exoplanet(self):
         self._test_exoplanet_overlap(
@@ -183,7 +198,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 15, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 45, tzinfo=timezone.utc),
-            400
+            400,
         )
 
     def test_partial_overlap_exoplanet_end(self):
@@ -193,7 +208,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 1, 15, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 2, 30, tzinfo=timezone.utc),
-            400
+            400,
         )
 
     def test_partial_overlap_exoplanet_start(self):
@@ -202,7 +217,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 1, 15, tzinfo=timezone.utc),
-            400
+            400,
         )
 
     def test_no_overlap_exoplanet(self):
@@ -211,6 +226,5 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
-            201
+            201,
         )
-

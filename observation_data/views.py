@@ -20,6 +20,7 @@ observation_type_to_serializer = {
     "Expert": ExpertObservationSerializer,
 }
 
+
 @require_POST
 @api_view(["POST"])
 def create_observation(request):

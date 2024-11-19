@@ -65,9 +65,7 @@ class AbstractObservation(models.Model):
     observation_type = models.CharField(
         choices=ObservationType.choices, db_column="type"
     )
-    project_status = models.CharField(
-        choices=ObservationStatus.choices
-    )
+    project_status = models.CharField(choices=ObservationStatus.choices)
     project_completion = models.DecimalField(max_digits=5, decimal_places=2)
     priority = models.IntegerField()
     exposure_time = models.DecimalField(max_digits=10, decimal_places=2)
