@@ -107,7 +107,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         })
 
     def test_expert_insert(self):
-        self.user.is_staff = True
+        self.user.is_superuser = True
         self.user.save()
         self._test_observation_insert("Expert", {
             "frames_per_filter": 1,

@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -19,7 +20,7 @@ observation_type_to_serializer = {
     "Expert": ExpertObservationSerializer,
 }
 
-
+@require_POST
 @api_view(["POST"])
 def create_observation(request):
     """
@@ -45,7 +46,7 @@ def create_observation(request):
 
     observation_type = request_data.get("observation_type")
     if observation_type == "Expert":
-        if not request.user.is_staff:
+        if not request.user.is_superuser:
             return Response(
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,
