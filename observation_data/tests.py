@@ -1,12 +1,18 @@
+import json
+import os
+import unittest
 from datetime import timezone, datetime
 import django.test
-from observation_data.models import Observatory, CelestialTarget
+from django.conf import settings
+
+from observation_data.models import Observatory, CelestialTarget, ImagingObservation, ExoplanetObservation
 from django.contrib.auth.models import User
+
+from observation_data.serializers import ImagingObservationSerializer, ExoplanetObservationSerializer
 
 
 class ObservationCreationTestCase(django.test.TestCase):
     def setUp(self):
-        self.maxDiff = None
         self.client = django.test.Client()
         self._create_user_and_login()
         self._create_observatory_and_target()
@@ -228,3 +234,136 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
             201,
         )
+
+
+class JsonFormattingTestCase(django.test.TestCase):
+    def setUp(self):
+        self.maxDiff = None
+        self.client = django.test.Client()
+        self._create_user_and_login()
+        self._create_observatory_and_targets()
+        self._create_imaging_observation()
+        self._create_exoplanet_observation()
+
+    def _create_user_and_login(self):
+        self.user = User.objects.create_user(
+            username="JsonTest", password="JsonTest", email="JsonTest@gmail.com"
+        )
+        self.user.is_superuser = True
+        self.client.force_login(self.user)
+
+    @staticmethod
+    def _create_observatory_and_targets():
+        Observatory.objects.create(
+            name="TURMX",
+            horizon_offset=0.0,
+            min_stars=-1,
+            max_HFR=4.0,
+            max_guide_error=1000.0,
+            filter_set="L",
+        )
+        CelestialTarget.objects.create(
+            catalog_id="LBN437", name="LBN437", ra="22 32 01", dec="40 49 24"
+        )
+        CelestialTarget.objects.create(
+            catalog_id="Qatar-4b",
+            name="Qatar-4b",
+            ra="00 19 26",
+            dec="+44 01 39",
+        )
+
+    def _create_imaging_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "catalog_id": "LBN437",
+                "name": "LBN437",
+                "ra": "22 32 01",
+                "dec": "40 49 24",
+            },
+            "observation_type": "Imaging",
+            "exposure_time": 300.0,
+            "filter_set": "H",
+            "frames_per_filter": 1,
+        }
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def _create_exoplanet_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "catalog_id": "Qatar-4b",
+                "name": "Qatar-4b",
+                "ra": "00 19 26",
+                "dec": "+44 01 39",
+            },
+            "observation_type": "Exoplanet",
+            "start_observation": "2024-10-25T19:30:00",
+            "end_observation": "2024-10-25T23:40:00",
+            "exposure_time": 120.0,
+            "filter_set": "L",
+        }
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_observation_exists(self):
+        observation = ImagingObservation.objects.get(target__catalog_id="LBN437")
+        self.assertIsNotNone(observation)
+
+    def assert_deep_dict_equal(self, dict1, dict2, path=""):
+        if isinstance(dict1, list) and isinstance(dict2, list):
+            if len(dict1) != len(dict2):
+                raise AssertionError(
+                    f"List length mismatch at '{path}': expected length {len(dict1)}, got {len(dict2)}"
+                )
+            for idx, (item1, item2) in enumerate(zip(dict1, dict2)):
+                self.assert_deep_dict_equal(item1, item2, f"{path}[{idx}]")
+        elif isinstance(dict1, dict) and isinstance(dict2, dict):
+            for key in dict2:  # Check all keys in expected dict2
+                current_path = f"{path}.{key}" if path else key
+                if key not in dict1:
+                    raise AssertionError(
+                        f"Key '{current_path}' is missing in the actual dictionary."
+                    )
+                self.assert_deep_dict_equal(dict1[key], dict2[key], current_path)
+
+            for key in dict1:  # Check all keys in actual dict1
+                current_path = f"{path}.{key}" if path else key
+                if key not in dict2:
+                    raise AssertionError(
+                        f"Key '{current_path}' is missing in the expected dictionary."
+                    )
+        else:
+            if dict1 != dict2:
+                raise AssertionError(
+                    f"Value mismatch at '{path}': expected {dict2}, got {dict1}"
+                )
+
+    def test_json_imaging_formatting(self):
+        serializer = ImagingObservationSerializer(
+            ImagingObservation.objects.get(target__catalog_id="LBN437")
+        )
+        json_representation = serializer.data
+        file_path = os.path.join(
+            settings.BASE_DIR, "observation_data", "test_data", "Imaging_H_LBN437.json"
+        )
+        with open(file_path, "r") as file:
+            expected_json = json.load(file)
+            self.assert_deep_dict_equal(json_representation, expected_json)
+
+    def test_json_exoplanet_formatting(self):
+        serializer = ExoplanetObservationSerializer(
+            ExoplanetObservation.objects.get(target__catalog_id="Qatar-4b")
+        )
+        json_representation = serializer.data
+        file_path = os.path.join(
+            settings.BASE_DIR, "observation_data", "test_data", "Exoplanet_L_Qatar-4b.json"
+        )
+        with open(file_path, "r") as file:
+            expected_json = json.load(file)
+            self.assert_deep_dict_equal(json_representation, expected_json)
