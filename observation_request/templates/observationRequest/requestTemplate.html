@@ -91,23 +91,19 @@
     <div class="container_column">
         <article class="form_body">
             <div class="container_center">
-                <h1> Form 123 </h1>
+                <h1> create new Observation </h1>
             </div>
         </article>
 
-        <article class="form_body">
-            <h2> Project </h2>
-            <form class="form_center">
-                {{ form_project }}
-            </form>
-        </article>
+        {% for name, form in forms  %}
+            <article class="form_body">
+                <h2> {{ name }} </h2>
+                <form class="form_center">
+                    {{ form }}
+                </form>
+            </article>
+        {% endfor %}
 
-        <article class="form_body">
-            <h2> Target </h2>
-            <form>
-                {{ form_target }}
-            </form>
-        </article>
 
         <button> submit </button>
     </div>
