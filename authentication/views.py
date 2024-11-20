@@ -1,5 +1,6 @@
 import django.contrib.auth as auth
 from django import forms
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
@@ -43,11 +44,13 @@ def login_user(request):
 
 
 @require_GET
+@user_passes_test(lambda u: u.is_superuser)
 def generate_invitation(request):
     return generate_invitation_template(request, form=GenerateInvitationForm())
 
 
 @require_POST
+@user_passes_test(lambda u: u.is_superuser)
 def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST)
     if not form.is_valid():

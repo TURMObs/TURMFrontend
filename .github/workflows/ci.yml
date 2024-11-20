@@ -29,4 +29,4 @@ jobs:
         with:
           config: ./typos.toml
       - name: Run tests
-        run: python manage.py test
+        run: scripts/run_tests.sh
