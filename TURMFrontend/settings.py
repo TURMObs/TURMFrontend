@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "interactiveTest",
     "rest_framework",
-    "observations",
+    "observation_data",
     "root",
     "observation_request"
 ]
@@ -85,13 +85,18 @@ WSGI_APPLICATION = "TURMFrontend.wsgi.application"
 
 load_dotenv()
 
+if os.environ.get("DOCKER_MODE"):
+    host = "db"
+else:
+    host = "localhost"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("POSTGRES_DB"),
         "USER": os.environ.get("POSTGRES_USER"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": "db",
+        "HOST": host,
         "PORT": 5432,
     }
 }
