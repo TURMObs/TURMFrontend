@@ -13,6 +13,7 @@ jobs:
       postgres:
         image: postgres
         env:
+          POSTGRES_DB: TURMFrontend
           POSTGRES_USER: root
           POSTGRES_PASSWORD: root
         options: >-
