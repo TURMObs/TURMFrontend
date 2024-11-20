@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -89,27 +88,17 @@ if os.environ.get("DOCKER_MODE"):
     host = "db"
 else:
     host = "localhost"
-      
-if "test" in sys.argv:
-    # Use in-memory SQLite database for testing
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": ":memory:",
-        }
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "HOST": host,
+        "PORT": 5432,
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("POSTGRES_DB"),
-            "USER": os.environ.get("POSTGRES_USER"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-            "HOST": host,
-            "PORT": 5432,
-        }
-    
-    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
