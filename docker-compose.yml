@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres
+    container_name: turmfrontend-db
     volumes:
       - ${DB_VOLUME:-db-data}:/var/lib/postgresql/data
     environment:
@@ -12,6 +13,7 @@ services:
 
   web:
     build: .
+    container_name: turmfrontend-web
     command: >
       sh -c "./scripts/wait-for-it.sh db:5432 -t 120 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
@@ -28,6 +30,7 @@ services:
 
   nextcloud:
     image: nextcloud
+    container_name: turmfrontend-nextcloud
     profiles:
       - test
     environment:

@@ -98,14 +98,9 @@
                 <button onclick="window.location.href='generate-invitation'">Generate Invitation Link</button>
             {% endif %}
         {% else %}
-            <form method="post">
+            <form method="post" action="{% url 'login' %}">
                 {% csrf_token %}
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required />
-                <br />
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required />
-                <br />
+                {{ form.as_p }}
                 <button type="submit">Login</button>
             </form>
             {% if error is not None %}<p style="color: red">Invalid username or password</p>{% endif %}

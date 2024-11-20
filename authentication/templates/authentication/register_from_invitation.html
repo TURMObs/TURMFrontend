@@ -92,7 +92,8 @@
             <p style="color: red">Invalid invitation link</p>
         {% else %}
             <div>
-                <form method="post">
+                <form method="post" action="{% url 'signup' %}">
+                    >
                     {% csrf_token %}
                     <p>Email: {{ email }}</p>
                     {{ form.as_p }}
