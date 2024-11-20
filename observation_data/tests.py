@@ -242,7 +242,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.client = django.test.Client()
         self._create_user_and_login()
         self._create_observatory_and_targets()
-        self._create_imaging_observation()
+        self._create_imaging_observations()
         self._create_exoplanet_observation()
 
     def _create_user_and_login(self):
@@ -271,8 +271,14 @@ class JsonFormattingTestCase(django.test.TestCase):
             ra="00 19 26",
             dec="+44 01 39",
         )
+        CelestialTarget.objects.create(
+            catalog_id="NGC7822",
+            name="NGC7822",
+            ra="00 02 29",
+            dec="67 10 02"
+        )
 
-    def _create_imaging_observation(self):
+    def _create_imaging_observations(self):
         data = {
             "observatory": "TURMX",
             "target": {
@@ -285,6 +291,24 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "filter_set": "H",
             "frames_per_filter": 1,
+        }
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "catalog_id": "NGC7822",
+                "name": "NGC7822",
+                "ra": "00 02 29",
+                "dec": "67 10 02",
+            },
+            "observation_type": "Imaging",
+            "exposure_time": 300.0,
+            "filter_set": "H,O,S",
+            "frames_per_filter": 1.0,
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -355,6 +379,18 @@ class JsonFormattingTestCase(django.test.TestCase):
         with open(file_path, "r") as file:
             expected_json = json.load(file)
             self.assert_deep_dict_equal(json_representation, expected_json)
+
+        serializer = ImagingObservationSerializer(
+            ImagingObservation.objects.get(target__catalog_id="NGC7822")
+        )
+        json_representation = serializer.data
+        file_path = os.path.join(
+            settings.BASE_DIR, "observation_data", "test_data", "Imaging_HOS_NGC7822.json"
+        )
+        with open(file_path, "r") as file:
+            expected_json = json.load(file)
+            self.assert_deep_dict_equal(json_representation, expected_json)
+
 
     def test_json_exoplanet_formatting(self):
         serializer = ExoplanetObservationSerializer(

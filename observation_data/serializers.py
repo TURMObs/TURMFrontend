@@ -3,12 +3,10 @@ Serializers for the observation_data app models.
 For a usage example, see the create_observation view in the views.py file.
 """
 
-import json
-from datetime import datetime, timezone, tzinfo
-
-from astropy.units.quantity_helper.function_helpers import histogram
-from rest_framework import serializers
+from datetime import datetime, timezone
 from decimal import Decimal
+
+from rest_framework import serializers
 
 from .models import (
     CelestialTarget,
@@ -116,10 +114,11 @@ def _convert_decimal_fields(ret):
     return ret
 
 
+# noinspection PyTypeChecker
 def _to_representation(instance, additional_fields=None, exposure_fields=None):
     # Base fields that are common
     ret = {
-        "name": f"{instance.observation_type}_{"_".join(instance.filter_set.split(","))}_{instance.target.name}",
+        "name": f"{instance.observation_type}_{"".join(instance.filter_set.split(","))}_{instance.target.name}",
         "id": str(instance.user.id),
         "active": True,
         "priority": instance.priority,
