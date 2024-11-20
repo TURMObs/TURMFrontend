@@ -16,6 +16,10 @@ jobs:
     services:
       postgres:
         image: postgres
+        env:
+          POSTGRES_DB: TURMFrontend
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
