@@ -15,7 +15,10 @@ services:
     build: .
     container_name: turmfrontend-web
     command: >
-      sh -c "./scripts/wait-for-it.sh db:5432 -t 120 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "./scripts/wait-for-it.sh db:5432 -t 120 &&
+      python manage.py migrate &&
+      (if [ \"$DEBUG\" = \"True\" ]; then echo 'Development server running at http://localhost:8000/' on local machine; fi) &&
+      python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
       - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
@@ -27,6 +30,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DOCKER_MODE: "True"
 
   nextcloud:
     image: nextcloud
