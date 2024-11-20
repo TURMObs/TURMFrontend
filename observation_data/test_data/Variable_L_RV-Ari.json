@@ -1,8 +1,8 @@
 {
-  "name": "Exoplanet_L_Qatar-4b",
-  "id": "rroth",
+  "name": "Variable_L_RV-Ari",
+  "id": "VRTZ",
   "active": true,
-  "priority": 1000000,
+  "priority": 100000,
   "ditherEvery": 0,
   "minimumAltitude": 30.0,
   "horizonOffset": 0.0,
@@ -18,11 +18,11 @@
   ],
   "targets": [
     {
-      "name": "Qatar-4b",
-      "RA": "00 19 26",
-      "DEC": "+44 01 39",
-      "startDateTime": "2024-10-25 19:30:00",
-      "endDateTime": "2024-10-25 23:40:00",
+      "name": "RV-Ari",
+      "RA": "02 15 07",
+      "DEC": "+18 04 28",
+      "startDateTime": "",
+      "endDateTime": "",
       "exposureSelectionPriority": [
         "SELECTIVITY",
         "COMPLETION"
@@ -30,7 +30,7 @@
       "exposures": [
         {
           "filter": "L",
-          "exposureTime": 120.0,
+          "exposureTime": 60.0,
           "gain": 0,
           "offset": 50,
           "binning": 1,
@@ -38,7 +38,7 @@
           "moonSeparationAngle": 40.0,
           "moonSeparationWidth": 5,
           "batchSize": 30,
-          "requiredAmount": 300,
+          "requiredAmount": 450,
           "acceptedAmount": 0
         }
       ]

@@ -116,7 +116,13 @@ def _convert_decimal_fields(ret):
 
 # noinspection PyTypeChecker
 def _to_representation(instance, additional_fields=None, exposure_fields=None):
-    # Base fields that are common
+    """
+    Convert an observation instance to a dictionary representation.
+    :param instance: Observation instance
+    :param additional_fields: Additional fields to add to the representation
+    :param exposure_fields: Additional fields to add to each exposure. Do not add these to additional_fields.
+    :return: Dictionary representation of the observation
+    """
     ret = {
         "name": f"{instance.observation_type}_{"".join(instance.filter_set.split(","))}_{instance.target.name}",
         "id": str(instance.user.id),
@@ -147,7 +153,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         }
     ]
 
-    if additional_fields and additional_fields["targets"]:
+    if additional_fields and "targets" in additional_fields:
         targets[0].update(additional_fields["targets"][0])
         additional_fields.pop("targets")
 
@@ -230,26 +236,24 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         additional_fields = {
-            "ditherEvery": 0,
-            "minimumAltitude": 30.0,
             "targets": [
                 {
-                    "startDateTime": str(instance.start_observation.replace(tzinfo=None)).strip(),
-                    "endDateTime": str(instance.end_observation.replace(tzinfo=None)).strip(),
-                    "exposureSelectionPriority": ["SELECTIVITY", "COMPLETION"],
+                    "startDateTime": str(
+                        instance.start_observation.replace(tzinfo=None)
+                    ).strip(),
+                    "endDateTime": str(
+                        instance.end_observation.replace(tzinfo=None)
+                    ).strip(),
                 }
-            ]
+            ],
         }
         exposure_fields = {
-            "gain": 0,
             "subFrame": 0.25,
-            "moonSeparationAngle": 40.0,
-            "moonSeparationWidth": 5,
-            "batchSize": 30,
-            "requiredAmount": 300,
         }
         return _to_representation(
-            instance=instance, additional_fields=additional_fields, exposure_fields=exposure_fields
+            instance=instance,
+            additional_fields=additional_fields,
+            exposure_fields=exposure_fields,
         )
 
 
@@ -262,6 +266,20 @@ class VariableObservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return _create_observation(validated_data, "Variable", VariableObservation)
+
+    def to_representation(self, instance):
+        additional_fields = {
+            "ditherEvery": 0,
+            "minimumAltitude": instance.minimum_altitude
+        }
+        exposure_fields = {
+            "subFrame": 0.25,
+        }
+        return _to_representation(
+            instance=instance,
+            additional_fields=additional_fields,
+            exposure_fields=exposure_fields,
+        )
 
 
 class MonitoringObservationSerializer(serializers.ModelSerializer):
@@ -279,6 +297,29 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return _create_observation(validated_data, "Monitoring", MonitoringObservation)
 
+    def to_representation(self, instance):
+        additional_fields = {
+            "cadence": instance.cadence.total_seconds(),
+            "targets": [
+                {
+                    "startDateTime": str(
+                        instance.start_scheduling.replace(tzinfo=None)
+                    ).strip(),
+                    "endDateTime": str(
+                        instance.end_scheduling.replace(tzinfo=None)
+                    ).strip(),
+                }
+            ]
+        }
+        exposure_fields = {
+            "subFrame": 0.25,
+        }
+        return _to_representation(
+            instance=instance,
+            additional_fields=additional_fields,
+            exposure_fields=exposure_fields,
+        )
+
 
 class ExpertObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
@@ -289,7 +330,6 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "frames_per_filter",
             "dither_every",
             "binning",
-            "subframe",
             "gain",
             "offset",
             "start_observation",
@@ -311,3 +351,40 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return _create_observation(validated_data, "Expert", ExpertObservation)
+
+    def to_representation(self, instance):
+        additional_fields = {
+            "ditherEvery": instance.dither_every,
+            "minimumAltitude": instance.minimum_altitude,
+            "priority": instance.priority,
+            "cadence": instance.cadence.total_seconds(),
+            "targets": [
+                {
+                    "startDateTime": str(
+                        instance.start_observation.replace(tzinfo=None)
+                    ).strip(),
+                    "endDateTime": str(
+                        instance.end_observation.replace(tzinfo=None)
+                    ).strip(),
+                    "startDateTimeScheduling": str(
+                        instance.start_scheduling.replace(tzinfo=None)
+                    ).strip(),
+                    "endDateTimeScheduling": str(
+                        instance.end_scheduling.replace(tzinfo=None)
+                    ).strip(),
+                }
+            ]
+        }
+        exposure_fields = {
+            "subFrame": instance.frames_per_filter,
+            "binning": instance.binning,
+            "gain": instance.gain,
+            "offset": instance.offset,
+            "moonSeparationAngle": instance.moon_separation_angle,
+            "moonSeparationWidth": instance.moon_separation_width,
+        }
+        return _to_representation(
+            instance=instance,
+            additional_fields=additional_fields,
+            exposure_fields=exposure_fields,
+        )

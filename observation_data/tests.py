@@ -1,14 +1,22 @@
 import json
 import os
-import unittest
 from datetime import timezone, datetime
+
 import django.test
 from django.conf import settings
-
-from observation_data.models import Observatory, CelestialTarget, ImagingObservation, ExoplanetObservation
 from django.contrib.auth.models import User
 
-from observation_data.serializers import ImagingObservationSerializer, ExoplanetObservationSerializer
+from observation_data.models import (
+    Observatory,
+    CelestialTarget,
+    ImagingObservation,
+)
+from observation_data.serializers import (
+    ImagingObservationSerializer,
+    ExoplanetObservationSerializer,
+    VariableObservationSerializer,
+    MonitoringObservationSerializer,
+)
 
 
 class ObservationCreationTestCase(django.test.TestCase):
@@ -241,9 +249,15 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.maxDiff = None
         self.client = django.test.Client()
         self._create_user_and_login()
-        self._create_observatory_and_targets()
-        self._create_imaging_observations()
-        self._create_exoplanet_observation()
+        try:
+            self._create_observatory()
+            self._create_imaging_observations()
+            self._create_exoplanet_observation()
+            self._create_monitoring_observation()
+            self._create_variable_observation()
+        except Exception as e:
+            self.fail(f"Failed to create test data: {e}")
+
 
     def _create_user_and_login(self):
         self.user = User.objects.create_user(
@@ -253,7 +267,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.client.force_login(self.user)
 
     @staticmethod
-    def _create_observatory_and_targets():
+    def _create_observatory():
         Observatory.objects.create(
             name="TURMX",
             horizon_offset=0.0,
@@ -262,21 +276,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             max_guide_error=1000.0,
             filter_set="L",
         )
-        CelestialTarget.objects.create(
-            catalog_id="LBN437", name="LBN437", ra="22 32 01", dec="40 49 24"
-        )
-        CelestialTarget.objects.create(
-            catalog_id="Qatar-4b",
-            name="Qatar-4b",
-            ra="00 19 26",
-            dec="+44 01 39",
-        )
-        CelestialTarget.objects.create(
-            catalog_id="NGC7822",
-            name="NGC7822",
-            ra="00 02 29",
-            dec="67 10 02"
-        )
+
 
     def _create_imaging_observations(self):
         data = {
@@ -335,71 +335,135 @@ class JsonFormattingTestCase(django.test.TestCase):
         )
         self.assertEqual(response.status_code, 201, response.json())
 
+    def _create_monitoring_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "catalog_id": "T-CrB",
+                "name": "T-CrB",
+                "ra": "15 59 30",
+                "dec": "+25 55 13",
+            },
+            "cadence": "PT1H",
+            "exposure_time": 300.0,
+            "start_scheduling": "2024-10-25T19:30:00",
+            "end_scheduling": "2024-10-25T23:40:00",
+            "observation_type": "Monitoring",
+            "frames_per_filter": 1.0,
+            "filter_set": "R,G,B",
+        }
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def _create_variable_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "catalog_id": "RV-Ari",
+                "name": "RV-Ari",
+                "ra": "02 15 07",
+                "dec": "+18 04 28",
+            },
+            "observation_type": "Variable",
+            "exposure_time": 300.0,
+            "filter_set": "L",
+            "minimum_altitude": 30.0,
+        }
+        response = self.client.post(
+            path="/observation_data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def _assert_deep_dict_equal(self, dict1, dict2, path="", remove_id=False):
+        errors = []
+
+        if remove_id:
+            if "id" not in dict1:
+                errors.append("Key 'id' is missing in the actual dictionary.")
+            else:
+                dict1.pop("id", None)
+                dict2.pop("id", None)
+
+        if isinstance(dict1, list) and isinstance(dict2, list):
+            if len(dict1) != len(dict2):
+                errors.append(
+                    f"List length mismatch at '{path}': expected length {len(dict1)}, got {len(dict2)}"
+                )
+            for idx, (item1, item2) in enumerate(zip(dict1, dict2)):
+                errors.extend(
+                    self._assert_deep_dict_equal(item1, item2, f"{path}[{idx}]")
+                )
+        elif isinstance(dict1, dict) and isinstance(dict2, dict):
+            for key in dict2:
+                current_path = f"{path}.{key}" if path else key
+                if key not in dict1:
+                    errors.append(
+                        f"Key '{current_path}' is missing in the actual dictionary."
+                    )
+                else:
+                    errors.extend(
+                        self._assert_deep_dict_equal(
+                            dict1[key], dict2[key], current_path
+                        )
+                    )
+
+            for key in dict1:
+                current_path = f"{path}.{key}" if path else key
+                if key not in dict2:
+                    errors.append(
+                        f"Key '{current_path}' is not in the expected dictionary."
+                    )
+        else:
+            if dict1 != dict2:
+                errors.append(
+                    f"Value mismatch at '{path}': expected {dict2}, got {dict1}"
+                )
+
+        if path == "":
+            if errors:
+                raise AssertionError("\n".join(errors))
+
+        return errors
+
+    def _test_serialization(self, catalog_id, serializer_class, file_name):
+        serializer = serializer_class(
+            serializer_class.Meta.model.objects.get(target__catalog_id=catalog_id)
+        )
+        json_representation = serializer.data
+        file_path = os.path.join(
+            settings.BASE_DIR, "observation_data", "test_data", file_name
+        )
+        with open(file_path, "r") as file:
+            expected_json = json.load(file)
+            self._assert_deep_dict_equal(
+                json_representation, expected_json, remove_id=True
+            )
+
     def test_observation_exists(self):
         observation = ImagingObservation.objects.get(target__catalog_id="LBN437")
         self.assertIsNotNone(observation)
 
-    def assert_deep_dict_equal(self, dict1, dict2, path=""):
-        if isinstance(dict1, list) and isinstance(dict2, list):
-            if len(dict1) != len(dict2):
-                raise AssertionError(
-                    f"List length mismatch at '{path}': expected length {len(dict1)}, got {len(dict2)}"
-                )
-            for idx, (item1, item2) in enumerate(zip(dict1, dict2)):
-                self.assert_deep_dict_equal(item1, item2, f"{path}[{idx}]")
-        elif isinstance(dict1, dict) and isinstance(dict2, dict):
-            for key in dict2:  # Check all keys in expected dict2
-                current_path = f"{path}.{key}" if path else key
-                if key not in dict1:
-                    raise AssertionError(
-                        f"Key '{current_path}' is missing in the actual dictionary."
-                    )
-                self.assert_deep_dict_equal(dict1[key], dict2[key], current_path)
-
-            for key in dict1:  # Check all keys in actual dict1
-                current_path = f"{path}.{key}" if path else key
-                if key not in dict2:
-                    raise AssertionError(
-                        f"Key '{current_path}' is missing in the expected dictionary."
-                    )
-        else:
-            if dict1 != dict2:
-                raise AssertionError(
-                    f"Value mismatch at '{path}': expected {dict2}, got {dict1}"
-                )
-
     def test_json_imaging_formatting(self):
-        serializer = ImagingObservationSerializer(
-            ImagingObservation.objects.get(target__catalog_id="LBN437")
+        self._test_serialization(
+            "LBN437", ImagingObservationSerializer, "Imaging_H_LBN437.json"
         )
-        json_representation = serializer.data
-        file_path = os.path.join(
-            settings.BASE_DIR, "observation_data", "test_data", "Imaging_H_LBN437.json"
+        self._test_serialization(
+            "NGC7822", ImagingObservationSerializer, "Imaging_HOS_NGC7822.json"
         )
-        with open(file_path, "r") as file:
-            expected_json = json.load(file)
-            self.assert_deep_dict_equal(json_representation, expected_json)
-
-        serializer = ImagingObservationSerializer(
-            ImagingObservation.objects.get(target__catalog_id="NGC7822")
-        )
-        json_representation = serializer.data
-        file_path = os.path.join(
-            settings.BASE_DIR, "observation_data", "test_data", "Imaging_HOS_NGC7822.json"
-        )
-        with open(file_path, "r") as file:
-            expected_json = json.load(file)
-            self.assert_deep_dict_equal(json_representation, expected_json)
-
 
     def test_json_exoplanet_formatting(self):
-        serializer = ExoplanetObservationSerializer(
-            ExoplanetObservation.objects.get(target__catalog_id="Qatar-4b")
+        self._test_serialization(
+            "Qatar-4b", ExoplanetObservationSerializer, "Exoplanet_L_Qatar-4b.json"
         )
-        json_representation = serializer.data
-        file_path = os.path.join(
-            settings.BASE_DIR, "observation_data", "test_data", "Exoplanet_L_Qatar-4b.json"
+
+    def test_json_monitoring_formatting(self):
+        self._test_serialization(
+            "T-CrB", MonitoringObservationSerializer, "Monitor_RGB_T-CrB.json"
         )
-        with open(file_path, "r") as file:
-            expected_json = json.load(file)
-            self.assert_deep_dict_equal(json_representation, expected_json)
+
+    def test_json_variable_formatting(self):
+        self._test_serialization(
+            "RV-Ari", VariableObservationSerializer, "Variable_L_RV-Ari.json"
+        )

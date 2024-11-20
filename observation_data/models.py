@@ -11,7 +11,7 @@ class CelestialTarget(models.Model):
     Model for the celestial targets that can be observed.
     """
 
-    catalog_id = models.CharField(max_length=50)
+    catalog_id = models.CharField(max_length=50, blank=True)
     name = models.CharField(max_length=100)
     ra = models.CharField(max_length=25)
     dec = models.CharField(max_length=25)
@@ -96,7 +96,6 @@ class ExpertObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
     dither_every = models.DecimalField(max_digits=5, decimal_places=2)
     binning = models.CharField(max_length=50)
-    subframe = models.CharField(max_length=50)
     gain = models.IntegerField()
     offset = models.IntegerField()
     start_observation = models.DateTimeField()
