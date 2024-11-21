@@ -137,7 +137,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
             "maxHFR": instance.observatory.max_HFR,
             "maxGuideError": instance.observatory.max_guide_error,
         },
-        "targetSelectionPriority": ["COMPLETION", "ALTITUDE"],
+        "targetSelectionPriority": ["ALTITUDE", "COMPLETION"],
         "targets": [],
     }
 
@@ -270,7 +270,7 @@ class VariableObservationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         additional_fields = {
             "ditherEvery": 0,
-            "minimumAltitude": instance.minimum_altitude
+            "minimumAltitude": instance.minimum_altitude,
         }
         exposure_fields = {
             "subFrame": 0.25,
@@ -309,7 +309,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
                         instance.end_scheduling.replace(tzinfo=None)
                     ).strip(),
                 }
-            ]
+            ],
         }
         exposure_fields = {
             "subFrame": 0.25,
@@ -373,7 +373,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
                         instance.end_scheduling.replace(tzinfo=None)
                     ).strip(),
                 }
-            ]
+            ],
         }
         exposure_fields = {
             "subFrame": instance.frames_per_filter,

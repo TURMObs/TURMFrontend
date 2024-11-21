@@ -258,7 +258,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         except Exception as e:
             self.fail(f"Failed to create test data: {e}")
 
-
     def _create_user_and_login(self):
         self.user = User.objects.create_user(
             username="JsonTest", password="JsonTest", email="JsonTest@gmail.com"
@@ -276,7 +275,6 @@ class JsonFormattingTestCase(django.test.TestCase):
             max_guide_error=1000.0,
             filter_set="L",
         )
-
 
     def _create_imaging_observations(self):
         data = {
