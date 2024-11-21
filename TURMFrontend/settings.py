@@ -15,6 +15,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
+def get_env_var(var_name):
+    return os.environ.get(var_name) or f"Error: Environment variable {var_name} not set"
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -92,9 +97,9 @@ else:
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB"),
-        "USER": os.environ.get("POSTGRES_USER"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "NAME": get_env_var("POSTGRES_DB"),
+        "USER": get_env_var("POSTGRES_USER"),
+        "PASSWORD": get_env_var("POSTGRES_PASSWORD"),
         "HOST": host,
         "PORT": 5432,
     }
