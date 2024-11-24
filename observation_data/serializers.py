@@ -15,7 +15,7 @@ from .models import (
     VariableObservation,
     MonitoringObservation,
     ExpertObservation,
-    Observatory,
+    Observatory, Filter,
 )
 
 priorities = {
@@ -60,7 +60,9 @@ def _create_observation(validated_data, observation_type, model):
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
 
+    filter_set = validated_data.pop("filter_set")
     observation = model.objects.create(target=created_target, **validated_data)
+    observation.filter_set.set(filter_set)
     return observation
 
 
@@ -124,7 +126,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     :return: Dictionary representation of the observation
     """
     ret = {
-        "name": f"{instance.observation_type}_{"".join(instance.filter_set.split(","))}_{instance.target.name}",
+        "name": f"{instance.observation_type}_{''.join([f.filter_type for f in instance.filter_set.all()])}_{instance.target.name}",
         "id": str(instance.user.id),
         "active": True,
         "priority": instance.priority,
@@ -163,10 +165,9 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         ret.update(additional_fields)
 
     # Populate the exposures dynamically based on filters
-    filters = [f.strip() for f in instance.filter_set.split(",")]
-    for f in filters:
+    for f in instance.filter_set.all():
         exposure_data = {
-            "filter": f,
+            "filter": f.filter_type,
             "exposureTime": instance.exposure_time,
             "gain": 100,
             "offset": 50,
@@ -202,6 +203,9 @@ class ObservatorySerializer(serializers.ModelSerializer):
 
 class ImagingObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
+    filter_set = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Filter.objects.all()
+    )
 
     class Meta:
         model = ImagingObservation
@@ -217,6 +221,9 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
 
 class ExoplanetObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
+    filter_set = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Filter.objects.all()
+    )
 
     class Meta:
         model = ExoplanetObservation
@@ -259,6 +266,9 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
 
 class VariableObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
+    filter_set = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Filter.objects.all()
+    )
 
     class Meta:
         model = VariableObservation
@@ -284,6 +294,9 @@ class VariableObservationSerializer(serializers.ModelSerializer):
 
 class MonitoringObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
+    filter_set = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Filter.objects.all()
+    )
 
     class Meta:
         model = MonitoringObservation
@@ -323,6 +336,9 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
 
 class ExpertObservationSerializer(serializers.ModelSerializer):
     target = CelestialTargetSerializer()
+    filter_set = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Filter.objects.all()
+    )
 
     class Meta:
         model = ExpertObservation

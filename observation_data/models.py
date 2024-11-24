@@ -25,24 +25,6 @@ class CelestialTarget(models.Model):
     dec = models.CharField(max_length=25)
 
 
-class Observatory(models.Model):
-    """
-    Model for the observatories that can be used for the observations.
-    """
-
-    name = models.CharField(max_length=100, primary_key=True)
-    horizon_offset = models.DecimalField(max_digits=5, decimal_places=2)
-    min_stars = models.IntegerField()
-    max_HFR = models.DecimalField(max_digits=5, decimal_places=2)
-    max_guide_error = models.DecimalField(max_digits=15, decimal_places=2)
-    filter_set = models.ManyToManyField("Filter", related_name="observatories")
-    exposure_settings = models.ManyToManyField(
-        "ExposureSettings",
-        through="ObservatoryExposureSettings",
-        related_name="observatories",
-    )
-
-
 class ExposureSettings(models.Model):
     """
     Model for the exposure settings that can be used for the observations.
@@ -52,19 +34,6 @@ class ExposureSettings(models.Model):
     offset = models.IntegerField()
     binning = models.IntegerField()
     subFrame = models.CharField(max_length=100)
-
-
-class ObservatoryExposureSettings(models.Model):
-    """
-    Model for the many-to-many relationship between observatories and exposure settings.
-    """
-
-    observatory = models.ForeignKey(Observatory, on_delete=models.DO_NOTHING, db_column="observatory")
-    exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
-    observation_type = models.CharField(
-        choices=ObservationType.choices, db_column="type"
-    )
-
 
 class Filter(models.Model):
     """
@@ -84,9 +53,40 @@ class Filter(models.Model):
         SG = "SG"
         SI = "SI"
 
-    filter_type = models.CharField(choices=FilterType.choices, db_column="type", max_length=2)
+    filter_type = models.CharField(choices=FilterType.choices, db_column="type", max_length=2, primary_key=True)
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
+
+
+
+class Observatory(models.Model):
+    """
+    Model for the observatories that can be used for the observations.
+    """
+
+    name = models.CharField(max_length=100, primary_key=True)
+    horizon_offset = models.DecimalField(max_digits=5, decimal_places=2)
+    min_stars = models.IntegerField()
+    max_HFR = models.DecimalField(max_digits=5, decimal_places=2)
+    max_guide_error = models.DecimalField(max_digits=15, decimal_places=2)
+    filter_set = models.ManyToManyField(Filter, related_name="observatories")
+    exposure_settings = models.ManyToManyField(
+        ExposureSettings,
+        through="ObservatoryExposureSettings",
+        related_name="observatories",
+    )
+
+
+class ObservatoryExposureSettings(models.Model):
+    """
+    Model for the many-to-many relationship between observatories and exposure settings.
+    """
+
+    observatory = models.ForeignKey(Observatory, on_delete=models.DO_NOTHING, db_column="observatory")
+    exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
+    observation_type = models.CharField(
+        choices=ObservationType.choices, db_column="type"
+    )
 
 
 class AbstractObservation(models.Model):
@@ -121,7 +121,7 @@ class AbstractObservation(models.Model):
     project_completion = models.DecimalField(max_digits=5, decimal_places=2)
     priority = models.IntegerField()
     exposure_time = models.DecimalField(max_digits=10, decimal_places=2)
-    filter_set = models.CharField(max_length=100)  # comma separated list of filters
+    filter_set = models.ManyToManyField(Filter, related_name="observations")
 
 
 class ImagingObservation(AbstractObservation):

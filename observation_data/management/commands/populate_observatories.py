@@ -11,7 +11,6 @@ class Command(BaseCommand):
         self.populate_observatories()
         self.populate_exposure_settings()
         self.populate_filters()
-        self.stdout.write(self.style.SUCCESS("Successfully populated observatories, exposure settings and filters."))
 
     @staticmethod
     def populate_observatories():

@@ -3,6 +3,7 @@ import os
 from datetime import timezone, datetime
 
 import django.test
+from django.core.management import call_command
 from django.conf import settings
 from django.contrib.auth.models import User
 
@@ -23,7 +24,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def setUp(self):
         self.client = django.test.Client()
         self._create_user_and_login()
-        self._create_observatory_and_target()
+        self._create_base_data()
         self.base_request = self._get_base_request()
 
     def _create_user_and_login(self):
@@ -33,21 +34,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.client.force_login(self.user)
 
     @staticmethod
-    def _create_observatory_and_target():
-        Observatory.objects.create(
-            name="TURMX",
-            horizon_offset=30.0,
-            min_stars=10,
-            max_HFR=2.0,
-            max_guide_error=0.5,
-            filter_set="L",
-        )
-        CelestialTarget.objects.create(
-            catalog_id="LBN437",
-            name="Sagittarius A*",
-            ra="17 45 40.03599",
-            dec="-29 00 28.1699",
-        )
+    def _create_base_data():
+        call_command("populate_observatories")
 
     @staticmethod
     def _get_base_request():
@@ -61,7 +49,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             },
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": "L",
+            "filter_set": ["L"],
         }
 
     def _send_post_request(self, data):
@@ -199,12 +187,11 @@ class ObservationCreationTestCase(django.test.TestCase):
             overlapping = response.json().get("overlapping_observations", [])
             self.assertIsInstance(overlapping, list)
             self.assertEqual(len(overlapping), 1)
-            self.assertEqual(
-                datetime.fromisoformat(overlapping[0]["start_observation"]), start1
-            )
-            self.assertEqual(
-                datetime.fromisoformat(overlapping[0]["end_observation"]), end1
-            )
+            start_time = datetime.fromisoformat(overlapping[0]["targets"][0]["startDateTime"])
+            end_time = datetime.fromisoformat(overlapping[0]["targets"][0]["endDateTime"])
+
+            self.assertEqual(start_time.replace(tzinfo=None), start1.replace(tzinfo=None))
+            self.assertEqual(end_time.replace(tzinfo=None), end1.replace(tzinfo=None))
 
     def test_whole_overlap_exoplanet(self):
         self._test_exoplanet_overlap(
@@ -273,7 +260,6 @@ class JsonFormattingTestCase(django.test.TestCase):
             min_stars=-1,
             max_HFR=4.0,
             max_guide_error=1000.0,
-            filter_set="L",
         )
 
     def _create_imaging_observations(self):
@@ -287,7 +273,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             },
             "observation_type": "Imaging",
             "exposure_time": 300.0,
-            "filter_set": "H",
+            "filter_set": ["H"],
             "frames_per_filter": 1,
         }
         response = self.client.post(
@@ -305,7 +291,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             },
             "observation_type": "Imaging",
             "exposure_time": 300.0,
-            "filter_set": "H,O,S",
+            "filter_set": ["H", "O", "S"],
             "frames_per_filter": 1.0,
         }
         response = self.client.post(
@@ -326,7 +312,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "start_observation": "2024-10-25T19:30:00",
             "end_observation": "2024-10-25T23:40:00",
             "exposure_time": 120.0,
-            "filter_set": "L",
+            "filter_set": ["L"],
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -348,7 +334,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "end_scheduling": "2024-10-25T23:40:00",
             "observation_type": "Monitoring",
             "frames_per_filter": 1.0,
-            "filter_set": "R,G,B",
+            "filter_set": ["R", "G", "B"],
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
