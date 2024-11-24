@@ -4,7 +4,7 @@
   "active": true,
   "priority": 10,
   "ditherEvery": 1,
-  "minimumAltitude": 35.0,
+  "minimumAltitude": 30.0,
   "horizonOffset": 0.0,
   "centerTargets": true,
   "imageGrader": {
@@ -13,8 +13,8 @@
     "maxGuideError": 1000.0
   },
   "targetSelectionPriority": [
-    "COMPLETION",
-    "ALTITUDE"
+    "ALTITUDE",
+    "COMPLETION"
   ],
   "targets": [
     {
@@ -39,7 +39,7 @@
           "moonSeparationWidth": 7,
           "batchSize": 10,
           "requiredAmount": 100,
-          "acceptedAmount": 20
+          "acceptedAmount": 0
         },
         {
           "filter": "O",
@@ -48,11 +48,11 @@
           "offset": 50,
           "binning": 1,
           "subFrame": 1.0,
-          "moonSeparationAngle": 90.0,
+          "moonSeparationAngle": 70.0,
           "moonSeparationWidth": 7,
           "batchSize": 10,
           "requiredAmount": 100,
-          "acceptedAmount": 14
+          "acceptedAmount": 0
         },
         {
           "filter": "S",
@@ -65,7 +65,7 @@
           "moonSeparationWidth": 7,
           "batchSize": 10,
           "requiredAmount": 100,
-          "acceptedAmount": 13
+          "acceptedAmount": 0
         }
       ]
     }

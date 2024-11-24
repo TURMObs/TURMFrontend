@@ -4,7 +4,7 @@
   "active": true,
   "priority": 10,
   "ditherEvery": 1,
-  "minimumAltitude": 35.0,
+  "minimumAltitude": 30.0,
   "horizonOffset": 0.0,
   "centerTargets": true,
   "imageGrader": {
@@ -13,8 +13,8 @@
     "maxGuideError": 1000.0
   },
   "targetSelectionPriority": [
-    "COMPLETION",
-    "ALTITUDE"
+    "ALTITUDE",
+    "COMPLETION"
   ],
   "targets": [
     {

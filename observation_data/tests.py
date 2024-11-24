@@ -112,7 +112,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "frames_per_filter": 1,
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
-                "cadence": "PT1H",
+                "cadence": 1,
             },
         )
 
@@ -132,7 +132,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "end_observation": "2021-01-01T01:00:00Z",
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
-                "cadence": "PT1H",
+                "cadence": 1,
                 "moon_separation_angle": 30.0,
                 "moon_separation_width": 30.0,
                 "minimum_altitude": 35,
@@ -237,7 +237,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.client = django.test.Client()
         self._create_user_and_login()
         try:
-            self._create_observatory()
+            self._create_base_data()
             self._create_imaging_observations()
             self._create_exoplanet_observation()
             self._create_monitoring_observation()
@@ -253,14 +253,8 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.client.force_login(self.user)
 
     @staticmethod
-    def _create_observatory():
-        Observatory.objects.create(
-            name="TURMX",
-            horizon_offset=0.0,
-            min_stars=-1,
-            max_HFR=4.0,
-            max_guide_error=1000.0,
-        )
+    def _create_base_data():
+        call_command("populate_observatories")
 
     def _create_imaging_observations(self):
         data = {
@@ -328,7 +322,7 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "ra": "15 59 30",
                 "dec": "+25 55 13",
             },
-            "cadence": "PT1H",
+            "cadence": 1,
             "exposure_time": 300.0,
             "start_scheduling": "2024-10-25T19:30:00",
             "end_scheduling": "2024-10-25T23:40:00",
@@ -352,7 +346,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             },
             "observation_type": "Variable",
             "exposure_time": 300.0,
-            "filter_set": "L",
+            "filter_set": ["L"],
             "minimum_altitude": 30.0,
         }
         response = self.client.post(

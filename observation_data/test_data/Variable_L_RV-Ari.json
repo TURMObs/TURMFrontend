@@ -13,8 +13,8 @@
     "maxGuideError": 1000.0
   },
   "targetSelectionPriority": [
-    "COMPLETION",
-    "ALTITUDE"
+    "ALTITUDE",
+    "COMPLETION"
   ],
   "targets": [
     {
@@ -24,8 +24,8 @@
       "startDateTime": "",
       "endDateTime": "",
       "exposureSelectionPriority": [
-        "SELECTIVITY",
-        "COMPLETION"
+        "N_COMPLETION",
+        "SELECTIVITY"
       ],
       "exposures": [
         {

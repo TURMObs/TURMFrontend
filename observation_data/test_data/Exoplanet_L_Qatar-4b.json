@@ -13,8 +13,8 @@
     "maxGuideError": 1000.0
   },
   "targetSelectionPriority": [
-    "COMPLETION",
-    "ALTITUDE"
+    "ALTITUDE",
+    "COMPLETION"
   ],
   "targets": [
     {
@@ -24,8 +24,8 @@
       "startDateTime": "2024-10-25 19:30:00",
       "endDateTime": "2024-10-25 23:40:00",
       "exposureSelectionPriority": [
-        "SELECTIVITY",
-        "COMPLETION"
+        "N_COMPLETION",
+        "SELECTIVITY"
       ],
       "exposures": [
         {
@@ -35,10 +35,10 @@
           "offset": 50,
           "binning": 1,
           "subFrame": 0.25,
-          "moonSeparationAngle": 40.0,
-          "moonSeparationWidth": 5,
-          "batchSize": 30,
-          "requiredAmount": 300,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
+          "batchSize": 10,
+          "requiredAmount": 1000,
           "acceptedAmount": 0
         }
       ]

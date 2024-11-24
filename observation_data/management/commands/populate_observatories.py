@@ -37,7 +37,7 @@ class Command(BaseCommand):
     @staticmethod
     def populate_exposure_settings():
         ExposureSettings.objects.get_or_create(
-            gain=0,
+            gain=100,
             offset=50,
             binning=1,
             subFrame=1.0
@@ -66,7 +66,7 @@ class Command(BaseCommand):
 
         ObservatoryExposureSettings.objects.get_or_create(
             observatory=Observatory.objects.get(name="TURMX"),
-            exposure_settings=ExposureSettings.objects.get(gain=0, offset=50, binning=1, subFrame=1.0),
+            exposure_settings=ExposureSettings.objects.get(gain=100, offset=50, binning=1, subFrame=1.0),
             observation_type=ObservationType.IMAGING
         )
 

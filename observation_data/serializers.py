@@ -15,7 +15,7 @@ from .models import (
     VariableObservation,
     MonitoringObservation,
     ExpertObservation,
-    Observatory, Filter,
+    Observatory, Filter, ObservatoryExposureSettings,
 )
 
 priorities = {
@@ -131,7 +131,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         "active": True,
         "priority": instance.priority,
         "ditherEvery": 1,
-        "minimumAltitude": 35.0,
+        "minimumAltitude": 30.0,
         "horizonOffset": instance.observatory.horizon_offset,
         "centerTargets": True,
         "imageGrader": {
@@ -165,18 +165,24 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         ret.update(additional_fields)
 
     # Populate the exposures dynamically based on filters
+    exposure_settings = instance.observatory.exposure_settings.filter(
+        observatoryexposuresettings__observation_type=instance.observation_type
+    ).get()
+
     for f in instance.filter_set.all():
         exposure_data = {
             "filter": f.filter_type,
             "exposureTime": instance.exposure_time,
-            "gain": 100,
-            "offset": 50,
-            "binning": 1,
-            "moonSeparationAngle": 70.0,
-            "moonSeparationWidth": 7,
+            "gain": exposure_settings.gain,
+            "offset": exposure_settings.offset,
+            "binning": exposure_settings.binning,
+            "subFrame": exposure_settings.subFrame,
+            "moonSeparationAngle": f.moon_separation_angle,
+            "moonSeparationWidth": f.moon_separation_width,
             "batchSize": 10,
             "requiredAmount": 100,
             "acceptedAmount": 0,
+
         }
 
         # If exposure_fields is provided, update each exposure with the additional fields
@@ -255,7 +261,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
             ],
         }
         exposure_fields = {
-            "subFrame": 0.25,
+            "requiredAmount": 1000,
         }
         return _to_representation(
             instance=instance,
@@ -312,7 +318,6 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         additional_fields = {
-            "cadence": instance.cadence.total_seconds(),
             "targets": [
                 {
                     "startDateTime": str(
