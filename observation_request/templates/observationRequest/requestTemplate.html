@@ -1,42 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>This is the Forms Test</title>
-</head>
-<style>
-    * {
-        box-sizing: border-box;
+{% extends "base_template.html" %}
 
-    }
-    body {
-        margin: 0;
-        background-color: #242424;
-    }
-    header {
-        background-color: #313131;
-        margin-bottom: 2em;
+{% block title %}
+look ma no title
+{% endblock %}
 
-        color: white;
-        font-family: 'Source Sans Pro', sans-serif;
-    }
 
-    .container_center {
-        display: flex;
-        justify-content: center;
-    }
-
-    .container_column {
-        display: flex;
-        flex-flow: column;
-    }
+{% block style %}
+<style xmlns="http://www.w3.org/1999/html">
 
     .form_body {
         background-color: #313131;
 
         width: 1140px;
+        min-width: 256px;
+        max-width: 1140px;
 
-        margin-bottom: 1.5em;
+        margin: 0.75em auto;
 
         border-radius: 5px;
 
@@ -81,33 +60,157 @@
         border: .1em solid white;
     }
 
+    .base_button {
+        background-color: var(--tom-primary-color);
+
+        border-radius: var(--tom-corner-radius);
+        border: .125em solid transparent;
+
+        font-size: 1.15em;
+        padding: 0.5em;
+
+    }
+    .base_button:hover {
+
+        border: .125em solid white;
+    }
+    .base_button:active {
+        background-color: var(--tom-primary-color-dark);
+    }
+
+    .sub_form_heading {
+        margin-bottom: .5em;
+    }
+    .switch_button_container {
+        display: flex;
+        width: 1080px;
+    }
+    .observation_type_radio {
+        display: none;
+    }
+    .observation_type_label {
+        background-color: var(--tom-disabled-grey);
+        padding: .5em;
+        border-top: 0.125em solid white;
+        border-bottom: 0.125em solid white;
+        border-right: 0.125em solid white;
+
+        flex: 1;
+        text-align: center;
+        font-weight: bold;
+    }
+    .observation_type_label:hover {
+        background-color: var(--tom-accent-color);
+    }
+    .observation_type_label:first-child {
+        border: 0.125em solid white;
+
+        -moz-border-radius-topleft: var(--tom-corner-radius);
+        -webkit-border-top-left-radius: var(--tom-corner-radius);
+        -moz-border-radius-bottomleft: var(--tom-corner-radius);
+        -webkit-border-bottom-left-radius: var(--tom-corner-radius);
+    }
+    .observation_type_label:last-child {
+        border: 0.125em solid white;
+        border-left: transparent;
+
+        -moz-border-radius-topright: var(--tom-corner-radius);
+        -webkit-border-top-right-radius: var(--tom-corner-radius);
+        -moz-border-radius-bottomright: var(--tom-corner-radius);
+        -webkit-border-bottom-right-radius: var(--tom-corner-radius);
+    }
+
+    .observation_type_label_active {
+        background-color: var(--tom-primary-color);
+    }
+
+    .observation_type_label_active:hover {
+        background-color: var(--tom-primary-color-dark);
+    }
 
 </style>
-<body>
-<header class="container_center">
-    <h1> simple Observation request Form: </h1>
-</header>
+{% endblock %}
+
+{% block content %}
 <div class="container_center">
     <div class="container_column">
-        <article class="form_body">
+        <header class="form_body">
             <div class="container_center">
-                <h1> create new Observation </h1>
+                <h1> create new Observation</h1>
             </div>
-        </article>
+            <br>
+            <div class="switch_button_container" onload="only_show('Imaging', this)">
+                <label class="observation_type_label" for="imaging">Imaging / Background</label><br>
+                <input class="observation_type_radio" type="radio" id="imaging" name="observation_type" onclick="only_show('Imaging', this)">
+                <input class="observation_type_radio" type="radio" id="exoplanet" name="observation_type" onclick="only_show('Exoplanet', this)">
+                <label class="observation_type_label" for="exoplanet">Exoplanet</label><br>
+                <input class="observation_type_radio" type="radio" id="variable" name="observation_type" onclick="only_show('Variable', this)">
+                <label class="observation_type_label" for="variable">Variable</label>
+                <input class="observation_type_radio" type="radio" id="monitoring" name="observation_type" onclick="only_show('Monitoring', this)">
+                <label class="observation_type_label" for="monitoring">Monitoring</label>
+                {% if is_super_user %}
+                    <input class="observation_type_radio" type="radio" id="expert" name="observation_type" onclick="only_show('Expert', this)">
+                    <label class="observation_type_label" for="expert">Expert</label>
+                {% endif %}
+            </div>
+        </header>
 
+
+
+        <script>
+            window.onload = function() {
+                only_show('Imaging', document.getElementById('imaging'));
+            };
+
+            function set_element_visibility(element, show) {
+                if (show) {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
+            }
+
+            function only_show(className, obj) {
+                console.log(className)
+                const observation_labels = document.getElementsByClassName('observation_type_label')
+                for (let label of observation_labels) {
+                    if (obj === undefined) break
+                    if (label.htmlFor === obj.id) {
+                        label.classList.add('observation_type_label_active')
+                    } else {
+                        label.classList.remove('observation_type_label_active')
+                    }
+                }
+
+                const all_elements = Array.from(document.getElementsByClassName('Expert'));
+
+                for (let el of all_elements) {
+                    const show = el.classList.contains(className);
+                    const labels = document.getElementsByTagName('label');
+                    for (let label of labels) {
+                        if (label.htmlFor === el.id) {
+                            set_element_visibility(label, show);
+                        }
+                    }
+                    set_element_visibility(el, show);
+                }
+            }
+        </script>
+
+        <form
+                action="{{ create_form_url }}"
+                method="post">
         {% for name, form in forms  %}
             <article class="form_body">
-                <h2> {{ name }} </h2>
-                <form class="form_center">
+                <h2 class="sub_form_heading"> {{ name }} </h2>
+                <div class="form_center">
                     {{ form }}
-                </form>
+                </div>
             </article>
         {% endfor %}
-
-
-        <button> submit </button>
+        {% csrf_token %}
+        <input type="submit" class="base_button">
+        </form>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

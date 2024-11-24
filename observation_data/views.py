@@ -1,3 +1,5 @@
+from urllib.parse import parse_qs
+
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -36,7 +38,8 @@ def create_observation(request):
             {"error": "Authentication required"},
             status=HTTP_401_UNAUTHORIZED,
         )
-    request_data = request.data
+    request_data = parse_qs(request.body)
+    request_data = {key.decode('utf-8'): value[0].decode('utf-8') for key, value in request_data.items()}
     request_data["user"] = request.user.id
 
     if not request_data.get("observation_type"):
