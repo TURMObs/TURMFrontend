@@ -8,8 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from observation_data.models import (
-    Observatory,
-    CelestialTarget,
     ImagingObservation,
 )
 from observation_data.serializers import (
@@ -187,10 +185,16 @@ class ObservationCreationTestCase(django.test.TestCase):
             overlapping = response.json().get("overlapping_observations", [])
             self.assertIsInstance(overlapping, list)
             self.assertEqual(len(overlapping), 1)
-            start_time = datetime.fromisoformat(overlapping[0]["targets"][0]["startDateTime"])
-            end_time = datetime.fromisoformat(overlapping[0]["targets"][0]["endDateTime"])
+            start_time = datetime.fromisoformat(
+                overlapping[0]["targets"][0]["startDateTime"]
+            )
+            end_time = datetime.fromisoformat(
+                overlapping[0]["targets"][0]["endDateTime"]
+            )
 
-            self.assertEqual(start_time.replace(tzinfo=None), start1.replace(tzinfo=None))
+            self.assertEqual(
+                start_time.replace(tzinfo=None), start1.replace(tzinfo=None)
+            )
             self.assertEqual(end_time.replace(tzinfo=None), end1.replace(tzinfo=None))
 
     def test_whole_overlap_exoplanet(self):

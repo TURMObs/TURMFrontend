@@ -47,3 +47,4 @@ Optionally use `docker-compose --profile test up` to run a (non-persisting) Next
 # Known Limitations
 - The Nextcloud container is not persistent. This is by design, as the Nextcloud container is only used for testing purposes.
   - This also means that the Nextcloud has to be initialized every time the container is started by visiting `http://localhost:8080` and setting up the Nextcloud instance with the same password and user defined in the Environment.
+- During development some migration files where deleted, this means that the database might need to be reset when running the application for the first time. If the database was used without mapping the volume to a local folder, simply run `docker-compose down -v` to remove all docker volumes. If the volume was mapped to a local folder, simply delete the folder and run `docker-compose up` again.

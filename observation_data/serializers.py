@@ -15,7 +15,8 @@ from .models import (
     VariableObservation,
     MonitoringObservation,
     ExpertObservation,
-    Observatory, Filter, ObservatoryExposureSettings,
+    Observatory,
+    Filter,
 )
 
 priorities = {
@@ -106,14 +107,18 @@ def _validate_time_range(start_time, end_time):
         )
 
 
-def _convert_decimal_fields(ret):
-    if isinstance(ret, dict):
-        return {key: _convert_decimal_fields(value) for key, value in ret.items()}
-    elif isinstance(ret, list):
-        return [_convert_decimal_fields(item) for item in ret]
-    elif isinstance(ret, Decimal):
-        return float(ret)
-    return ret
+def _convert_decimal_fields(rep):
+    """
+    Convert all Decimal fields to float, as Decimal is not JSON serializable.
+    :param rep: Dictionary to convert
+    """
+    if isinstance(rep, dict):
+        return {key: _convert_decimal_fields(value) for key, value in rep.items()}
+    elif isinstance(rep, list):
+        return [_convert_decimal_fields(item) for item in rep]
+    elif isinstance(rep, Decimal):
+        return float(rep)
+    return rep
 
 
 # noinspection PyTypeChecker
@@ -125,7 +130,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     :param exposure_fields: Additional fields to add to each exposure. Do not add these to additional_fields.
     :return: Dictionary representation of the observation
     """
-    ret = {
+    rep = {
         "name": f"{instance.observation_type}_{''.join([f.filter_type for f in instance.filter_set.all()])}_{instance.target.name}",
         "id": str(instance.user.id),
         "active": True,
@@ -159,10 +164,10 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         targets[0].update(additional_fields["targets"][0])
         additional_fields.pop("targets")
 
-    ret["targets"] = targets
+    rep["targets"] = targets
 
     if additional_fields:
-        ret.update(additional_fields)
+        rep.update(additional_fields)
 
     # Populate the exposures dynamically based on filters
     exposure_settings = instance.observatory.exposure_settings.filter(
@@ -182,17 +187,16 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
             "batchSize": 10,
             "requiredAmount": 100,
             "acceptedAmount": 0,
-
         }
 
         # If exposure_fields is provided, update each exposure with the additional fields
         if exposure_fields:
             exposure_data.update(exposure_fields)
 
-        ret["targets"][0]["exposures"].append(exposure_data)
+        rep["targets"][0]["exposures"].append(exposure_data)
 
-    ret = _convert_decimal_fields(ret)
-    return ret
+    rep = _convert_decimal_fields(rep)
+    return rep
 
 
 class CelestialTargetSerializer(serializers.ModelSerializer):
@@ -409,3 +413,34 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             additional_fields=additional_fields,
             exposure_fields=exposure_fields,
         )
+
+
+serializer_mapping = {
+    ImagingObservation: ImagingObservationSerializer,
+    ExoplanetObservation: ExoplanetObservationSerializer,
+    VariableObservation: VariableObservationSerializer,
+    MonitoringObservation: MonitoringObservationSerializer,
+    ExpertObservation: ExpertObservationSerializer,
+}
+
+type_serializer_mapping = {
+    "Imaging": ImagingObservationSerializer,
+    "Exoplanet": ExoplanetObservationSerializer,
+    "Variable": VariableObservationSerializer,
+    "Monitoring": MonitoringObservationSerializer,
+    "Expert": ExpertObservationSerializer,
+}
+
+
+def get_serializer(observation_type):
+    """
+    Get the serializer for a given observation type.
+    :param observation_type: Type of observation
+    :return: Serializer for the observation
+    :raises ValueError: If the observation type is invalid
+    """
+    if observation_type in type_serializer_mapping:
+        return type_serializer_mapping[observation_type]
+    if observation_type in serializer_mapping:
+        return serializer_mapping[observation_type]
+    raise ValueError("Invalid observation type")

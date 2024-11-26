@@ -35,6 +35,7 @@ class ExposureSettings(models.Model):
     binning = models.IntegerField()
     subFrame = models.CharField(max_length=100)
 
+
 class Filter(models.Model):
     """
     Model for the filters that can be used for the observations.
@@ -53,10 +54,11 @@ class Filter(models.Model):
         SG = "SG"
         SI = "SI"
 
-    filter_type = models.CharField(choices=FilterType.choices, db_column="type", max_length=2, primary_key=True)
+    filter_type = models.CharField(
+        choices=FilterType.choices, db_column="type", max_length=2, primary_key=True
+    )
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
-
 
 
 class Observatory(models.Model):
@@ -82,7 +84,9 @@ class ObservatoryExposureSettings(models.Model):
     Model for the many-to-many relationship between observatories and exposure settings.
     """
 
-    observatory = models.ForeignKey(Observatory, on_delete=models.DO_NOTHING, db_column="observatory")
+    observatory = models.ForeignKey(
+        Observatory, on_delete=models.DO_NOTHING, db_column="observatory"
+    )
     exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
     observation_type = models.CharField(
         choices=ObservationType.choices, db_column="type"
