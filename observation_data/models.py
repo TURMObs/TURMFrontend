@@ -19,7 +19,6 @@ class CelestialTarget(models.Model):
     Model for the celestial targets that can be observed.
     """
 
-    catalog_id = models.CharField(max_length=50, blank=True)
     name = models.CharField(max_length=100)
     ra = models.CharField(max_length=25)
     dec = models.CharField(max_length=25)
@@ -130,6 +129,7 @@ class AbstractObservation(models.Model):
 
 class ImagingObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
+    required_amount = models.IntegerField()
 
 
 class ExoplanetObservation(AbstractObservation):
@@ -139,6 +139,7 @@ class ExoplanetObservation(AbstractObservation):
 
 class VariableObservation(AbstractObservation):
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+    required_amount = models.IntegerField()
 
 
 class MonitoringObservation(AbstractObservation):
@@ -146,6 +147,7 @@ class MonitoringObservation(AbstractObservation):
     start_scheduling = models.DateTimeField()
     end_scheduling = models.DateTimeField()
     cadence = models.IntegerField()
+    required_amount = models.IntegerField()
 
 
 class ExpertObservation(AbstractObservation):
@@ -162,3 +164,4 @@ class ExpertObservation(AbstractObservation):
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+    required_amount = models.IntegerField()

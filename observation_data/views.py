@@ -4,21 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
-from observation_data.serializers import (
-    ExoplanetObservationSerializer,
-    ImagingObservationSerializer,
-    VariableObservationSerializer,
-    MonitoringObservationSerializer,
-    ExpertObservationSerializer,
-)
-
-observation_type_to_serializer = {
-    "Exoplanet": ExoplanetObservationSerializer,
-    "Imaging": ImagingObservationSerializer,
-    "Variable": VariableObservationSerializer,
-    "Monitoring": MonitoringObservationSerializer,
-    "Expert": ExpertObservationSerializer,
-}
+from observation_data.serializers import get_serializer
 
 
 @require_POST
@@ -52,7 +38,7 @@ def create_observation(request):
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-    serializer_class = observation_type_to_serializer.get(observation_type)
+    serializer_class = get_serializer(observation_type)
     if not serializer_class:
         return Response(
             {"error": "Invalid observation type"}, status=status.HTTP_400_BAD_REQUEST

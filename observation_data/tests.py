@@ -273,6 +273,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "filter_set": ["H"],
             "frames_per_filter": 1,
+            "required_amount": 100
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -291,6 +292,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "filter_set": ["H", "O", "S"],
             "frames_per_filter": 1.0,
+            "required_amount": 100
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -327,12 +329,13 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "dec": "+25 55 13",
             },
             "cadence": 1,
-            "exposure_time": 300.0,
+            "exposure_time": 30.0,
             "start_scheduling": "2024-10-25T19:30:00",
             "end_scheduling": "2024-10-25T23:40:00",
             "observation_type": "Monitoring",
             "frames_per_filter": 1.0,
             "filter_set": ["R", "G", "B"],
+            "required_amount": 100
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -352,6 +355,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "filter_set": ["L"],
             "minimum_altitude": 30.0,
+            "required_amount": 450
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -417,6 +421,10 @@ class JsonFormattingTestCase(django.test.TestCase):
         file_path = os.path.join(
             settings.BASE_DIR, "observation_data", "test_data", file_name
         )
+        # save the json representation to a file for manual inspection
+        with open(file_path.replace(".json", "_actual.json"), "w") as file:
+            json.dump(json_representation, file, indent=4)
+
         with open(file_path, "r") as file:
             expected_json = json.load(file)
             self._assert_deep_dict_equal(
