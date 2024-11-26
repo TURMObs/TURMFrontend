@@ -19,7 +19,6 @@ class CelestialTarget(models.Model):
     Model for the celestial targets that can be observed.
     """
 
-    catalog_id = models.CharField(max_length=50, blank=True)
     name = models.CharField(max_length=100)
     ra = models.CharField(max_length=25)
     dec = models.CharField(max_length=25)
@@ -34,6 +33,7 @@ class ExposureSettings(models.Model):
     offset = models.IntegerField()
     binning = models.IntegerField()
     subFrame = models.CharField(max_length=100)
+
 
 class Filter(models.Model):
     """
@@ -53,10 +53,11 @@ class Filter(models.Model):
         SG = "SG"
         SI = "SI"
 
-    filter_type = models.CharField(choices=FilterType.choices, db_column="type", max_length=2, primary_key=True)
+    filter_type = models.CharField(
+        choices=FilterType.choices, db_column="type", max_length=2, primary_key=True
+    )
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
-
 
 
 class Observatory(models.Model):
@@ -82,7 +83,9 @@ class ObservatoryExposureSettings(models.Model):
     Model for the many-to-many relationship between observatories and exposure settings.
     """
 
-    observatory = models.ForeignKey(Observatory, on_delete=models.DO_NOTHING, db_column="observatory")
+    observatory = models.ForeignKey(
+        Observatory, on_delete=models.DO_NOTHING, db_column="observatory"
+    )
     exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
     observation_type = models.CharField(
         choices=ObservationType.choices, db_column="type"
@@ -126,6 +129,7 @@ class AbstractObservation(models.Model):
 
 class ImagingObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
+    required_amount = models.IntegerField()
 
 
 class ExoplanetObservation(AbstractObservation):
@@ -135,6 +139,7 @@ class ExoplanetObservation(AbstractObservation):
 
 class VariableObservation(AbstractObservation):
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+    required_amount = models.IntegerField()
 
 
 class MonitoringObservation(AbstractObservation):
@@ -142,6 +147,7 @@ class MonitoringObservation(AbstractObservation):
     start_scheduling = models.DateTimeField()
     end_scheduling = models.DateTimeField()
     cadence = models.IntegerField()
+    required_amount = models.IntegerField()
 
 
 class ExpertObservation(AbstractObservation):
@@ -158,3 +164,4 @@ class ExpertObservation(AbstractObservation):
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+    required_amount = models.IntegerField()

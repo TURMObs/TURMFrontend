@@ -15,7 +15,8 @@ from .models import (
     VariableObservation,
     MonitoringObservation,
     ExpertObservation,
-    Observatory, Filter, ObservatoryExposureSettings,
+    Observatory,
+    Filter, ObservationType,
 )
 
 priorities = {
@@ -106,14 +107,18 @@ def _validate_time_range(start_time, end_time):
         )
 
 
-def _convert_decimal_fields(ret):
-    if isinstance(ret, dict):
-        return {key: _convert_decimal_fields(value) for key, value in ret.items()}
-    elif isinstance(ret, list):
-        return [_convert_decimal_fields(item) for item in ret]
-    elif isinstance(ret, Decimal):
-        return float(ret)
-    return ret
+def _convert_decimal_fields(rep):
+    """
+    Convert all Decimal fields to float, as Decimal is not JSON serializable.
+    :param rep: Dictionary to convert
+    """
+    if isinstance(rep, dict):
+        return {key: _convert_decimal_fields(value) for key, value in rep.items()}
+    elif isinstance(rep, list):
+        return [_convert_decimal_fields(item) for item in rep]
+    elif isinstance(rep, Decimal):
+        return float(rep)
+    return rep
 
 
 # noinspection PyTypeChecker
@@ -125,7 +130,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     :param exposure_fields: Additional fields to add to each exposure. Do not add these to additional_fields.
     :return: Dictionary representation of the observation
     """
-    ret = {
+    rep = {
         "name": f"{instance.observation_type}_{''.join([f.filter_type for f in instance.filter_set.all()])}_{instance.target.name}",
         "id": str(instance.user.id),
         "active": True,
@@ -159,40 +164,49 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         targets[0].update(additional_fields["targets"][0])
         additional_fields.pop("targets")
 
-    ret["targets"] = targets
+    rep["targets"] = targets
 
     if additional_fields:
-        ret.update(additional_fields)
+        rep.update(additional_fields)
 
     # Populate the exposures dynamically based on filters
     exposure_settings = instance.observatory.exposure_settings.filter(
-        observatoryexposuresettings__observation_type=instance.observation_type
-    ).get()
+        observatoryexposuresettings__observation_type=instance.observation_type,
+        observatoryexposuresettings__observatory=instance.observatory,
+    )
+
+    if not exposure_settings.exists() and instance.observation_type != ObservationType.EXPERT:
+        raise serializers.ValidationError(f"Exposure settings for observatory {instance.observatory.name} and observation type {instance.observation_type} not found")
+
+    exposure_settings = exposure_settings.first()
 
     for f in instance.filter_set.all():
         exposure_data = {
             "filter": f.filter_type,
             "exposureTime": instance.exposure_time,
-            "gain": exposure_settings.gain,
-            "offset": exposure_settings.offset,
-            "binning": exposure_settings.binning,
-            "subFrame": exposure_settings.subFrame,
             "moonSeparationAngle": f.moon_separation_angle,
             "moonSeparationWidth": f.moon_separation_width,
             "batchSize": 10,
-            "requiredAmount": 100,
             "acceptedAmount": 0,
-
         }
-
         # If exposure_fields is provided, update each exposure with the additional fields
         if exposure_fields:
             exposure_data.update(exposure_fields)
 
-        ret["targets"][0]["exposures"].append(exposure_data)
+        if exposure_settings:
+            exposure_data.update(
+                {
+                    "gain": exposure_settings.gain,
+                    "offset": exposure_settings.offset,
+                    "binning": exposure_settings.binning,
+                    "subFrame": exposure_settings.subFrame,
+                }
+            )
 
-    ret = _convert_decimal_fields(ret)
-    return ret
+        rep["targets"][0]["exposures"].append(exposure_data)
+
+    rep = _convert_decimal_fields(rep)
+    return rep
 
 
 class CelestialTargetSerializer(serializers.ModelSerializer):
@@ -215,13 +229,16 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImagingObservation
-        fields = base_fields + ["frames_per_filter"]
+        fields = base_fields + ["frames_per_filter", "required_amount"]
 
     def create(self, validated_data):
         return _create_observation(validated_data, "Imaging", ImagingObservation)
 
     def to_representation(self, instance):
-        exposure_fields = {"subFrame": instance.frames_per_filter}
+        exposure_fields = {
+            "subFrame": instance.frames_per_filter,
+            "requiredAmount": instance.required_amount,
+        }
         return _to_representation(instance=instance, exposure_fields=exposure_fields)
 
 
@@ -278,18 +295,18 @@ class VariableObservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VariableObservation
-        fields = base_fields + ["minimum_altitude"]
+        fields = base_fields + ["minimum_altitude", "required_amount"]
 
     def create(self, validated_data):
         return _create_observation(validated_data, "Variable", VariableObservation)
 
     def to_representation(self, instance):
         additional_fields = {
-            "ditherEvery": 0,
             "minimumAltitude": instance.minimum_altitude,
         }
         exposure_fields = {
             "subFrame": 0.25,
+            "requiredAmount": instance.required_amount,
         }
         return _to_representation(
             instance=instance,
@@ -311,6 +328,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
             "start_scheduling",
             "end_scheduling",
             "cadence",
+            "required_amount",
         ]
 
     def create(self, validated_data):
@@ -331,6 +349,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         }
         exposure_fields = {
             "subFrame": 0.25,
+            "requiredAmount": instance.required_amount,
         }
         return _to_representation(
             instance=instance,
@@ -362,6 +381,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "moon_separation_width",
             "minimum_altitude",
             "priority",
+            "required_amount",
         ]
 
     def validate(self, attrs):
@@ -378,7 +398,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "ditherEvery": instance.dither_every,
             "minimumAltitude": instance.minimum_altitude,
             "priority": instance.priority,
-            "cadence": instance.cadence.total_seconds(),
+            "cadence": instance.cadence,
             "targets": [
                 {
                     "startDateTime": str(
@@ -403,9 +423,40 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "offset": instance.offset,
             "moonSeparationAngle": instance.moon_separation_angle,
             "moonSeparationWidth": instance.moon_separation_width,
+            "requiredAmount": instance.required_amount,
         }
         return _to_representation(
             instance=instance,
             additional_fields=additional_fields,
             exposure_fields=exposure_fields,
         )
+
+
+serializer_mapping = {
+    ImagingObservation: ImagingObservationSerializer,
+    ExoplanetObservation: ExoplanetObservationSerializer,
+    VariableObservation: VariableObservationSerializer,
+    MonitoringObservation: MonitoringObservationSerializer,
+    ExpertObservation: ExpertObservationSerializer,
+}
+
+type_serializer_mapping = {
+    "Imaging": ImagingObservationSerializer,
+    "Exoplanet": ExoplanetObservationSerializer,
+    "Variable": VariableObservationSerializer,
+    "Monitoring": MonitoringObservationSerializer,
+    "Expert": ExpertObservationSerializer,
+}
+
+
+def get_serializer(observation_type):
+    """
+    Get the serializer for a given observation type.
+    :param observation_type: Type of observation
+    :return: Serializer for the observation or None if not found
+    """
+    if observation_type in type_serializer_mapping:
+        return type_serializer_mapping[observation_type]
+    if observation_type in serializer_mapping:
+        return serializer_mapping[observation_type]
+    return None
