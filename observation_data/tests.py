@@ -40,7 +40,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         return {
             "observatory": "TURMX",
             "target": {
-                "catalog_id": "Sgr A*",
                 "name": "Sagittarius A*",
                 "ra": "17 45 40.03599",
                 "dec": "-29 00 28.1699",
@@ -89,7 +88,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def test_imaging_insert(self):
-        self._test_observation_insert("Imaging", {"frames_per_filter": 1})
+        self._test_observation_insert("Imaging", {"frames_per_filter": 1, "required_amount": 100})
 
     def test_exoplanet_insert(self):
         self._test_observation_insert(
@@ -101,7 +100,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_variable_insert(self):
-        self._test_observation_insert("Variable", {"minimum_altitude": 30.0})
+        self._test_observation_insert("Variable", {"minimum_altitude": 30.0, "required_amount": 100})
 
     def test_monitoring_insert(self):
         self._test_observation_insert(
@@ -111,6 +110,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
+                "required_amount": 100,
             },
         )
 
@@ -135,6 +135,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "moon_separation_width": 30.0,
                 "minimum_altitude": 35,
                 "priority": 100,
+                "required_amount": 100,
             },
         )
 
@@ -162,6 +163,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data = self.base_request.copy()
         data["observation_type"] = "Imaging"
         data["frames_per_filter"] = 1
+        data["required_amount"] = 100
         data["user"] = self.user.id
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
@@ -264,7 +266,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         data = {
             "observatory": "TURMX",
             "target": {
-                "catalog_id": "LBN437",
                 "name": "LBN437",
                 "ra": "22 32 01",
                 "dec": "40 49 24",
@@ -283,7 +284,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         data = {
             "observatory": "TURMX",
             "target": {
-                "catalog_id": "NGC7822",
                 "name": "NGC7822",
                 "ra": "00 02 29",
                 "dec": "67 10 02",
@@ -303,7 +303,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         data = {
             "observatory": "TURMX",
             "target": {
-                "catalog_id": "Qatar-4b",
                 "name": "Qatar-4b",
                 "ra": "00 19 26",
                 "dec": "+44 01 39",
@@ -323,7 +322,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         data = {
             "observatory": "TURMX",
             "target": {
-                "catalog_id": "T-CrB",
                 "name": "T-CrB",
                 "ra": "15 59 30",
                 "dec": "+25 55 13",
@@ -346,7 +344,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         data = {
             "observatory": "TURMX",
             "target": {
-                "catalog_id": "RV-Ari",
                 "name": "RV-Ari",
                 "ra": "02 15 07",
                 "dec": "+18 04 28",
@@ -413,9 +410,9 @@ class JsonFormattingTestCase(django.test.TestCase):
 
         return errors
 
-    def _test_serialization(self, catalog_id, serializer_class, file_name):
+    def _test_serialization(self, target_name, serializer_class, file_name):
         serializer = serializer_class(
-            serializer_class.Meta.model.objects.get(target__catalog_id=catalog_id)
+            serializer_class.Meta.model.objects.get(target__name=target_name)
         )
         json_representation = serializer.data
         file_path = os.path.join(
@@ -432,7 +429,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             )
 
     def test_observation_exists(self):
-        observation = ImagingObservation.objects.get(target__catalog_id="LBN437")
+        observation = ImagingObservation.objects.get(target__name="LBN437")
         self.assertIsNotNone(observation)
 
     def test_json_imaging_formatting(self):
