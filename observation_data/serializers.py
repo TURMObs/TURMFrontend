@@ -46,9 +46,7 @@ def _create_observation(validated_data, observation_type, model):
 
     """
     target_data = validated_data.pop("target")
-    target_catalog_id = target_data.get("catalog_id")
     created_target, created = CelestialTarget.objects.get_or_create(
-        catalog_id=target_catalog_id,
         name=target_data.get("name"),
         ra=target_data.get("ra"),
         dec=target_data.get("dec"),
@@ -236,7 +234,6 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         exposure_fields = {
-            "subFrame": instance.frames_per_filter,
             "requiredAmount": instance.required_amount,
         }
         return _to_representation(instance=instance, exposure_fields=exposure_fields)
@@ -305,7 +302,6 @@ class VariableObservationSerializer(serializers.ModelSerializer):
             "minimumAltitude": instance.minimum_altitude,
         }
         exposure_fields = {
-            "subFrame": 0.25,
             "requiredAmount": instance.required_amount,
         }
         return _to_representation(
@@ -348,7 +344,6 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
             ],
         }
         exposure_fields = {
-            "subFrame": 0.25,
             "requiredAmount": instance.required_amount,
         }
         return _to_representation(
