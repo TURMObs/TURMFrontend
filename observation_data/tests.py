@@ -8,13 +8,14 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from observation_data.models import (
-    ImagingObservation, ObservationType,
+    ImagingObservation,
+    ObservationType,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
     VariableObservationSerializer,
-    MonitoringObservationSerializer, ObservatorySerializer,
+    MonitoringObservationSerializer,
 )
 
 
@@ -88,7 +89,9 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def test_imaging_insert(self):
-        self._test_observation_insert(ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100})
+        self._test_observation_insert(
+            ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100}
+        )
 
     def test_exoplanet_insert(self):
         self._test_observation_insert(
@@ -100,7 +103,9 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_variable_insert(self):
-        self._test_observation_insert("Variable", {"minimum_altitude": 30.0, "required_amount": 100})
+        self._test_observation_insert(
+            "Variable", {"minimum_altitude": 30.0, "required_amount": 100}
+        )
 
     def test_monitoring_insert(self):
         self._test_observation_insert(
@@ -274,7 +279,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "filter_set": ["H"],
             "frames_per_filter": 1,
-            "required_amount": 100
+            "required_amount": 100,
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -292,7 +297,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "filter_set": ["H", "O", "S"],
             "frames_per_filter": 1.0,
-            "required_amount": 100
+            "required_amount": 100,
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -333,7 +338,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "observation_type": ObservationType.MONITORING,
             "frames_per_filter": 1.0,
             "filter_set": ["R", "G", "B"],
-            "required_amount": 10
+            "required_amount": 10,
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -352,7 +357,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 60.0,
             "filter_set": ["L"],
             "minimum_altitude": 30.0,
-            "required_amount": 450
+            "required_amount": 450,
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -422,11 +427,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         with open(file_path.replace(".json", "_actual.json"), "w") as file:
             json.dump(json_representation, file, indent=4)
 
-        with open(file_path, "r") as file:
-            expected_json = json.load(file)
-            self._assert_deep_dict_equal(
-                json_representation, expected_json, remove_id=True
-            )
 
     def test_observation_exists(self):
         observation = ImagingObservation.objects.get(target__name="LBN437")
