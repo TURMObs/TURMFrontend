@@ -13,8 +13,8 @@
     "maxGuideError": 1000.0
   },
   "targetSelectionPriority": [
-    "COMPLETION",
-    "ALTITUDE"
+        "ALTITUDE",
+        "COMPLETION"
   ],
   "targets": [
     {
@@ -24,8 +24,8 @@
       "startDateTime": "",
       "endDateTime": "",
       "exposureSelectionPriority": [
-        "SELECTIVITY",
-        "COMPLETION"
+            "N_COMPLETION",
+            "SELECTIVITY"
       ],
       "exposures": [
         {
@@ -34,9 +34,9 @@
           "gain": 0,
           "offset": 50,
           "binning": 1,
-          "subFrame": 0.5,
-          "moonSeparationAngle": 40.0,
-          "moonSeparationWidth": 5,
+          "subFrame": 0.25,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
           "batchSize": 10,
           "requiredAmount": 10,
           "acceptedAmount": 0
@@ -47,9 +47,9 @@
           "gain": 0,
           "offset": 50,
           "binning": 1,
-          "subFrame": 0.5,
-          "moonSeparationAngle": 40.0,
-          "moonSeparationWidth": 5,
+          "subFrame": 0.25,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
           "batchSize": 10,
           "requiredAmount": 10,
           "acceptedAmount": 0
@@ -60,9 +60,9 @@
           "gain": 0,
           "offset": 50,
           "binning": 1,
-          "subFrame": 0.5,
-          "moonSeparationAngle": 40.0,
-          "moonSeparationWidth": 5,
+          "subFrame": 0.25,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
           "batchSize": 10,
           "requiredAmount": 10,
           "acceptedAmount": 0

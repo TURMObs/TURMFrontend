@@ -8,13 +8,13 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from observation_data.models import (
-    ImagingObservation,
+    ImagingObservation, ObservationType,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
     VariableObservationSerializer,
-    MonitoringObservationSerializer,
+    MonitoringObservationSerializer, ObservatorySerializer,
 )
 
 
@@ -88,11 +88,11 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def test_imaging_insert(self):
-        self._test_observation_insert("Imaging", {"frames_per_filter": 1, "required_amount": 100})
+        self._test_observation_insert(ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100})
 
     def test_exoplanet_insert(self):
         self._test_observation_insert(
-            "Exoplanet",
+            ObservationType.EXOPLANET,
             {
                 "start_observation": "2021-01-01T00:00:00Z",
                 "end_observation": "2021-01-01T01:00:00Z",
@@ -104,7 +104,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_monitoring_insert(self):
         self._test_observation_insert(
-            "Monitoring",
+            ObservationType.MONITORING,
             {
                 "frames_per_filter": 1,
                 "start_scheduling": "2021-01-01T00:00:00Z",
@@ -118,7 +118,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user.is_superuser = True
         self.user.save()
         self._test_observation_insert(
-            "Expert",
+            ObservationType.EXPERT,
             {
                 "frames_per_filter": 1,
                 "dither_every": 1.0,
@@ -270,7 +270,7 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "ra": "22 32 01",
                 "dec": "40 49 24",
             },
-            "observation_type": "Imaging",
+            "observation_type": ObservationType.IMAGING,
             "exposure_time": 300.0,
             "filter_set": ["H"],
             "frames_per_filter": 1,
@@ -288,7 +288,7 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "ra": "00 02 29",
                 "dec": "67 10 02",
             },
-            "observation_type": "Imaging",
+            "observation_type": ObservationType.IMAGING,
             "exposure_time": 300.0,
             "filter_set": ["H", "O", "S"],
             "frames_per_filter": 1.0,
@@ -307,7 +307,7 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "ra": "00 19 26",
                 "dec": "+44 01 39",
             },
-            "observation_type": "Exoplanet",
+            "observation_type": ObservationType.EXOPLANET,
             "start_observation": "2024-10-25T19:30:00",
             "end_observation": "2024-10-25T23:40:00",
             "exposure_time": 120.0,
@@ -330,10 +330,10 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 30.0,
             "start_scheduling": "2024-10-25T19:30:00",
             "end_scheduling": "2024-10-25T23:40:00",
-            "observation_type": "Monitoring",
+            "observation_type": ObservationType.MONITORING,
             "frames_per_filter": 1.0,
             "filter_set": ["R", "G", "B"],
-            "required_amount": 100
+            "required_amount": 10
         }
         response = self.client.post(
             path="/observation_data/create/", data=data, content_type="application/json"
@@ -348,8 +348,8 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "ra": "02 15 07",
                 "dec": "+18 04 28",
             },
-            "observation_type": "Variable",
-            "exposure_time": 300.0,
+            "observation_type": ObservationType.VARIABLE,
+            "exposure_time": 60.0,
             "filter_set": ["L"],
             "minimum_altitude": 30.0,
             "required_amount": 450

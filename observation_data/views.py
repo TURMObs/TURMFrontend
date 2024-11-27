@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
+from observation_data.models import ObservationType
 from observation_data.serializers import get_serializer
 
 
@@ -32,7 +33,7 @@ def create_observation(request):
         )
 
     observation_type = request_data.get("observation_type")
-    if observation_type == "Expert":
+    if observation_type == ObservationType.EXPERT:
         if not request.user.is_superuser:
             return Response(
                 {"error": "Permission denied"},
@@ -48,5 +49,4 @@ def create_observation(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    print("not valid: ", serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

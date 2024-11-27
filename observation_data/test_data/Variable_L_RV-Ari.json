@@ -35,9 +35,9 @@
           "offset": 50,
           "binning": 1,
           "subFrame": 0.25,
-          "moonSeparationAngle": 40.0,
-          "moonSeparationWidth": 5,
-          "batchSize": 30,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
+          "batchSize": 10,
           "requiredAmount": 450,
           "acceptedAmount": 0
         }

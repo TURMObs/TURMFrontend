@@ -2,7 +2,7 @@
 Serializers for the observation_data app models.
 For a usage example, see the create_observation view in the views.py file.
 """
-
+from collections import OrderedDict
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -20,10 +20,10 @@ from .models import (
 )
 
 priorities = {
-    "Imaging": 10,
-    "Exoplanet": 1000000,
-    "Variable": 100000,
-    "Monitoring": 1000,
+    ObservationType.IMAGING: 10,
+    ObservationType.EXOPLANET: 1000000,
+    ObservationType.VARIABLE: 100000,
+    ObservationType.MONITORING: 1000,
 }
 
 base_fields = [
@@ -133,7 +133,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         "id": str(instance.user.id),
         "active": True,
         "priority": instance.priority,
-        "ditherEvery": 1,
+        "ditherEvery": 0,
         "minimumAltitude": 30.0,
         "horizonOffset": instance.observatory.horizon_offset,
         "centerTargets": True,
@@ -177,6 +177,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         raise serializers.ValidationError(f"Exposure settings for observatory {instance.observatory.name} and observation type {instance.observation_type} not found")
 
     exposure_settings = exposure_settings.first()
+    exposure_order = ["filter", "exposureTime", "gain", "offset", "binning", "subFrame", "moonSeparationAngle", "moonSeparationWidth", "batchSize", "requiredAmount", "acceptedAmount"]
 
     for f in instance.filter_set.all():
         exposure_data = {
@@ -201,7 +202,8 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
                 }
             )
 
-        rep["targets"][0]["exposures"].append(exposure_data)
+        ordered = OrderedDict((key, exposure_data.get(key, None)) for key in exposure_order)
+        rep["targets"][0]["exposures"].append(ordered)
 
     rep = _convert_decimal_fields(rep)
     return rep
@@ -230,13 +232,16 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
         fields = base_fields + ["frames_per_filter", "required_amount"]
 
     def create(self, validated_data):
-        return _create_observation(validated_data, "Imaging", ImagingObservation)
+        return _create_observation(validated_data, ObservationType.IMAGING, ImagingObservation)
 
     def to_representation(self, instance):
+        additional_fields = {
+            "ditherEvery": 1,
+        }
         exposure_fields = {
             "requiredAmount": instance.required_amount,
         }
-        return _to_representation(instance=instance, exposure_fields=exposure_fields)
+        return _to_representation(instance=instance, exposure_fields=exposure_fields, additional_fields=additional_fields)
 
 
 class ExoplanetObservationSerializer(serializers.ModelSerializer):
@@ -259,7 +264,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return _create_observation(validated_data, "Exoplanet", ExoplanetObservation)
+        return _create_observation(validated_data, ObservationType.EXOPLANET, ExoplanetObservation)
 
     def to_representation(self, instance):
         additional_fields = {
@@ -295,7 +300,7 @@ class VariableObservationSerializer(serializers.ModelSerializer):
         fields = base_fields + ["minimum_altitude", "required_amount"]
 
     def create(self, validated_data):
-        return _create_observation(validated_data, "Variable", VariableObservation)
+        return _create_observation(validated_data, ObservationType.VARIABLE, VariableObservation)
 
     def to_representation(self, instance):
         additional_fields = {
@@ -328,27 +333,14 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        return _create_observation(validated_data, "Monitoring", MonitoringObservation)
+        return _create_observation(validated_data, ObservationType.MONITORING, MonitoringObservation)
 
     def to_representation(self, instance):
-        additional_fields = {
-            "targets": [
-                {
-                    "startDateTime": str(
-                        instance.start_scheduling.replace(tzinfo=None)
-                    ).strip(),
-                    "endDateTime": str(
-                        instance.end_scheduling.replace(tzinfo=None)
-                    ).strip(),
-                }
-            ],
-        }
         exposure_fields = {
             "requiredAmount": instance.required_amount,
         }
         return _to_representation(
             instance=instance,
-            additional_fields=additional_fields,
             exposure_fields=exposure_fields,
         )
 
@@ -386,7 +378,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return _create_observation(validated_data, "Expert", ExpertObservation)
+        return _create_observation(validated_data, ObservationType.EXPERT, ExpertObservation)
 
     def to_representation(self, instance):
         additional_fields = {
@@ -436,11 +428,11 @@ serializer_mapping = {
 }
 
 type_serializer_mapping = {
-    "Imaging": ImagingObservationSerializer,
-    "Exoplanet": ExoplanetObservationSerializer,
-    "Variable": VariableObservationSerializer,
-    "Monitoring": MonitoringObservationSerializer,
-    "Expert": ExpertObservationSerializer,
+    ObservationType.IMAGING: ImagingObservationSerializer,
+    ObservationType.EXOPLANET: ExoplanetObservationSerializer,
+    ObservationType.VARIABLE: VariableObservationSerializer,
+    ObservationType.MONITORING: MonitoringObservationSerializer,
+    ObservationType.EXPERT: ExpertObservationSerializer,
 }
 
 
