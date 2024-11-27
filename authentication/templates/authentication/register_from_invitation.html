@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Authentication Example</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                padding: 20px;
+            }
+            img {
+                max-width: 100%;
+                height: auto;
+                margin-top: 20px;
+            }
+            .button-container {
+                margin-top: 20px;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin: 10px;
+                cursor: pointer;
+                border: none;
+                background-color: #4caf50;
+                color: white;
+                border-radius: 5px;
+            }
+            button:hover {
+                background-color: #45a049;
+            }
+
+            /* Modal (hidden by default) */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.4);
+                padding-top: 60px;
+            }
+
+            /* Modal Content */
+            .modal-content {
+                background-color: #fff;
+                margin: 5% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 400px;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+            /* Modal success style */
+            .modal-success {
+                background-color: #4caf50;
+                color: white;
+            }
+
+            /* Modal error style */
+            .modal-error {
+                background-color: #f44336;
+                color: white;
+            }
+
+            /* Close button */
+            .close {
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+                position: absolute;
+                top: 5px;
+                right: 10px;
+                background: none;
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="position: absolute; top: 10px; left: 10px">
+            <button onclick="window.location.href='/'">Home</button>
+        </div>
+        <h1>Create account</h1>
+        {% if error %}
+            <p style="color: red">Invalid invitation link</p>
+        {% else %}
+            <div>
+                <form method="post" action="{% url 'signup' %}">
+                    >
+                    {% csrf_token %}
+                    <p>Email: {{ email }}</p>
+                    {{ form.as_p }}
+                    <button type="submit">Set Password and Register</button>
+                </form>
+            </div>
+        {% endif %}
+    </body>
+</html>

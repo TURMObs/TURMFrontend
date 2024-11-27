@@ -6,9 +6,27 @@ on:
   pull_request:
     branches:
       - main
+env:
+  POSTGRES_DB: TURMFrontend
+  POSTGRES_USER: root
+  POSTGRES_PASSWORD: root
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: TURMFrontend
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - name: Install Python
@@ -28,3 +46,5 @@ jobs:
         uses: crate-ci/typos@v1.27.2
         with:
           config: ./typos.toml
+      - name: Run tests
+        run: python manage.py test
