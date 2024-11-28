@@ -88,6 +88,7 @@
         <div class="button-container">
             <button onclick="window.location.href='/interactiveTest/'">Go to Interactive Test</button>
             <button onclick="fetchData()">Upload Data</button>
+            <button onclick="window.location.href='../../../observation_request/'">Go to Form Test</button>
             {% if not user.is_authenticated %}
                 <button onclick="window.location.href='/authentication/login'">Login</button>
             {% else %}

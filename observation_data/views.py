@@ -1,24 +1,13 @@
+from urllib.parse import parse_qs
+
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
-from observation_data.serializers import (
-    ExoplanetObservationSerializer,
-    ImagingObservationSerializer,
-    VariableObservationSerializer,
-    MonitoringObservationSerializer,
-    ExpertObservationSerializer,
-)
-
-observation_type_to_serializer = {
-    "Exoplanet": ExoplanetObservationSerializer,
-    "Imaging": ImagingObservationSerializer,
-    "Variable": VariableObservationSerializer,
-    "Monitoring": MonitoringObservationSerializer,
-    "Expert": ExpertObservationSerializer,
-}
+from observation_data.models import ObservationType
+from observation_data.serializers import get_serializer
 
 
 @require_POST
@@ -36,6 +25,7 @@ def create_observation(request):
             {"error": "Authentication required"},
             status=HTTP_401_UNAUTHORIZED,
         )
+    request_data = parse_qs(request.body)
     request_data = request.data
     request_data["user"] = request.user.id
 
@@ -46,13 +36,13 @@ def create_observation(request):
         )
 
     observation_type = request_data.get("observation_type")
-    if observation_type == "Expert":
+    if observation_type == ObservationType.EXPERT:
         if not request.user.is_superuser:
             return Response(
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-    serializer_class = observation_type_to_serializer.get(observation_type)
+    serializer_class = get_serializer(observation_type)
     if not serializer_class:
         return Response(
             {"error": "Invalid observation type"}, status=status.HTTP_400_BAD_REQUEST
@@ -62,5 +52,4 @@ def create_observation(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    print("not valid: ", serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

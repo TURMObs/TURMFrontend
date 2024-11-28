@@ -25,6 +25,7 @@ urlpatterns = [
     path("authentication/", include("authentication.urls")),
     path("observation_data/", include("observation_data.urls")),
     path("", include("root.urls")),
+    path("observation_request/", include("observation_request.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
