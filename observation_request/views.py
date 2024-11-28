@@ -4,10 +4,6 @@ from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 
 from urllib.parse import parse_qs
-from observation_data.models import AbstractObservation
-
-# Create your views here.
-
 
 from observation_data.forms import *
 
@@ -17,11 +13,11 @@ def simple_request(request):
     # Observation Types
     # list of Name and if they should only be displayed to a super_user
     observation_types = (
-        (str(AbstractObservation.ObservationType.IMAGING), False),
-        (AbstractObservation.ObservationType.EXOPLANET, False),
-        (AbstractObservation.ObservationType.VARIABLE, False),
-        (AbstractObservation.ObservationType.MONITORING, False),
-        (AbstractObservation.ObservationType.EXPERT, True),
+        (str(ObservationType.IMAGING), False),
+        (ObservationType.EXOPLANET, False),
+        (ObservationType.VARIABLE, False),
+        (ObservationType.MONITORING, False),
+        (ObservationType.EXPERT, True),
     )
 
     # Forms

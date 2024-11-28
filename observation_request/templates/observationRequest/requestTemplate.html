@@ -1,5 +1,5 @@
 {% extends "base_template.html" %}
-{% block title %}look ma no title{% endblock %}
+{% block title %}Create Observation{% endblock %}
 {% block style %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
         padding: 1em 30px;
 
         color: white;
-        font-family: 'Source Sans Pro', sans-serif;
+        font-family: var(--tom-base-font), sans-serif;
     }
 
     label {
@@ -45,7 +45,7 @@
         background-color: #242424;
 
         color: white;
-        font-family: 'Source Sans Pro', sans-serif;
+        font-family: var(--tom-base-font), sans-serif;
         font-size: 1.15em;
     }
 
@@ -65,6 +65,7 @@
         border-radius: var(--tom-corner-radius);
         border: .125em solid transparent;
 
+        font-family: var(--tom-base-font), sans-serif;
         font-size: 1.15em;
         padding: 0.5em;
 
@@ -92,27 +93,23 @@
     .observation_type_label {
         background-color: var(--tom-disabled-grey);
         padding: .5em;
-        /*border-top: 0.125em solid white;
-        border-bottom: 0.125em solid white;
-        border-right: 0.125em solid white;*/
 
         flex: 1;
         text-align: center;
         font-weight: bold;
+
+
     }
     .observation_type_label:hover {
         background-color: var(--tom-accent-color);
     }
     .observation_type_label:first-child {
-        /*border: 0.125em solid white; */
-
         -moz-border-radius-topleft: var(--tom-corner-radius);
         -webkit-border-top-left-radius: var(--tom-corner-radius);
         -moz-border-radius-bottomleft: var(--tom-corner-radius);
         -webkit-border-bottom-left-radius: var(--tom-corner-radius);
     }
     .observation_type_label:nth-last-child(2) {
-        /*border: 0.125em solid white;*/
         border-left: transparent;
 
 
@@ -140,6 +137,7 @@
                     <h1>create new Observation</h1>
                 </div>
             </header>
+
             <script>
             window.onload = function() {
                 only_show('Imaging', document.getElementById('Imaging'));

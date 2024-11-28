@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import CelestialTarget, ExpertObservation, AbstractObservation
+from .models import CelestialTarget, ExpertObservation, AbstractObservation, ObservationType
 
 
 class ProjectForm(forms.ModelForm):
@@ -12,18 +12,20 @@ class ProjectForm(forms.ModelForm):
         super(ProjectForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
-            # self.initial[field] = '0'
 
 
 class CelestialTargetForm(forms.ModelForm):
     class Meta:
         model = CelestialTarget
-        fields = ["name", "catalog_id", "ra", "dec"]
+        fields = ["name", "ra", "dec"]
 
     def __init__(self, *args, **kwargs):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
+        self.fields['name'].widget.attrs.update({'placeholder': 'M42'})
+        self.fields['ra'].widget.attrs.update({'placeholder': 'hh mm ss'})
+        self.fields['dec'].widget.attrs.update({'placeholder': 'dd mm ss'})
 
 
 class ExposureForm(forms.ModelForm):
@@ -50,17 +52,17 @@ class ExposureForm(forms.ModelForm):
         # Imaging
         self.label_widgets(
             ["filter_set", "exposure_time", "frames_per_filter"],
-            AbstractObservation.ObservationType.IMAGING,
+            ObservationType.IMAGING,
         )
         # Exoplanet
         self.label_widgets(
             ["filter_set", "exposure_time", "start_observation", "end_observation"],
-            AbstractObservation.ObservationType.EXOPLANET,
+            ObservationType.EXOPLANET,
         )
         # Variable
         self.label_widgets(
             ["filter_set", "exposure_time", "minimum_altitude"],
-            AbstractObservation.ObservationType.VARIABLE,
+            ObservationType.VARIABLE,
         )
         # Monitoring
         self.label_widgets(
@@ -72,7 +74,7 @@ class ExposureForm(forms.ModelForm):
                 "end_scheduling",
                 "cadence",
             ],
-            AbstractObservation.ObservationType.MONITORING,
+            ObservationType.MONITORING,
         )
 
     def label_widgets(self, fields, html_class):

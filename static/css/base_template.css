@@ -17,6 +17,9 @@
     /* values */
     --tom-base-width: 1140px;
     --tom-corner-radius: 5px;
+
+    /* fonts */
+    --tom-base-font: 'Source Sans 3';
 }
 
 * {
