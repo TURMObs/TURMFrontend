@@ -1,6 +1,10 @@
 from django import forms
 
-from .models import CelestialTarget, ExpertObservation, AbstractObservation, ObservationType
+from .models import (
+    CelestialTarget,
+    ExpertObservation,
+    ObservationType,
+)
 
 
 class ProjectForm(forms.ModelForm):
@@ -23,9 +27,9 @@ class CelestialTargetForm(forms.ModelForm):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
-        self.fields['name'].widget.attrs.update({'placeholder': 'M42'})
-        self.fields['ra'].widget.attrs.update({'placeholder': 'hh mm ss'})
-        self.fields['dec'].widget.attrs.update({'placeholder': 'dd mm ss'})
+        self.fields["name"].widget.attrs.update({"placeholder": "M42"})
+        self.fields["ra"].widget.attrs.update({"placeholder": "hh mm ss"})
+        self.fields["dec"].widget.attrs.update({"placeholder": "dd mm ss"})
 
 
 class ExposureForm(forms.ModelForm):
