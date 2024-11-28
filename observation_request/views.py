@@ -2,10 +2,10 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
-
 from urllib.parse import parse_qs
 
-from observation_data.forms import *
+from observation_data.models import ObservationType
+from observation_data.forms import ProjectForm, CelestialTargetForm, ExposureForm
 
 
 def simple_request(request):
@@ -14,10 +14,10 @@ def simple_request(request):
     # list of Name and if they should only be displayed to a super_user
     observation_types = (
         (str(ObservationType.IMAGING), False),
-        (ObservationType.EXOPLANET, False),
-        (ObservationType.VARIABLE, False),
-        (ObservationType.MONITORING, False),
-        (ObservationType.EXPERT, True),
+        (str(ObservationType.EXOPLANET), False),
+        (str(ObservationType.VARIABLE), False),
+        (str(ObservationType.MONITORING), False),
+        (str(ObservationType.EXPERT), True),
     )
 
     # Forms
