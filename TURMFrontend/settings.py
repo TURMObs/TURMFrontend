@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     "observation_data",
     "root",
     "nextcloud",
-    "polymorphic"
+    "polymorphic",
 ]
 
 MIDDLEWARE = [
