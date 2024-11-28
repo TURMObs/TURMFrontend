@@ -182,8 +182,8 @@
                         <h2 class="sub_form_heading">{{ name }}</h2>
                         {% if options is not None %}
                             <div class="switch_button_container">
-                                {% for observation_t, super_user in options %}
-                                    {% if not super_user or True %}
+                                {% for observation_t, require_super_user in options %}
+                                    {% if not require_super_user or True %}
                                         <label class="observation_type_label" for="{{ observation_t }}">{{ observation_t }}</label>
                                         <input class="observation_type_radio"
                                                type="radio"

@@ -45,4 +45,3 @@ def test_request(request):
     }
 
     return HttpResponse(str(decoded_data))
-    # return HttpResponse(request.body)
