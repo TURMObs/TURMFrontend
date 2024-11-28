@@ -1,0 +1,47 @@
+{
+    "name": "Variable_L_RV-Ari",
+    "id": "5",
+    "active": true,
+    "priority": 100000,
+    "ditherEvery": 0,
+    "minimumAltitude": 30.0,
+    "horizonOffset": 0.0,
+    "centerTargets": true,
+    "imageGrader": {
+        "minStars": -1,
+        "maxHFR": 4.0,
+        "maxGuideError": 1000.0
+    },
+    "targetSelectionPriority": [
+        "ALTITUDE",
+        "COMPLETION"
+    ],
+    "targets": [
+        {
+            "name": "RV-Ari",
+            "RA": "02 15 07",
+            "DEC": "+18 04 28",
+            "startDateTime": "",
+            "endDateTime": "",
+            "exposureSelectionPriority": [
+                "N_COMPLETION",
+                "SELECTIVITY"
+            ],
+            "exposures": [
+                {
+                    "filter": "L",
+                    "exposureTime": 60.0,
+                    "gain": 0,
+                    "offset": 50,
+                    "binning": 1,
+                    "subFrame": 0.25,
+                    "moonSeparationAngle": 100.0,
+                    "moonSeparationWidth": 7,
+                    "batchSize": 10,
+                    "requiredAmount": 450,
+                    "acceptedAmount": 0
+                }
+            ]
+        }
+    ]
+}

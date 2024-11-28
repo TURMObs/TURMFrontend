@@ -1,0 +1,73 @@
+{
+  "name": "Monitor_RGB_T-CrB",
+  "id": "rroth1000",
+  "active": true,
+  "priority": 1000,
+  "ditherEvery": 0,
+  "minimumAltitude": 30.0,
+  "horizonOffset": 0.0,
+  "centerTargets": true,
+  "imageGrader": {
+    "minStars": -1,
+    "maxHFR": 4.0,
+    "maxGuideError": 1000.0
+  },
+  "targetSelectionPriority": [
+        "ALTITUDE",
+        "COMPLETION"
+  ],
+  "targets": [
+    {
+      "name": "T-CrB",
+      "RA": "15 59 30",
+      "DEC": "+25 55 13",
+      "startDateTime": "",
+      "endDateTime": "",
+      "exposureSelectionPriority": [
+            "N_COMPLETION",
+            "SELECTIVITY"
+      ],
+      "exposures": [
+        {
+          "filter": "R",
+          "exposureTime": 30.0,
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subFrame": 0.25,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
+          "batchSize": 10,
+          "requiredAmount": 10,
+          "acceptedAmount": 0
+        },
+        {
+          "filter": "G",
+          "exposureTime": 30.0,
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subFrame": 0.25,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
+          "batchSize": 10,
+          "requiredAmount": 10,
+          "acceptedAmount": 0
+        },
+        {
+          "filter": "B",
+          "exposureTime": 30.0,
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subFrame": 0.25,
+          "moonSeparationAngle": 100.0,
+          "moonSeparationWidth": 7,
+          "batchSize": 10,
+          "requiredAmount": 10,
+          "acceptedAmount": 0
+        }
+      ]
+    }
+  ]
+}
