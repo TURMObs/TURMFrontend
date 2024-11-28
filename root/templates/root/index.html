@@ -89,7 +89,11 @@
             <button onclick="window.location.href='/interactiveTest/'">Go to Interactive Test</button>
             <button onclick="fetchData()">Upload Data</button>
             <button onclick="window.location.href='../../../observation_request/'">Go to Form Test</button>
-            <button onclick="window.location.href='/authentication/'">Login</button>
+            {% if not user.is_authenticated %}
+                <button onclick="window.location.href='/authentication/login'">Login</button>
+            {% else %}
+                <button onclick="window.location.href='/authentication/logout/'">Logout</button>
+            {% endif %}
         </div>
         <h2>Observatory GIF</h2>
         <iframe src="https://giphy.com/embed/FlodpfQUBSp20"
