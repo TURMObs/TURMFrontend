@@ -13,7 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        This commands adds the observatories, exposure settings and filters to the database.
+        This command adds the observatories, exposure settings and filters to the database.
         """
         self.populate_observatories()
         self.populate_exposure_settings()

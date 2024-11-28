@@ -427,7 +427,6 @@ class JsonFormattingTestCase(django.test.TestCase):
         with open(file_path.replace(".json", "_actual.json"), "w") as file:
             json.dump(json_representation, file, indent=4)
 
-
     def test_observation_exists(self):
         observation = ImagingObservation.objects.get(target__name="LBN437")
         self.assertIsNotNone(observation)
