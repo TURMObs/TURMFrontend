@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
-from django.conf.global_settings import STATICFILES_DIRS
 from dotenv import load_dotenv
 
 
