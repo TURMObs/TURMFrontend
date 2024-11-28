@@ -59,6 +59,9 @@ class Filter(models.Model):
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
 
+    def __str__(self):
+        return self.filter_type
+
 
 class Observatory(models.Model):
     """
@@ -76,6 +79,9 @@ class Observatory(models.Model):
         through="ObservatoryExposureSettings",
         related_name="observatories",
     )
+
+    def __str__(self):
+        return self.name
 
 
 class ObservatoryExposureSettings(models.Model):
