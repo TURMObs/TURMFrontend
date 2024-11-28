@@ -1,16 +1,11 @@
 {% extends "base_template.html" %}
-
-{% block title %}
-look ma no title
-{% endblock %}
-
-
+{% block title %}look ma no title{% endblock %}
 {% block style %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
-
-<style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
+          rel="stylesheet">
+    <style>
 
     .form_body {
         background-color: #313131;
@@ -135,21 +130,17 @@ look ma no title
         background-color: var(--tom-primary-color-dark);
     }
 
-</style>
+    </style>
 {% endblock %}
-
 {% block content %}
-<div class="container_center">
-    <div class="container_column">
-        <header class="form_body">
-            <div class="container_center">
-                <h1> create new Observation</h1>
-            </div>
-        </header>
-
-
-
-        <script>
+    <div class="container_center">
+        <div class="container_column">
+            <header class="form_body">
+                <div class="container_center">
+                    <h1>create new Observation</h1>
+                </div>
+            </header>
+            <script>
             window.onload = function() {
                 only_show('Imaging', document.getElementById('Imaging'));
             };
@@ -188,38 +179,33 @@ look ma no title
                     set_element_visibility(el, show);
                 }
             }
-        </script>
-
-        <form
-                action="{{ create_form_url }}"
-                method="post"
-        class="input_form">
-        {% for name, form, options in forms  %}
-            <article class="form_body">
-                <h2 class="sub_form_heading"> {{ name }} </h2>
-                {% if options is not None %}
-
-                <div class="switch_button_container">
-                    {% for observation_t, super_user in options  %}
-                        {% if not super_user or True %}
-                            <label class="observation_type_label" for="{{ observation_t }}">{{ observation_t }}</label>
-                        <input class="observation_type_radio" type="radio" id="{{ observation_t}}" name="observation_type" onclick="only_show('{{ observation_t }}', this)">
+            </script>
+            <form action="{{ create_form_url }}" method="post" class="input_form">
+                {% for name, form, options in forms %}
+                    <article class="form_body">
+                        <h2 class="sub_form_heading">{{ name }}</h2>
+                        {% if options is not None %}
+                            <div class="switch_button_container">
+                                {% for observation_t, super_user in options %}
+                                    {% if not super_user or True %}
+                                        <label class="observation_type_label" for="{{ observation_t }}">{{ observation_t }}</label>
+                                        <input class="observation_type_radio"
+                                               type="radio"
+                                               id="{{ observation_t }}"
+                                               name="observation_type"
+                                               onclick="only_show('{{ observation_t }}', this)">
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <br>
                         {% endif %}
-                    {% endfor %}
-                </div>
-                <br>
-                {% endif %}
-                <div class="form_center">
-                    {{ form }}
-                </div>
-            </article>
-        {% endfor %}
-        {% csrf_token %}
-        <input type="submit" class="base_button">
-        </form>
-        <div class="disabled_inputs">
-
+                        <div class="form_center">{{ form }}</div>
+                    </article>
+                {% endfor %}
+                {% csrf_token %}
+                <input type="submit" class="base_button">
+            </form>
+            <div class="disabled_inputs"></div>
         </div>
     </div>
-</div>
 {% endblock %}

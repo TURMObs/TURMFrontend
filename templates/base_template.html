@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
-</head>
-
-{% load static %}
-<link rel="stylesheet" href="{% static "/css/base_template.css"%}">
-
-<style>
+    <head>
+        <meta charset="UTF-8">
+        <title>
+            {% block title %}{% endblock %}
+        </title>
+    </head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static "/css/base_template.css" %}">
+    <style>
     * {
         box-sizing: border-box;
     }
@@ -131,53 +131,60 @@
         flex-flow: column;
     }
 
-</style>
-{% block style %}
-{% endblock %}
-
-<body>
-    <header class="navbar">
-        <div class="navbar_container">
-            <div class="navbar_image_container">
-                <div class="navbar_image">
-                <a href="http://localhost:8000" aria-label="TOM | observations">
-                    <img src="{% static 'LogoWebA_7.png' %}" alt="TURM" width="346.2" height="70.95">
-                </a>
+    </style>
+    {% block style %}{% endblock %}
+    <body>
+        <header class="navbar">
+            <div class="navbar_container">
+                <div class="navbar_image_container">
+                    <div class="navbar_image">
+                        <a href="http://localhost:8000" aria-label="TOM | observations">
+                            <img src="{% static 'LogoWebA_7.png' %}"
+                                 alt="TURM"
+                                 width="346.2"
+                                 height="70.95">
+                        </a>
+                    </div>
+                </div>
+                <div class="navbar_link_container">
+                    <a class="navbar_link" href="http://localhost:8000" aria-label="Home">
+                        <span class="navbar_link">HOME</span>
+                    </a>
+                    <a class="navbar_link"
+                       href="http://localhost:8000/observation_request/"
+                       aria-label="new project">
+                        <span class="navbar_link">NEW PROJECT</span>
+                    </a>
+                    <a class="navbar_link"
+                       href="http://localhost:8000/observation_request/"
+                       aria-label="project view">
+                        <span class="navbar_link">PROJECT VIEW</span>
+                    </a>
                 </div>
             </div>
-            <div class="navbar_link_container">
-                <a class="navbar_link" href="http://localhost:8000" aria-label="Home">
-                    <span class="navbar_link"> HOME </span>
-                </a>
-                <a class="navbar_link" href="http://localhost:8000/observation_request/" aria-label="new project">
-                    <span class="navbar_link"> NEW PROJECT </span>
-                </a>
-                <a class="navbar_link" href="http://localhost:8000/observation_request/" aria-label="project view">
-                    <span class="navbar_link"> PROJECT VIEW </span>
-                </a>
-            </div>
+        </header>
+        <div class="space">
+            {% block content %}{% endblock %}
         </div>
-    </header>
-
-    <div class="space">
-        {% block content %}
-        {% endblock %}
-    </div>
-
-    <footer class="footer_container">
-        <div class="footer_row">
-            <aside class="footer_column">
-                <h5 class="footer_column_entry">Contact</h5>
-                <p class="footer_column_entry">TURM Observatory
-                    <br>
-                Fachbereich Physik
-                <br>
-                Technische Universität Darmstadt</p>
-            </aside>
-            <div class="footer_column">
-                <p> <a class="grey_link" href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a> </p>
+        <footer class="footer_container">
+            <div class="footer_row">
+                <aside class="footer_column">
+                    <h5 class="footer_column_entry">Contact</h5>
+                    <p class="footer_column_entry">
+                        TURM Observatory
+                        <br>
+                        Fachbereich Physik
+                        <br>
+                        Technische Universität Darmstadt
+                    </p>
+                </aside>
+                <div class="footer_column">
+                    <p>
+                        <a class="grey_link"
+                           href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a>
+                    </p>
+                </div>
             </div>
-        </div>
-    </footer>
-</body>
+        </footer>
+    </body>
 </html>
