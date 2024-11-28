@@ -10,8 +10,10 @@ from .models import InvitationToken, generate_invitation_link
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+    )
 
 
 class GenerateInvitationForm(forms.Form):
@@ -20,7 +22,10 @@ class GenerateInvitationForm(forms.Form):
 
 @require_GET
 def login(request):
-    return index_template(request, form=LoginForm())
+    if request.user.is_authenticated:
+        return redirect("index")
+    else:
+        return index_template(request, form=LoginForm())
 
 
 @require_POST

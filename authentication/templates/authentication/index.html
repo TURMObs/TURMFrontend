@@ -1,42 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-
-{% load static %}
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TURM Login</title>
-    <link rel="stylesheet" href="{% static "/css/style_login.css"%}">
-
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-</head>
-
-<body>
-
-    <div class= "wrapper">
-        <form action="">
-            <h1>Login</h1>
-            <div class="input-field">
-                <input type="text" placeholder="Email" requiered>
-                <i class='bx bxs-user'></i>
-            </div>
-            <div class="input-field">
-                <input type="password" placeholder="Password" requiered>
-                <i class='bx bxs-lock-alt'></i>
-            </div>
-            <div class="remember-forgot">
-                <label><input type="checkbox">Remember me</label>
-                <a href="#">Forgot password?</a>
-            </div>
-
-            <button type="submit" class="btn">Login</button>
-
-            <div class="request_account">
-                Don't have an account? Request one <a href="#">here.</a><p/>
-            </div>
-        </form>
-    </div>
-</body>
-</html>
+    {% load static %}
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TURM Login</title>
+        <link rel="stylesheet" href="{% static "/css/authentication_index.css" %}">
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+              rel='stylesheet'>
+    </head>
+    <body>
+        <div class= "wrapper">
+            <form method="post" action="{% url 'login-user' %}">
+                {% csrf_token %}
+                <h1>Login</h1>
+                <div class="input-field">
+                    {{ form.email.errors }}
+                    {{ form.email }}
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-field">
+                    {{ form.password.errors }}
+                    {{ form.password }}
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                {% if error is not None %}<p class="error-message">Invalid username or password</p>{% endif %}
+                <button type="submit" class="btn">Login</button>
+            </form>
+        </div>
+    </body>
+</html> 
