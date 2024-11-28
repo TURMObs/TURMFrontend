@@ -26,10 +26,7 @@ def create_observation(request):
             status=HTTP_401_UNAUTHORIZED,
         )
     request_data = parse_qs(request.body)
-    request_data = {
-        key.decode("utf-8"): value[0].decode("utf-8")
-        for key, value in request_data.items()
-    }
+    request_data = request.data
     request_data["user"] = request.user.id
 
     if not request_data.get("observation_type"):
