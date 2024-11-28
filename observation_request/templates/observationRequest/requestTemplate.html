@@ -6,7 +6,11 @@ look ma no title
 
 
 {% block style %}
-<style xmlns="http://www.w3.org/1999/html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+
+<style>
 
     .form_body {
         background-color: #313131;
@@ -84,6 +88,8 @@ look ma no title
     .switch_button_container {
         display: flex;
         width: 1080px;
+
+        gap: 3px;
     }
     .observation_type_radio {
         display: none;
@@ -91,9 +97,9 @@ look ma no title
     .observation_type_label {
         background-color: var(--tom-disabled-grey);
         padding: .5em;
-        border-top: 0.125em solid white;
+        /*border-top: 0.125em solid white;
         border-bottom: 0.125em solid white;
-        border-right: 0.125em solid white;
+        border-right: 0.125em solid white;*/
 
         flex: 1;
         text-align: center;
@@ -103,16 +109,17 @@ look ma no title
         background-color: var(--tom-accent-color);
     }
     .observation_type_label:first-child {
-        border: 0.125em solid white;
+        /*border: 0.125em solid white; */
 
         -moz-border-radius-topleft: var(--tom-corner-radius);
         -webkit-border-top-left-radius: var(--tom-corner-radius);
         -moz-border-radius-bottomleft: var(--tom-corner-radius);
         -webkit-border-bottom-left-radius: var(--tom-corner-radius);
     }
-    .observation_type_label:last-child {
-        border: 0.125em solid white;
+    .observation_type_label:nth-last-child(2) {
+        /*border: 0.125em solid white;*/
         border-left: transparent;
+
 
         -moz-border-radius-topright: var(--tom-corner-radius);
         -webkit-border-top-right-radius: var(--tom-corner-radius);
@@ -138,40 +145,26 @@ look ma no title
             <div class="container_center">
                 <h1> create new Observation</h1>
             </div>
-            <br>
-            <div class="switch_button_container" onload="only_show('Imaging', this)">
-                <label class="observation_type_label" for="imaging">Imaging / Background</label><br>
-                <input class="observation_type_radio" type="radio" id="imaging" name="observation_type" onclick="only_show('Imaging', this)">
-                <input class="observation_type_radio" type="radio" id="exoplanet" name="observation_type" onclick="only_show('Exoplanet', this)">
-                <label class="observation_type_label" for="exoplanet">Exoplanet</label><br>
-                <input class="observation_type_radio" type="radio" id="variable" name="observation_type" onclick="only_show('Variable', this)">
-                <label class="observation_type_label" for="variable">Variable</label>
-                <input class="observation_type_radio" type="radio" id="monitoring" name="observation_type" onclick="only_show('Monitoring', this)">
-                <label class="observation_type_label" for="monitoring">Monitoring</label>
-                {% if is_super_user %}
-                    <input class="observation_type_radio" type="radio" id="expert" name="observation_type" onclick="only_show('Expert', this)">
-                    <label class="observation_type_label" for="expert">Expert</label>
-                {% endif %}
-            </div>
         </header>
 
 
 
         <script>
             window.onload = function() {
-                only_show('Imaging', document.getElementById('imaging'));
+                only_show('Imaging', document.getElementById('Imaging'));
             };
 
             function set_element_visibility(element, show) {
                 if (show) {
                     element.style.display = 'block';
+                    element.removeAttribute("disabled");
                 } else {
                     element.style.display = 'none';
+                    element.setAttribute("disabled", "disabled");
                 }
             }
 
             function only_show(className, obj) {
-                console.log(className)
                 const observation_labels = document.getElementsByClassName('observation_type_label')
                 for (let label of observation_labels) {
                     if (obj === undefined) break
@@ -199,10 +192,23 @@ look ma no title
 
         <form
                 action="{{ create_form_url }}"
-                method="post">
-        {% for name, form in forms  %}
+                method="post"
+        class="input_form">
+        {% for name, form, options in forms  %}
             <article class="form_body">
                 <h2 class="sub_form_heading"> {{ name }} </h2>
+                {% if options is not None %}
+
+                <div class="switch_button_container">
+                    {% for observation_t, super_user in options  %}
+                        {% if not super_user or True %}
+                            <label class="observation_type_label" for="{{ observation_t }}">{{ observation_t }}</label>
+                        <input class="observation_type_radio" type="radio" id="{{ observation_t}}" name="observation_type" onclick="only_show('{{ observation_t }}', this)">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <br>
+                {% endif %}
                 <div class="form_center">
                     {{ form }}
                 </div>
@@ -211,6 +217,9 @@ look ma no title
         {% csrf_token %}
         <input type="submit" class="base_button">
         </form>
+        <div class="disabled_inputs">
+
+        </div>
     </div>
 </div>
 {% endblock %}
