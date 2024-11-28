@@ -47,11 +47,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "authentication",
-    "interactiveTest",
     "rest_framework",
+
+    # Modules defined by TURMFrontend
+    "authentication",
+    "dashboard",
     "observation_data",
-    "root",
     "observation_request",
 ]
 
