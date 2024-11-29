@@ -23,8 +23,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("dashboard.urls")),
     path("authentication/", include("authentication.urls")),
-    path("observation_data/", include("observation_data.urls")),
-    path("observation_request/", include("observation_request.urls")),
+    path("observation-data/", include("observation_data.urls")),
+    path("observation-request/", include("observation_request.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
