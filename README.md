@@ -12,6 +12,8 @@
     | `POSTGRES_USER`          | Superuser of the Postgres Database                                                                                                                            | **Yes**      | `admin`                                        |
     | `POSTGRES_PASSWORD`      | Superuser password                                                                                                                                            | **Yes**      | Secure password                                |
     | `DEBUG`                  | Whether Django runs the server in DEBUG mode (default: False)                                                                                                 | **No**       | `True` for development, `False` for deployment |
+    | `ADMIN_EMAIL`            | Email of the admin user that is logged in by default when `DEBUG` is set to `True`                                                                            | **Yes**      | `admin@admin.com`                              |
+    | `ADMIN_PASSWORD`         | Password of the admin user that is assigned in by default when `DEBUG` is set to `True`                                                                       | **Yes**      | `admin`                                        |
     | `DB_VOLUME`              | Location of DB Volume. If left empty the data will only be saved in the docker volume and will not be mapped to a local folder (increases first startup time) | **No**       | `./data/db` for mapping to local folder        |
     | `DB_PORT`                | Local Port that the Postgres DB can be accessed on (outside the container)                                                                                    | **Yes**      | `5432`                                         |
     | `WEB_PORT`               | Local Port used for the website                                                                                                                               | **Yes**      | `8000`                                         |
@@ -28,6 +30,8 @@ POSTGRES_USER=<user>
 POSTGRES_PASSWORD=<password>
 DB_VOLUME=./data/db
 DEBUG=True
+ADMIN_EMAIL=<email>
+ADMIN_PASSWORD=<password>
 DB_PORT=5432
 WEB_PORT=8000
 NC_PORT=8080
@@ -37,10 +41,15 @@ NC_PASSWORD=<password>
 
 ## Development
 
-To develop the project locally, install the dependencies using `pip install -r requirements_dev.txt`.
+To develop the project locally, install the dependencies running both
+`pip install -r requirements.txt` and  `pip install -r requirements_dev.txt`.
 Run the server using `docker-compose up`.
 To format the code, run `scripts/format.sh`.
 To run the tests, run `python manage.py test`.
+
+Once you run the app you will be prompted to login.
+If you set both the `ADMIN_EMAIL` and  the `ADMIN_PASSWORD` environment variable,
+a admin user will be created with the given credentials, which can be used to login.
 
 ## Docker Compose
 Run using `docker-compose up` in the root directory of the project. The application will be available at `http://localhost:8000`.

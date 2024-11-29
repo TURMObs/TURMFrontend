@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-from pathlib import Path
 
+from django.conf.global_settings import STATICFILES_DIRS
+from pathlib import Path
 from dotenv import load_dotenv
 
 
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     "root",
     "nextcloud",
     "polymorphic",
+    "observation_request",
 ]
 
 MIDDLEWARE = [
@@ -142,6 +144,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+
+STATICFILES_DIRS.append(BASE_DIR / "static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

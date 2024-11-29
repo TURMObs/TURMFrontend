@@ -11,9 +11,13 @@ from authentication.views import (
 )
 
 urlpatterns = [
-    path("", login, name="index"),
-    path("login", login_user, name="login"),
-    path("logout/", LogoutView.as_view(next_page="index"), name="logout"),
+    path("login", login, name="login"),
+    path("login_user", login_user, name="login-user"),
+    path(
+        "logout/",
+        LogoutView.as_view(next_page="login"),
+        name="logout",
+    ),
     path(
         "generate-invitation",
         generate_invitation,
