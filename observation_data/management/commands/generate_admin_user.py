@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
-    help = "Creates a admin user which is logged in by default, useful in development mode."
+    help = "Creates a superuser with admin privileges using ADMIN_EMAIL and ADMIN_PASSWORD environment variables"
 
     def handle(self, *args, **options):
         """
