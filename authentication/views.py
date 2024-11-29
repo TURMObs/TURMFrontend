@@ -5,6 +5,8 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
+from django.conf import settings
+import os
 
 from .models import InvitationToken, generate_invitation_link
 
@@ -25,7 +27,12 @@ def login(request):
     if request.user.is_authenticated:
         return redirect("index")
     else:
-        return index_template(request, form=LoginForm())
+        # If this is a DEBUG build we want to pre-populate the form with a default user
+        if settings.DEBUG:
+            form = create_prepopulated_debug_login_form()
+            return index_template(request, form=form)
+        else:
+            return index_template(request, form=LoginForm())
 
 
 @require_POST
@@ -127,3 +134,14 @@ def register_from_invitation_template(request, error=None, email=None, form=None
         "authentication/register_from_invitation.html",
         {"error": error, "form": form, "email": email},
     )
+
+
+def create_prepopulated_debug_login_form() -> LoginForm:
+    """
+    Creates a login form where the email field is prepopulated, with the value
+    that is specified in the `ADMIN_EMAIL` environment variable, useful for debugging
+    :return: LoginForm with pre-populated email field
+    """
+
+    email = os.environ.get("ADMIN_EMAIL")
+    return LoginForm(initial={"email": email})

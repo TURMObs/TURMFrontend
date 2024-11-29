@@ -9,7 +9,7 @@ from observation_data.models import (
 
 
 class Command(BaseCommand):
-    help("Populate the observatories, exposure settings and filters in the database.")
+    help = "Populate the observatories, exposure settings and filters in the database."
 
     def handle(self, *args, **options):
         """
