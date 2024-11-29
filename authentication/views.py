@@ -138,9 +138,9 @@ def register_from_invitation_template(request, error=None, email=None, form=None
 
 def create_prepopulated_debug_login_form() -> LoginForm:
     """
-    Creates a login form which is pre-populated with the username,
-    specified in the `ADMIN_EMAIL` environment variable, useful for debugging
-    :return: LoginForm with pre-populated email
+    Creates a login form where the email field is prepopulated, with the value
+    that is specified in the `ADMIN_EMAIL` environment variable, useful for debugging
+    :return: LoginForm with pre-populated email field
     """
 
     email = os.environ.get("ADMIN_EMAIL")
