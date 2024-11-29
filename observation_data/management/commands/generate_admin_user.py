@@ -4,9 +4,7 @@ from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
-    help(
-        "Creates a admin user which is logged in by default, useful in development mode."
-    )
+    help = "Creates a admin user which is logged in by default, useful in development mode."
 
     def handle(self, *args, **options):
         """
