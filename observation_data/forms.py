@@ -4,6 +4,7 @@ from .models import (
     CelestialTarget,
     ExpertObservation,
     ObservationType,
+    Filter
 )
 
 
@@ -47,9 +48,19 @@ class ExposureForm(forms.ModelForm):
             "end_scheduling",
             "created_at",
         ]
+    """
+    filter_set = forms.ModelMultipleChoiceField(
+        queryset= Filter.objects.all(),
+        widget= forms.CheckboxSelectMultiple
+    )
+    """
 
     def __init__(self, *args, **kwargs):
         super(ExposureForm, self).__init__(*args, **kwargs)
+        self.fields['filter_set'] = forms.ModelMultipleChoiceField(
+            queryset= Filter.objects.all(),
+            widget= forms.CheckboxSelectMultiple
+        )
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text Expert"})
 
@@ -80,6 +91,10 @@ class ExposureForm(forms.ModelForm):
             ],
             ObservationType.MONITORING,
         )
+
+        #filter set
+        self.label_widgets(['filter_set'], "multiple_choice")
+
 
     def label_widgets(self, fields, html_class):
         for field in fields:

@@ -126,6 +126,19 @@
         background-color: var(--tom-primary-color-dark);
     }
 
+    fieldset {
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+    legend {
+        font-size: 1.15em;
+    }
+
+    .multiple_choice {
+        display: flex;
+    }
+
     </style>
 {% endblock %}
 {% block content %}
@@ -136,6 +149,7 @@
                     <h1>create new Observation</h1>
                 </div>
             </header>
+
             <script>
             window.onload = function() {
                 only_show('Imaging', document.getElementById('Imaging'));
@@ -150,6 +164,7 @@
                     element.setAttribute("disabled", "disabled");
                 }
             }
+
 
             function only_show(className, obj) {
                 const observation_labels = document.getElementsByClassName('observation_type_label')
@@ -176,6 +191,7 @@
                 }
             }
             </script>
+
             <form action="{{ create_form_url }}" method="post" class="input_form">
                 {% for name, form, options in forms %}
                     <article class="form_body">
