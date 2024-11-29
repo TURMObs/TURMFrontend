@@ -18,6 +18,8 @@
     | `NC_PORT`         | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, only required for Nextcloud testing |
     | `NC_USER`         | User for the Nextcloud instance                                                                                                                               | **No**       | Nextcloud User                                        |
     | `NC_PASSWORD`     | Password for the Nextcloud instance                                                                                                                           | **No**       | Nextcloud password                                |
+    | `ADMIN_EMAIL`            | Email of the admin user that is logged in by default when `DEBUG` is set to `True`                                                                             | **Yes**      | `admin@admin.com`                              |
+    | `ADMIN_PASSWORD`         | Password of the admin user that is assigned in by default when `DEBUG` is set to `True`                                                                        | **Yes**      | `admin`                                        |
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
@@ -49,4 +51,3 @@ Optionally use `docker-compose --profile test up` to run a (non-persisting) Next
 - The Nextcloud container is not persistent. This is by design, as the Nextcloud container is only used for testing purposes.
   - This also means that the Nextcloud has to be initialized every time the container is started by visiting `http://localhost:8080` and setting up the Nextcloud instance with the same password and user defined in the Environment.
 - During development some migration files where deleted, this means that the database might need to be reset when running the application for the first time. If the database was used without mapping the volume to a local folder, simply run `docker-compose down -v` to remove all docker volumes. If the volume was mapped to a local folder, simply delete the folder and run `docker-compose up` again.
-
