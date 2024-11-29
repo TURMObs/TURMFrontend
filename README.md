@@ -35,7 +35,8 @@ NC_PASSWORD=<password>
 
 ## Development
 
-To develop the project locally, install the dependencies using `pip install -r requirements_dev.txt`.
+To develop the project locally, install the dependencies running both
+`pip install -r requirements.txt` and  `pip install -r requirements_dev.txt`.
 Run the server using `docker-compose up`.
 To format the code, run `scripts/format.sh`.
 To run the tests, run `python manage.py test`.
@@ -49,4 +50,3 @@ Optionally use `docker-compose --profile test up` to run a (non-persisting) Next
 - The Nextcloud container is not persistent. This is by design, as the Nextcloud container is only used for testing purposes.
   - This also means that the Nextcloud has to be initialized every time the container is started by visiting `http://localhost:8080` and setting up the Nextcloud instance with the same password and user defined in the Environment.
 - During development some migration files where deleted, this means that the database might need to be reset when running the application for the first time. If the database was used without mapping the volume to a local folder, simply run `docker-compose down -v` to remove all docker volumes. If the volume was mapped to a local folder, simply delete the folder and run `docker-compose up` again.
-
