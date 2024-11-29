@@ -2,7 +2,6 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
-from urllib.parse import parse_qs
 
 from observation_data.models import ObservationType
 from observation_data.forms import ProjectForm, CelestialTargetForm, ExposureForm
@@ -38,4 +37,4 @@ def simple_request(request):
 @require_POST
 @api_view(["POST"])
 def test_request(request):
-    return HttpResponse(f"req:<br>{request.data.dict()}")
+    return HttpResponse(request.data.dict())
