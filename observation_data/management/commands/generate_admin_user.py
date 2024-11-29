@@ -2,19 +2,22 @@ import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 
+
 class Command(BaseCommand):
-    help("Creates a admin user which is logged in by default, useful in development mode.")
+    help(
+        "Creates a admin user which is logged in by default, useful in development mode."
+    )
 
     def handle(self, *args, **options):
         """
         This command inserts a user with admin privileges
         """
 
-        email = os.environ.get('ADMIN_EMAIL')
-        password = os.environ.get('ADMIN_PASSWORD')
+        email = os.environ.get("ADMIN_EMAIL")
+        password = os.environ.get("ADMIN_PASSWORD")
 
         if not all([email, password]):
-            print('Admin credentials not set in environment variables')
+            print("Admin credentials not set in environment variables")
             return
 
         self.insert_admin_user(email, password)
