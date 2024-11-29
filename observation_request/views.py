@@ -38,10 +38,4 @@ def simple_request(request):
 @require_POST
 @api_view(["POST"])
 def test_request(request):
-    parsed_data = parse_qs(request.body)
-    decoded_data = {
-        key.decode("utf-8"): value[0].decode("utf-8")
-        for key, value in parsed_data.items()
-    }
-
-    return HttpResponse(str(decoded_data))
+    return HttpResponse(f"req:<br>{request.data.dict()}")
