@@ -44,6 +44,10 @@ Run the server using `docker-compose up`.
 To format the code, run `scripts/format.sh`.
 To run the tests, run `python manage.py test`.
 
+Once you run the app you will be prompted to login.
+If you set both the `ADMIN_EMAIL` and  the `ADMIN_PASSWORD` environment variable,
+a admin user will be created with the given credentials, which can be used to login.
+
 ## Docker Compose
 Run using `docker-compose up` in the root directory of the project. The application will be available at `http://localhost:8000`.
 Hot reloading is supported. The data will be saved in a PostgreSQL database, inside the `data` folder.
