@@ -3,5 +3,4 @@ djangorestframework~=3.15.2
 python-dotenv~=1.0.1
 psycopg2>=2.8.4
 astropy>=6.0
-nc-py-api>=0.18.0
-django-polymorphic @ git+https://github.com/jazzband/django-polymorphic.git@v4.0.0a#egg=django-polymorphic
+django-polymorphic>=3.1.0

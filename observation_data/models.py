@@ -11,7 +11,7 @@ class ObservationType(models.TextChoices):
     IMAGING = "Imaging"
     EXOPLANET = "Exoplanet"
     VARIABLE = "Variable"
-    MONITORING = "Monitoring"
+    MONITORING = "Monitor"
     EXPERT = "Expert"
 
 
@@ -33,7 +33,7 @@ class ExposureSettings(models.Model):
     gain = models.IntegerField()
     offset = models.IntegerField()
     binning = models.IntegerField()
-    subFrame = models.CharField(max_length=100)
+    subFrame = models.DecimalField(max_digits=10, decimal_places=4)
 
 
 class Filter(models.Model):
