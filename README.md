@@ -39,7 +39,8 @@ NC_PASSWORD=<password>
 
 ## Development
 
-To develop the project locally, install the dependencies using `pip install -r requirements_dev.txt`.
+To develop the project locally, install the dependencies running both
+`pip install -r requirements.txt` and  `pip install -r requirements_dev.txt`.
 Run the server using `docker-compose up`.
 To format the code, run `scripts/format.sh`.
 To run the tests, run `python manage.py test`.
