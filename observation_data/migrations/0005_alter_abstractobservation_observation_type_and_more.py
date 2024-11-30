@@ -4,20 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0004_alter_exposuresettings_subframe'),
+        ("observation_data", "0004_alter_exposuresettings_subframe"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='abstractobservation',
-            name='observation_type',
-            field=models.CharField(choices=[('Imaging', 'Imaging'), ('Exoplanet', 'Exoplanet'), ('Variable', 'Variable'), ('Monitor', 'Monitoring'), ('Expert', 'Expert')], db_column='type'),
+            model_name="abstractobservation",
+            name="observation_type",
+            field=models.CharField(
+                choices=[
+                    ("Imaging", "Imaging"),
+                    ("Exoplanet", "Exoplanet"),
+                    ("Variable", "Variable"),
+                    ("Monitor", "Monitoring"),
+                    ("Expert", "Expert"),
+                ],
+                db_column="type",
+            ),
         ),
         migrations.AlterField(
-            model_name='observatoryexposuresettings',
-            name='observation_type',
-            field=models.CharField(choices=[('Imaging', 'Imaging'), ('Exoplanet', 'Exoplanet'), ('Variable', 'Variable'), ('Monitor', 'Monitoring'), ('Expert', 'Expert')], db_column='type'),
+            model_name="observatoryexposuresettings",
+            name="observation_type",
+            field=models.CharField(
+                choices=[
+                    ("Imaging", "Imaging"),
+                    ("Exoplanet", "Exoplanet"),
+                    ("Variable", "Variable"),
+                    ("Monitor", "Monitoring"),
+                    ("Expert", "Expert"),
+                ],
+                db_column="type",
+            ),
         ),
     ]
