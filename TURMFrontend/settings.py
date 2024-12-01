@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "observation_data",
     "root",
+    "nextcloud",
+    "polymorphic",
     "observation_request",
 ]
 
