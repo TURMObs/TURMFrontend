@@ -142,3 +142,4 @@ GitHub.sublime-settings
 data
 .ruff_cache
 .zed
+.DS_Store

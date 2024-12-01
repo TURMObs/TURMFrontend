@@ -52,7 +52,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def _send_post_request(self, data):
         return self.client.post(
-            path="/observation_data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/", data=data, content_type="application/json"
         )
 
     def _assert_error_response(self, response, expected_status, expected_error):
@@ -62,7 +62,10 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_no_user(self):
         self.client.logout()
         response = self._send_post_request({})
-        self.assertEqual(response.status_code, 401, response.json())
+        self.assertEqual(
+            response.url, "/authentication/login?next=/observation-data/create/"
+        )
+        self.assertEqual(response.status_code, 302)
 
     def test_missing_type(self):
         response = self._send_post_request({})
@@ -282,7 +285,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "required_amount": 100,
         }
         response = self.client.post(
-            path="/observation_data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
 
@@ -300,7 +303,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "required_amount": 100,
         }
         response = self.client.post(
-            path="/observation_data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
 
@@ -319,7 +322,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "filter_set": ["L"],
         }
         response = self.client.post(
-            path="/observation_data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
 
@@ -341,7 +344,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "required_amount": 10,
         }
         response = self.client.post(
-            path="/observation_data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
 
@@ -360,7 +363,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "required_amount": 450,
         }
         response = self.client.post(
-            path="/observation_data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
 
