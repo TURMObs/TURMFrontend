@@ -11,7 +11,7 @@ This module retrieves the observation requests for a night and uses the nextclou
 It is supposed to run in a cron-Job 
 """
 
-# todo fix this when deployed
+# todo fix this when deployed so the script can run on its own
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "TURMFrontend.settings")
 django.setup()
 

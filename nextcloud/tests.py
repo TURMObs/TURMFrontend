@@ -8,7 +8,7 @@ from nc_py_api import NextcloudException
 from django.core.management import call_command
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_upload import upload_observations, build_nextcloud_path
-from observation_data.models import AbstractObservation
+from observation_data.models import AbstractObservation, ObservationType
 from observation_data.serializers import get_serializer
 
 file_upload = "nextcloud/test_data/upload_file.json"
@@ -62,7 +62,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
                 "ra": "22 32 01",
                 "dec": "40 49 24",
             },
-            "observation_type": "Imaging",
+            "observation_type": ObservationType.IMAGING,
             "exposure_time": 300.0,
             "filter_set": ["H"],
             "frames_per_filter": 1,
@@ -80,7 +80,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
                 "ra": "00 02 29",
                 "dec": "67 10 02",
             },
-            "observation_type": "Imaging",
+            "observation_type": ObservationType.IMAGING,
             "exposure_time": 300.0,
             "filter_set": ["H", "O", "S"],
             "frames_per_filter": 1.0,
@@ -99,7 +99,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
                 "ra": "00 19 26",
                 "dec": "+44 01 39",
             },
-            "observation_type": "Exoplanet",
+            "observation_type": ObservationType.EXOPLANET,
             "start_observation": "2024-10-25T19:30:00",
             "end_observation": "2024-10-25T23:40:00",
             "exposure_time": 120.0,
@@ -122,7 +122,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
             "exposure_time": 300.0,
             "start_scheduling": "2024-10-25T19:30:00",
             "end_scheduling": "2024-10-25T23:40:00",
-            "observation_type": "Monitoring",
+            "observation_type": ObservationType.MONITORING,
             "frames_per_filter": 1.0,
             "filter_set": ["R", "G", "B"],
             "required_amount": 100,
@@ -140,7 +140,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
                 "ra": "02 15 07",
                 "dec": "+18 04 28",
             },
-            "observation_type": "Variable",
+            "observation_type": ObservationType.VARIABLE,
             "exposure_time": 300.0,
             "filter_set": ["L"],
             "minimum_altitude": 30.0,
