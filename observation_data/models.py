@@ -4,6 +4,7 @@ All database models for the observation requests, targets and observatories.
 
 from django.contrib.auth.models import User
 from django.db import models
+from polymorphic.models import PolymorphicModel
 
 
 class ObservationType(models.TextChoices):
@@ -98,7 +99,7 @@ class ObservatoryExposureSettings(models.Model):
     )
 
 
-class AbstractObservation(models.Model):
+class AbstractObservation(PolymorphicModel):
     """
     Abstract class for the different types of observations including common fields.
     Note that this means that each observation will have a corresponding row in the AbstractObservation table.
