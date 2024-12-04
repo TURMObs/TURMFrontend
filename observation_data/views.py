@@ -1,4 +1,3 @@
-from urllib.parse import parse_qs
 
 from django.views.decorators.http import require_POST
 from rest_framework import status
