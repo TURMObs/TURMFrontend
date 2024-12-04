@@ -55,7 +55,7 @@ def login_user(request):
             request, form=LoginForm(), error="Invalid username or password"
         )
     auth.login(request, user)
-    return redirect("dashboard")
+    return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 @require_GET
@@ -120,7 +120,7 @@ def register_user(request, token):
     user.save()
     invitation.save()
     auth.login(request, user)
-    return redirect("dashboard")
+    return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 def index_template(request, error=None, form=None):
