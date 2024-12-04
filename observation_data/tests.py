@@ -50,6 +50,18 @@ class ObservationCreationTestCase(django.test.TestCase):
             "filter_set": ["L"],
         }
 
+    @staticmethod
+    def _get_flat_base_request():
+        return {
+            "observatory": "TURMX",
+            "target": "Sagittarius A*",
+            "ra": "17 45 40.03599",
+            "dec": "-29 00 28.1699",
+            "observation_type": "Invalid",
+            "exposure_time": 60.0,
+            "filter_set": ["L"],
+        }
+
     def _send_post_request(self, data):
         return self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
@@ -83,17 +95,23 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request({"type": "Imaging"})
         self.assertEqual(response.status_code, 400)
 
-    def _test_observation_insert(self, observation_type, additional_data=None):
-        data = self.base_request.copy()
+    def _test_observation_insert(self, observation_type, additional_data=None, flat=False):
+        data = self.base_request.copy() if not flat else self._get_flat_base_request()
         data["observation_type"] = observation_type
         if additional_data:
             data.update(additional_data)
+        print(data)
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
     def test_imaging_insert(self):
         self._test_observation_insert(
             ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100}
+        )
+
+    def test_imaging_insert_flat(self):
+        self._test_observation_insert(
+            ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100}, flat=True
         )
 
     def test_exoplanet_insert(self):
@@ -105,9 +123,24 @@ class ObservationCreationTestCase(django.test.TestCase):
             },
         )
 
+    def test_exoplanet_insert_flat(self):
+        self._test_observation_insert(
+            ObservationType.EXOPLANET,
+            {
+                "start_observation": "2021-01-02T00:00:00Z",
+                "end_observation": "2021-01-02T01:00:00Z",
+            },
+            flat=True
+        )
+
     def test_variable_insert(self):
         self._test_observation_insert(
             "Variable", {"minimum_altitude": 30.0, "required_amount": 100}
+        )
+
+    def test_variable_insert_flat(self):
+        self._test_observation_insert(
+            "Variable", {"minimum_altitude": 30.0, "required_amount": 100}, flat=True
         )
 
     def test_monitoring_insert(self):
@@ -120,6 +153,19 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "cadence": 1,
                 "required_amount": 100,
             },
+        )
+
+    def test_monitoring_insert_flat(self):
+        self._test_observation_insert(
+            ObservationType.MONITORING,
+            {
+                "frames_per_filter": 1,
+                "start_scheduling": "2021-01-01T00:00:00Z",
+                "end_scheduling": "2021-01-01T01:00:00Z",
+                "cadence": 1,
+                "required_amount": 100,
+            },
+            flat=True
         )
 
     def test_expert_insert(self):
@@ -145,6 +191,32 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "priority": 100,
                 "required_amount": 100,
             },
+        )
+
+    def test_expert_insert_flat(self):
+        self.user.is_superuser = True
+        self.user.save()
+        self._test_observation_insert(
+            ObservationType.EXPERT,
+            {
+                "frames_per_filter": 1,
+                "dither_every": 1.0,
+                "binning": "1x1",
+                "subframe": "Full",
+                "gain": 1,
+                "offset": 1,
+                "start_observation": "2021-01-01T00:00:00Z",
+                "end_observation": "2021-01-01T01:00:00Z",
+                "start_scheduling": "2021-01-01T00:00:00Z",
+                "end_scheduling": "2021-01-01T01:00:00Z",
+                "cadence": 1,
+                "moon_separation_angle": 30.0,
+                "moon_separation_width": 30.0,
+                "minimum_altitude": 35,
+                "priority": 100,
+                "required_amount": 100,
+            },
+            flat=True
         )
 
     def test_no_expert_user(self):
@@ -426,9 +498,9 @@ class JsonFormattingTestCase(django.test.TestCase):
         file_path = os.path.join(
             settings.BASE_DIR, "observation_data", "test_data", file_name
         )
-        # save the json representation to a file for manual inspection
-        with open(file_path.replace(".json", "_actual.json"), "w") as file:
-            json.dump(json_representation, file, indent=4)
+        with open(file_path, "r") as file:
+            expected_json = json.load(file)
+            self._assert_deep_dict_equal(json_representation, expected_json, remove_id=True)
 
     def test_observation_exists(self):
         observation = ImagingObservation.objects.get(target__name="LBN437")
