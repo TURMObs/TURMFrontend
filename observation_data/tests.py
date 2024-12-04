@@ -95,7 +95,9 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request({"type": "Imaging"})
         self.assertEqual(response.status_code, 400)
 
-    def _test_observation_insert(self, observation_type, additional_data=None, flat=False):
+    def _test_observation_insert(
+        self, observation_type, additional_data=None, flat=False
+    ):
         data = self.base_request.copy() if not flat else self._get_flat_base_request()
         data["observation_type"] = observation_type
         if additional_data:
@@ -111,7 +113,9 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_imaging_insert_flat(self):
         self._test_observation_insert(
-            ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100}, flat=True
+            ObservationType.IMAGING,
+            {"frames_per_filter": 1, "required_amount": 100},
+            flat=True,
         )
 
     def test_exoplanet_insert(self):
@@ -130,7 +134,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "start_observation": "2021-01-02T00:00:00Z",
                 "end_observation": "2021-01-02T01:00:00Z",
             },
-            flat=True
+            flat=True,
         )
 
     def test_variable_insert(self):
@@ -165,7 +169,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "cadence": 1,
                 "required_amount": 100,
             },
-            flat=True
+            flat=True,
         )
 
     def test_expert_insert(self):
@@ -216,7 +220,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "priority": 100,
                 "required_amount": 100,
             },
-            flat=True
+            flat=True,
         )
 
     def test_no_expert_user(self):
@@ -500,7 +504,9 @@ class JsonFormattingTestCase(django.test.TestCase):
         )
         with open(file_path, "r") as file:
             expected_json = json.load(file)
-            self._assert_deep_dict_equal(json_representation, expected_json, remove_id=True)
+            self._assert_deep_dict_equal(
+                json_representation, expected_json, remove_id=True
+            )
 
     def test_observation_exists(self):
         observation = ImagingObservation.objects.get(target__name="LBN437")
