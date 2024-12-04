@@ -5,6 +5,7 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
 
@@ -23,6 +24,7 @@ class GenerateInvitationForm(forms.Form):
 
 
 @require_GET
+@login_not_required
 def login(request):
     if request.user.is_authenticated:
         return redirect("index")
@@ -36,6 +38,7 @@ def login(request):
 
 
 @require_POST
+@login_not_required
 def login_user(request):
     form = LoginForm(request.POST)
     if not form.is_valid():
@@ -52,7 +55,7 @@ def login_user(request):
             request, form=LoginForm(), error="Invalid username or password"
         )
     auth.login(request, user)
-    return redirect("index")
+    return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 @require_GET
@@ -71,7 +74,7 @@ def generate_user_invitation(request):
         )
 
     email = form.cleaned_data["email"]
-    base_url = request.build_absolute_uri("register")
+    base_url = f"{request.scheme}://{request.get_host()}/authentication/register"
     link = generate_invitation_link(base_url, email)
     if link is None:
         return generate_invitation_template(
@@ -81,31 +84,35 @@ def generate_user_invitation(request):
 
 
 @require_GET
+@login_not_required
 def register(request, token):
     try:
         invitation = InvitationToken.objects.get(token=token)
     except InvitationToken.DoesNotExist:
         return register_from_invitation_template(
-            request, error="Invalid invitation link"
+            request, token, error="Invalid invitation link"
         )
 
     return register_from_invitation_template(
-        request, form=SetPasswordForm(User()), email=invitation.email
+        request, token, form=SetPasswordForm(User()), email=invitation.email
     )
 
 
 @require_POST
+@login_not_required
 def register_user(request, token):
     try:
         invitation = InvitationToken.objects.get(token=token)
     except InvitationToken.DoesNotExist:
         return register_from_invitation_template(
-            request, error="Invalid invitation link"
+            request, token, error="Invalid invitation link"
         )
 
     form = SetPasswordForm(User(), request.POST)
     if not form.is_valid():
-        return register_from_invitation_template(request, error="Invalid password")
+        return register_from_invitation_template(
+            request, token, error="Invalid password"
+        )
 
     invitation.delete()
     user = User.objects.create_user(username=invitation.email, email=invitation.email)
@@ -113,7 +120,7 @@ def register_user(request, token):
     user.save()
     invitation.save()
     auth.login(request, user)
-    return redirect("index")
+    return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 def index_template(request, error=None, form=None):
@@ -128,11 +135,13 @@ def generate_invitation_template(request, error=None, link=None, form=None):
     )
 
 
-def register_from_invitation_template(request, error=None, email=None, form=None):
+def register_from_invitation_template(
+    request, token, error=None, email=None, form=None
+):
     return render(
         request,
         "authentication/register_from_invitation.html",
-        {"error": error, "form": form, "email": email},
+        {"error": error, "form": form, "email": email, "token": token},
     )
 
 

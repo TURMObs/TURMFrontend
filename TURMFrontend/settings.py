@@ -47,11 +47,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "authentication",
-    "interactiveTest",
     "rest_framework",
+    # Modules defined by TURMFrontend
+    "authentication",
+    "dashboard",
     "observation_data",
-    "root",
     "observation_request",
 ]
 
@@ -63,7 +63,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
 ]
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "dashboard"
+LOGOUT_REDIRECT_URL = "login"
 
 ROOT_URLCONF = "TURMFrontend.urls"
 
