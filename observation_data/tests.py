@@ -120,7 +120,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data.pop("ra")
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {'target': {'ra': ['This field is required.']}}
+            response, 400, {"target": {"ra": ["This field is required."]}}
         )
 
     def _test_observation_insert(
@@ -541,9 +541,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         )
         with open(file_path, "r") as file:
             expected_json = json.load(file)
-            self._assert_deep_dict_equal(
-                json_representation, expected_json
-            )
+            self._assert_deep_dict_equal(json_representation, expected_json)
 
     def test_observation_exists(self):
         observation = ImagingObservation.objects.get(target__name="LBN437")
