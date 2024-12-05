@@ -20,25 +20,23 @@ from observation_data.serializers import (
 )
 
 
+def _create_user_and_login(test_instance):
+    call_command("generate_admin_user")
+    load_dotenv()
+    admin_username = os.getenv("ADMIN_EMAIL")
+    if not admin_username:
+        test_instance.fail("ADMIN_EMAIL environment variable not set")
+    test_instance.user = User.objects.get(username=admin_username)
+    test_instance.client.force_login(test_instance.user)
+
+
 class ObservationCreationTestCase(django.test.TestCase):
     def setUp(self):
+        self.user = None
         self.client = django.test.Client()
-        self._create_user_and_login()
-        self._create_base_data()
-        self.base_request = self._get_base_request()
-
-    def _create_user_and_login(self):
-        call_command("generate_admin_user")
-        load_dotenv()
-        admin_username = os.getenv("ADMIN_EMAIL")
-        if not admin_username:
-            self.fail("ADMIN_EMAIL environment variable not set")
-        self.user = User.objects.get(username=admin_username)
-        self.client.force_login(self.user)
-
-    @staticmethod
-    def _create_base_data():
+        _create_user_and_login(self)
         call_command("populate_observatories")
+        self.base_request = self._get_base_request()
 
     @staticmethod
     def _get_base_request():
@@ -373,29 +371,17 @@ class ObservationCreationTestCase(django.test.TestCase):
 class JsonFormattingTestCase(django.test.TestCase):
     def setUp(self):
         self.maxDiff = None
+        self.user = None
         self.client = django.test.Client()
-        self._create_user_and_login()
+        _create_user_and_login(self)
         try:
-            self._create_base_data()
+            call_command("populate_observatories")
             self._create_imaging_observations()
             self._create_exoplanet_observation()
             self._create_monitoring_observation()
             self._create_variable_observation()
         except Exception as e:
             self.fail(f"Failed to create test data: {e}")
-
-    def _create_user_and_login(self):
-        call_command("generate_admin_user")
-        load_dotenv()
-        admin_username = os.getenv("ADMIN_EMAIL")
-        if not admin_username:
-            self.fail("ADMIN_EMAIL environment variable not set")
-        self.user = User.objects.get(username=admin_username)
-        self.client.force_login(self.user)
-
-    @staticmethod
-    def _create_base_data():
-        call_command("populate_observatories")
 
     def _create_imaging_observations(self):
         data = {
