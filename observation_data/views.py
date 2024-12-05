@@ -1,3 +1,4 @@
+from django.http import QueryDict
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -24,7 +25,7 @@ def create_observation(request):
             status=HTTP_401_UNAUTHORIZED,
         )
 
-    request_data = request.data
+    request_data = request.data.copy()
     request_data["user"] = request.user.id
 
     if not request_data.get("observation_type"):
@@ -47,7 +48,7 @@ def create_observation(request):
             {"error": "Invalid observation type"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    if isinstance(request_data["target"], str):
+    if "target" in request_data and isinstance(request_data["target"], str):
         request_data = _nest_observation_request(
             request_data,
             {"ra": "target.ra", "dec": "target.dec", "target": "target.name"},

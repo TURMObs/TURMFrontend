@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import timezone, datetime
+from urllib.parse import urlencode
 
 import django.test
 from django.core.management import call_command
@@ -91,9 +92,33 @@ class ObservationCreationTestCase(django.test.TestCase):
             response, 400, {"error": "Invalid observation type"}
         )
 
+    def test_invalid_type_flat(self):
+        response = self._send_post_request(self._get_flat_base_request())
+        self._assert_error_response(
+            response, 400, {"error": "Invalid observation type"}
+        )
+
     def test_missing_fields(self):
         response = self._send_post_request({"type": "Imaging"})
         self.assertEqual(response.status_code, 400)
+
+    def test_missing_target_field_flat(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data.pop("target")
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 400, response.json())
+
+    def test_missing_ra_field_flat(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data.pop("ra")
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {'target': {'ra': ['This field is required.']}}
+        )
 
     def _test_observation_insert(
         self, observation_type, additional_data=None, flat=False
@@ -102,7 +127,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["observation_type"] = observation_type
         if additional_data:
             data.update(additional_data)
-        print(data)
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
