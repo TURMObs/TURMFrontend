@@ -47,10 +47,15 @@ def create_observation(request):
             {"error": "Invalid observation type"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    if "target" in request_data and isinstance(request_data["target"], str):
+    if "name" in request_data and isinstance(request_data["name"], str):
         request_data = _nest_observation_request(
             request_data,
-            {"ra": "target.ra", "dec": "target.dec", "target": "target.name"},
+            {
+                "ra": "target.ra",
+                "dec": "target.dec",
+                "name": "target.name",
+                "catalog_id": "target.catalog_id",
+            },
         )
 
     serializer = serializer_class(data=request_data)

@@ -46,6 +46,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             "observatory": "TURMX",
             "target": {
                 "name": "Sagittarius A*",
+                "catalog_id": "Sag A*",
                 "ra": "17 45 40.03599",
                 "dec": "-29 00 28.1699",
             },
@@ -58,7 +59,8 @@ class ObservationCreationTestCase(django.test.TestCase):
     def _get_flat_base_request():
         return {
             "observatory": "TURMX",
-            "target": "Sagittarius A*",
+            "name": "Sagittarius A*",
+            "catalog_id": "Sag A*",
             "ra": "17 45 40.03599",
             "dec": "-29 00 28.1699",
             "observation_type": "Invalid",
@@ -108,7 +110,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_missing_target_field_flat(self):
         data = self._get_flat_base_request()
         data["observation_type"] = "Imaging"
-        data.pop("target")
+        data.pop("name")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 400, response.json())
 
@@ -144,6 +146,24 @@ class ObservationCreationTestCase(django.test.TestCase):
             {"frames_per_filter": 1, "required_amount": 100},
             flat=True,
         )
+
+    def test_imaging_insert_no_catalog_id(self):
+        data = self.base_request.copy()
+        data["observation_type"] = ObservationType.IMAGING
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data["target"].pop("catalog_id")
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_imaging_insert_no_catalog_id_flat(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = ObservationType.IMAGING
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data.pop("catalog_id")
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
 
     def test_exoplanet_insert(self):
         self._test_observation_insert(
@@ -460,6 +480,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "observatory": "TURMX",
             "target": {
                 "name": "RV-Ari",
+                "catalog_id": "RV-Ari",
                 "ra": "02 15 07",
                 "dec": "+18 04 28",
             },
