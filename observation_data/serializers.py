@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
+from .data_verification import verify_data_integrity, validate_time_range
 from .models import (
     CelestialTarget,
     ImagingObservation,
@@ -65,46 +66,6 @@ def _create_observation(validated_data, observation_type, model):
     observation = model.objects.create(target=created_target, **validated_data)
     observation.filter_set.set(filter_set)
     return observation
-
-
-def _check_overlapping_observation(start_observation, end_observation) -> list:
-    """
-    Check if an observation overlaps with any existing observations.
-    :param start_observation: Start time of the observation
-    :param end_observation: End time of the observation
-    :return: List of overlapping observations
-    """
-    overlapping_exoplanet = list(
-        ExoplanetObservation.objects.filter(
-            start_observation__lt=end_observation,
-            end_observation__gt=start_observation,
-        )
-    )
-    overlapping_expert = list(
-        ExpertObservation.objects.filter(
-            start_observation__lt=end_observation,
-            end_observation__gt=start_observation,
-        )
-    )
-    return overlapping_exoplanet + overlapping_expert
-
-
-def _validate_time_range(start_time, end_time):
-    """
-    Validate that the start time is before the end time.
-    :param start_time: Start time
-    :param end_time: End time
-    :return: None
-    """
-    if start_time and end_time and start_time >= end_time:
-        raise serializers.ValidationError("Start time must be before end time")
-
-    overlapping = _check_overlapping_observation(start_time, end_time)
-    if len(overlapping) != 0:
-        overlapping_data = ExoplanetObservationSerializer(overlapping, many=True).data
-        raise serializers.ValidationError(
-            {"overlapping_observations": overlapping_data}
-        )
 
 
 def _convert_decimal_fields(rep):
@@ -235,6 +196,11 @@ class CelestialTargetSerializer(serializers.ModelSerializer):
         model = CelestialTarget
         fields = "__all__"
 
+    def validate(self, attrs):
+        for name, value in attrs.items():
+            verify_data_integrity(name, value)
+        return attrs
+
 
 class ObservatorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -251,6 +217,11 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImagingObservation
         fields = base_fields + ["frames_per_filter", "required_amount"]
+
+    def validate(self, attrs):
+        for name, value in attrs.items():
+            verify_data_integrity(name, value)
+        return attrs
 
     def create(self, validated_data):
         return _create_observation(
@@ -285,7 +256,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_time_range(
+        validate_time_range(
             attrs.get("start_observation"), attrs.get("end_observation")
         )
         return attrs
@@ -405,7 +376,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_time_range(
+        validate_time_range(
             attrs.get("start_observation"), attrs.get("end_observation")
         )
         return attrs

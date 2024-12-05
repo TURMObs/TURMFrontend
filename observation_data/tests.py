@@ -86,7 +86,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_missing_type(self):
         response = self._send_post_request({})
         self._assert_error_response(
-            response, 400, {"error": "Observation type missing"}
+            response, 400, {"error": "Invalid observation type"}
         )
 
     def test_invalid_type(self):
@@ -365,6 +365,97 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
             201,
+        )
+
+    def test_invalid_ra_format(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["ra"] = "17 45 40.1234X"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"target": {"ra": ["Invalid format"]}}
+        )
+
+    def test_invalid_dec_format(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["dec"] = "-29 00 28.1234X"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"target": {"dec": ["Invalid format"]}}
+        )
+
+    def test_ra_out_of_range(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["ra"] = "24 00 00.00000000"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"target": {"ra": ["Invalid format"]}}
+        )
+
+    def test_dec_out_of_range(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["dec"] = "-90 00 00.00000000"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"target": {"dec": ["Invalid format"]}}
+        )
+
+    def test_invalid_exposure_time(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["exposure_time"] = 3601  # Out of valid range
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"exposure_time": ["Must be between 0.1 and 3600"]}
+        )
+
+    def test_invalid_frames_per_filter(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 10001  # Out of valid range
+        data["required_amount"] = 100
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"frames_per_filter": ["Must be between 1 and 10000"]}
+        )
+
+    def test_invalid_required_amount(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["required_amount"] = 100001  # Out of valid range
+        data["frames_per_filter"] = 1
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"required_amount": ["Must be between 1 and 100000"]}
+        )
+
+    def test_missing_required_amount_and_invalid_dec(self):
+        data = self._get_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 1
+        data["target"]["dec"] = "-29 00 XX.1699"
+        response = self._send_post_request(data)
+
+        self._assert_error_response(
+            response,
+            400,
+            {
+                "target": {"dec": ["Invalid format"]},
+                "required_amount": ["This field is required."],
+            },
         )
 
 

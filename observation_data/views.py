@@ -27,12 +27,6 @@ def create_observation(request):
     request_data = request.data.copy()
     request_data["user"] = request.user.id
 
-    if not request_data.get("observation_type"):
-        return Response(
-            {"error": "Observation type missing"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
     observation_type = request_data.get("observation_type")
     if observation_type == ObservationType.EXPERT:
         if not request.user.is_superuser:
