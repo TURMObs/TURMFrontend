@@ -30,4 +30,3 @@ class Command(BaseCommand):
         )
         user.is_admin = True
         user.save()
-        print("Created user with email %s" % email)

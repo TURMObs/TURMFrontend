@@ -1,12 +1,12 @@
 import json
 import os
 from datetime import timezone, datetime
-from urllib.parse import urlencode
 
 import django.test
 from django.core.management import call_command
 from django.conf import settings
 from django.contrib.auth.models import User
+from dotenv import load_dotenv
 
 from observation_data.models import (
     ImagingObservation,
@@ -28,9 +28,12 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.base_request = self._get_base_request()
 
     def _create_user_and_login(self):
-        self.user = User.objects.create_user(
-            username="testuser", password="testpassword", email="test@gmail.com"
-        )
+        call_command("generate_admin_user")
+        load_dotenv()
+        admin_username = os.getenv("ADMIN_EMAIL")
+        if not admin_username:
+            self.fail("ADMIN_EMAIL environment variable not set")
+        self.user = User.objects.get(username=admin_username)
         self.client.force_login(self.user)
 
     @staticmethod
@@ -248,6 +251,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_no_expert_user(self):
+        self.user.is_superuser = False
+        self.user.save()
         data = self.base_request.copy()
         data["observation_type"] = "Expert"
         data["frames_per_filter"] = 1
@@ -360,10 +365,12 @@ class JsonFormattingTestCase(django.test.TestCase):
             self.fail(f"Failed to create test data: {e}")
 
     def _create_user_and_login(self):
-        self.user = User.objects.create_user(
-            username="JsonTest", password="JsonTest", email="JsonTest@gmail.com"
-        )
-        self.user.is_superuser = True
+        call_command("generate_admin_user")
+        load_dotenv()
+        admin_username = os.getenv("ADMIN_EMAIL")
+        if not admin_username:
+            self.fail("ADMIN_EMAIL environment variable not set")
+        self.user = User.objects.get(username=admin_username)
         self.client.force_login(self.user)
 
     @staticmethod
@@ -467,15 +474,21 @@ class JsonFormattingTestCase(django.test.TestCase):
         )
         self.assertEqual(response.status_code, 201, response.json())
 
-    def _assert_deep_dict_equal(self, dict1, dict2, path="", remove_id=False):
+    def _assert_deep_dict_equal(self, dict1, dict2, path=""):
         errors = []
 
-        if remove_id:
+        if path == "":
             if "id" not in dict1:
                 errors.append("Key 'id' is missing in the actual dictionary.")
             else:
-                dict1.pop("id", None)
-                dict2.pop("id", None)
+                load_dotenv()
+                admin_username = os.getenv("ADMIN_EMAIL")
+                if dict1["id"] != admin_username:
+                    errors.append(
+                        f"ID mismatch: expected {admin_username}, got {dict1['id']}"
+                    )
+            dict1.pop("id")
+            dict2.pop("id")
 
         if isinstance(dict1, list) and isinstance(dict2, list):
             if len(dict1) != len(dict2):
@@ -529,7 +542,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         with open(file_path, "r") as file:
             expected_json = json.load(file)
             self._assert_deep_dict_equal(
-                json_representation, expected_json, remove_id=True
+                json_representation, expected_json
             )
 
     def test_observation_exists(self):
