@@ -16,11 +16,12 @@ import json
 import os
 from io import BytesIO
 from os import PathLike
-from nc_py_api import Nextcloud
+from pathlib import Path
+
+from nc_py_api import Nextcloud, NextcloudException
 from dotenv import load_dotenv
 
 nc: Nextcloud
-
 
 def initialize_connection() -> None:
     """
@@ -36,7 +37,6 @@ def initialize_connection() -> None:
     nc = Nextcloud(
         nextcloud_url=nc_url, nc_auth_user=nc_auth_user, nc_auth_pass=nc_auth_pass
     )
-
 
 def _check_initialized(method):
     """
@@ -55,11 +55,10 @@ def _check_initialized(method):
 
     return wrapper
 
-
 @_check_initialized
 def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
-    Uploads a file to the Nextcloud server
+    Uploads a file to the Nextcloud server. Overwrites any existing file with same path+name in nextcloud.
 
     Example: ``upload_file("Documents/test.json", "./test.json")``
 
@@ -69,25 +68,23 @@ def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     with open(local_path, "rb") as file:
         nc.files.upload_stream(nc_path, file)
 
-
 @_check_initialized
 def upload_dict(nc_path: str, data: dict) -> None:
     """
-    Uploads a file_stream to the Nextcloud
+    Uploads a file_stream to the Nextcloud. Overwrites any existing file with same path+name in nextcloud.
 
     Example: ``upload_dict("Documents/test.json", json.load(f))``
 
     :param nc_path: Files path on the Nextcloud server
     :param data: Dict to be uploaded
     """
-    json_stream = BytesIO(json.dumps(data, indent=4).encode("utf-8"))
+    json_stream = BytesIO(json.dumps(data, indent=2).encode("utf-8"))
     nc.files.upload_stream(path=nc_path, fp=json_stream)
-
 
 @_check_initialized
 def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
-    Downloads a file from the Nextcloud server
+    Downloads a file from the Nextcloud server. Overwrites any existing local file with same path+name.
 
     Example: ``download_file("Documents/test.json", "./test.json")``
 
@@ -98,11 +95,10 @@ def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     with open(local_path, "wb") as file:
         file.write(nc.files.download(nc_path))
 
-
 @_check_initialized
 def download_dict(nc_path: str) -> dict:
     """
-    Downloads a dict from the Nextcloud server and return it without storing it
+    Downloads a dict from the Nextcloud server and return it without storing it. Overwrites any existing local file with same path+name.
 
     :param nc_path: File path on the Nextcloud server
     :raises NextcloudException: If the file does not exist on the server
@@ -111,11 +107,10 @@ def download_dict(nc_path: str) -> dict:
     byte_stream = nc.files.download(path=nc_path)
     return json.loads(byte_stream.decode("utf-8"))
 
-
 @_check_initialized
 def download_folder(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
-    Downloads a folder from the Nextcloud server into a zip file
+    Downloads a folder from the Nextcloud server into a zip file. Overwrites any existing local file with same path+name.
     Example: ``download_folder("Documents", "./Documents.zip")``
     :param nc_path: Folder path on the Nextcloud server
     :param local_path: Local path to save the zip file
@@ -123,11 +118,28 @@ def download_folder(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
     nc.files.download_directory_as_zip(nc_path, local_path)
 
-
 @_check_initialized
 def delete(nc_path: str) -> None:
     """
-    Deletes a file/directory from the Nextcloud server
+    Deletes a file/directory from the Nextcloud server (if it is a folder including all its files/subfolders)
+    Example: ``delete("Documents/test.json"), delete("Files")``
     :raises NextcloudException: If the file does not exist on the server
     """
     nc.files.delete(nc_path)
+
+@_check_initialized
+def mkdir(nc_path: str) -> None:
+    """
+    Creates a directory on the Nextcloud server. If part of the path already exists, it will continue in this folder. No folder is overwritten
+    Example: ``mkdir("Documents/example")``
+    """
+    dirs = nc_path.split("/")
+    for i in range(1, len(dirs)+1):
+        path = "/".join(dirs[:i])
+        try:
+            nc.files.mkdir(path)
+        except NextcloudException:
+            print("Folder '{}' already exists".format(path))
+
+
+

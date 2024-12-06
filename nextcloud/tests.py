@@ -29,6 +29,7 @@ class NextcloudManagerTestCaseWithoutInit(unittest.TestCase):
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
+
         self.LOCAL_PATH = "test_data"
 
         self.maxDiff = None
@@ -43,6 +44,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
             self._create_variable_observation()
         except Exception as e:
             self.fail(f"Failed to create test data: {e}")
+
 
     def _create_user_and_login(self):
         self.user = User.objects.create_user(
@@ -166,7 +168,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         res_dict = nm.download_dict(dict_nc)
 
         with open(dict_download, "w") as f:
-            json.dump(res_dict, f, indent=4)
+            json.dump(res_dict, f, indent=2)
 
         are_eq = filecmp.cmp(dict_upload, dict_download, shallow=False)
         self.assertTrue(are_eq)
@@ -179,6 +181,17 @@ class NextcloudManagerTestCase(django.test.TestCase):
             nm.delete("non_existent_file.json")
         except NextcloudException:
             self.assertRaises(NextcloudException)
+
+    def test_mkdir_simple(self):
+        nm.mkdir("mkdir_test")
+        nm.upload_file("mkdir_test/mkdir_test.json", file_upload) # throws error if directory does not exist
+        nm.delete("mkdir_test")
+
+    def test_mkdir_complex(self):
+        path = "this/is/a/long/path"
+        nm.mkdir(path)
+        nm.upload_file(path+file_nc, file_upload)
+
 
     def test_upload_from_db(self):
         observations = AbstractObservation.objects.filter(
