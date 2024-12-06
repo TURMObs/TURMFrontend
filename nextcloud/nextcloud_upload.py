@@ -39,7 +39,6 @@ def build_nextcloud_path(
         + ".json"
     )
 
-
 def upload_observations():
     """
     Uploads all observations with project_status "upload_pending" from the database to the nextcloud and updates the status accordingly.
@@ -62,3 +61,4 @@ def upload_observations():
         except NextcloudException:
             observation.project_status = AbstractObservation.ObservationStatus.ERROR
         observation.save()
+

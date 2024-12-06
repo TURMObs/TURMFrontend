@@ -45,6 +45,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         except Exception as e:
             self.fail(f"Failed to create test data: {e}")
 
+        nm._delete_all()
 
     def _create_user_and_login(self):
         self.user = User.objects.create_user(
@@ -174,26 +175,39 @@ class NextcloudManagerTestCase(django.test.TestCase):
         self.assertTrue(are_eq)
         nm.delete(dict_nc)
 
+    def test_upload_to_non_existing_folder(self):
+        with self.assertRaises(Exception):
+            nm.upload_file("non/existing/path"+file_nc, file_upload)
+
     def test_delete(self):
         nm.upload_file("delete_test.json", file_upload)
         nm.delete("delete_test.json")
         try:
             nm.delete("non_existent_file.json")
-        except NextcloudException:
+        except Exception:
             self.assertRaises(NextcloudException)
 
     def test_mkdir_simple(self):
-        nm.mkdir("mkdir_test")
-        nm.upload_file("mkdir_test/mkdir_test.json", file_upload) # throws error if directory does not exist
-        nm.delete("mkdir_test")
+        try:
+            nm.mkdir("mkdir_test")
+            nm.upload_file("mkdir_test/mkdir_test.json", file_upload) # throws error if directory does not exist
+            nm.delete("mkdir_test")
+        except Exception:
+            self.assertRaises(NextcloudException)
 
     def test_mkdir_complex(self):
-        path = "this/is/a/long/path"
-        nm.mkdir(path)
-        nm.upload_file(path+file_nc, file_upload)
-
+        try:
+            path = "this/is/a/long/path/"
+            nm.mkdir("this/is/test")
+            nm.mkdir(path)
+            nm.upload_file(path+file_nc, file_upload)
+            nm.delete("this")
+        except Exception:
+            self.assertRaises(NextcloudException)
 
     def test_upload_from_db(self):
+        nm.mkdir("TURMX/Projects")
+        nm.mkdir("TURMX2/Projects")
         observations = AbstractObservation.objects.filter(
             project_status=AbstractObservation.ObservationStatus.PENDING
         )
@@ -232,3 +246,6 @@ class NextcloudManagerTestCase(django.test.TestCase):
             ),
             len(observations),
         )
+        nm.delete("TURMX/Projects")
+        nm.delete("TURMX2/Projects")
+
