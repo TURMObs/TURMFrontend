@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
+    Filter,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
@@ -50,7 +51,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             },
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": ["L"],
+            "filter_set": [Filter.FilterType.LUMINANCE],
         }
 
     @staticmethod
@@ -63,7 +64,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             "dec": "-29 00 28.1699",
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": ["L"],
+            "filter_set": [Filter.FilterType.LUMINANCE],
         }
 
     def _send_post_request(self, data):
@@ -225,7 +226,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             {
                 "frames_per_filter": 1,
                 "dither_every": 1.0,
-                "binning": "1x1",
+                "binning": 1,
                 "subframe": "Full",
                 "gain": 1,
                 "offset": 1,
@@ -250,7 +251,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             {
                 "frames_per_filter": 1,
                 "dither_every": 1.0,
-                "binning": "1x1",
+                "binning": 1,
                 "subframe": "Full",
                 "gain": 1,
                 "offset": 1,
@@ -275,7 +276,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["observation_type"] = "Expert"
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
-        data["binning"] = "1x1"
+        data["binning"] = 1
         data["subframe"] = "Full"
         data["gain"] = 1
         response = self._send_post_request(data)
@@ -358,6 +359,35 @@ class ObservationCreationTestCase(django.test.TestCase):
             400,
         )
 
+    def test_overlap_expert(self):
+        self.user.is_superuser = True
+        self.user.save()
+        data = self.base_request.copy()
+        data["observation_type"] = "Expert"
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = 1
+        data["subframe"] = "Full"
+        data["gain"] = 1
+        data["start_observation"] = "2021-01-01T00:00:00Z"
+        data["end_observation"] = "2021-01-01T01:00:00Z"
+        data["start_scheduling"] = "2021-01-01T00:00:00Z"
+        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["cadence"] = 1
+        data["moon_separation_angle"] = 30.0
+        data["moon_separation_width"] = 30.0
+        data["minimum_altitude"] = 35
+        data["priority"] = 100
+        data["required_amount"] = 100
+        data["offset"] = 1
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+        data["start_observation"] = "2021-01-01T00:30:00Z"
+        data["end_observation"] = "2021-01-01T01:30:00Z"
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 400, response.json())
+
     def test_no_overlap_exoplanet(self):
         self._test_exoplanet_overlap(
             datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
@@ -375,7 +405,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"target": {"ra": ["Invalid format"]}}
+            response, 400, {"target": {"ra": ["Invalid format."]}}
         )
 
     def test_invalid_dec_format(self):
@@ -386,7 +416,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"target": {"dec": ["Invalid format"]}}
+            response, 400, {"target": {"dec": ["Invalid format."]}}
         )
 
     def test_ra_out_of_range(self):
@@ -397,7 +427,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"target": {"ra": ["Invalid format"]}}
+            response, 400, {"target": {"ra": ["Invalid format."]}}
         )
 
     def test_dec_out_of_range(self):
@@ -408,7 +438,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"target": {"dec": ["Invalid format"]}}
+            response, 400, {"target": {"dec": ["Invalid format."]}}
         )
 
     def test_invalid_exposure_time(self):
@@ -419,7 +449,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"exposure_time": ["Must be between 0.1 and 3600"]}
+            response, 400, {"exposure_time": ["Must be between 0.1 and 3600."]}
         )
 
     def test_invalid_frames_per_filter(self):
@@ -429,7 +459,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"frames_per_filter": ["Must be between 1 and 10000"]}
+            response, 400, {"frames_per_filter": ["Must be between 1 and 10000."]}
         )
 
     def test_invalid_required_amount(self):
@@ -439,7 +469,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 1
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"required_amount": ["Must be between 1 and 100000"]}
+            response, 400, {"required_amount": ["Must be between 1 and 100000."]}
         )
 
     def test_missing_required_amount_and_invalid_dec(self):
@@ -453,8 +483,53 @@ class ObservationCreationTestCase(django.test.TestCase):
             response,
             400,
             {
-                "target": {"dec": ["Invalid format"]},
+                "target": {"dec": ["Invalid format."]},
                 "required_amount": ["This field is required."],
+            },
+        )
+
+    # noinspection PyTypedDict
+    def test_invalid_filter(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data["filter_set"] = ["X"]
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"filter_set": ['Invalid pk "X" - object does not exist.']}
+        )
+
+    def test_missing_filters(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data.pop("filter_set")
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"filter_set": ["This field is required."]}
+        )
+
+    def test_unavailable_filters(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data["filter_set"] = [
+            Filter.FilterType.SLOAN_R,
+            Filter.FilterType.SLOAN_I,
+            Filter.FilterType.LUMINANCE,
+        ]
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response,
+            400,
+            {
+                "filter_set": [
+                    "Filter SR is not available at observatory TURMX.",
+                    "Filter SI is not available at observatory TURMX.",
+                ]
             },
         )
 

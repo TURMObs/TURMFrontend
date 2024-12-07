@@ -9,7 +9,11 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from .data_verification import verify_data_integrity, validate_time_range
+from .data_verification import (
+    verify_field_integrity,
+    validate_time_range,
+    verify_filter_selection,
+)
 from .models import (
     CelestialTarget,
     ImagingObservation,
@@ -191,14 +195,31 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     return rep
 
 
+def _validate_fields(attrs):
+    errors = {}
+    for name, value in attrs.items():
+        error = verify_field_integrity(name, value)
+        if error:
+            errors = {**errors, **error}
+
+    if "filter_set" in attrs:
+        observatory = attrs.get("observatory")
+        filters = attrs.get("filter_set")
+        filter_errors = verify_filter_selection(filters, observatory)
+        if filter_errors:
+            errors = {**errors, **filter_errors}
+
+    if errors:
+        raise serializers.ValidationError(errors)
+
+
 class CelestialTargetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelestialTarget
         fields = "__all__"
 
     def validate(self, attrs):
-        for name, value in attrs.items():
-            verify_data_integrity(name, value)
+        _validate_fields(attrs)
         return attrs
 
 
@@ -219,8 +240,7 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
         fields = base_fields + ["frames_per_filter", "required_amount"]
 
     def validate(self, attrs):
-        for name, value in attrs.items():
-            verify_data_integrity(name, value)
+        _validate_fields(attrs)
         return attrs
 
     def create(self, validated_data):
@@ -259,6 +279,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         validate_time_range(
             attrs.get("start_observation"), attrs.get("end_observation")
         )
+        _validate_fields(attrs)
         return attrs
 
     def create(self, validated_data):
@@ -299,6 +320,10 @@ class VariableObservationSerializer(serializers.ModelSerializer):
         model = VariableObservation
         fields = base_fields + ["minimum_altitude", "required_amount"]
 
+    def validate(self, attrs):
+        _validate_fields(attrs)
+        return attrs
+
     def create(self, validated_data):
         return _create_observation(
             validated_data, ObservationType.VARIABLE, VariableObservation
@@ -333,6 +358,10 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
             "cadence",
             "required_amount",
         ]
+
+    def validate(self, attrs):
+        _validate_fields(attrs)
+        return attrs
 
     def create(self, validated_data):
         return _create_observation(
@@ -379,6 +408,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         validate_time_range(
             attrs.get("start_observation"), attrs.get("end_observation")
         )
+        _validate_fields(attrs)
         return attrs
 
     def create(self, validated_data):
