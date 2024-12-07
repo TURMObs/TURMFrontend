@@ -20,6 +20,7 @@ class CelestialTarget(models.Model):
     """
 
     name = models.CharField(max_length=100)
+    catalog_id = models.CharField(max_length=100, blank=True)
     ra = models.CharField(max_length=25)
     dec = models.CharField(max_length=25)
 
@@ -41,7 +42,6 @@ class Filter(models.Model):
     """
 
     class FilterType(models.TextChoices):
-        # todo check naming
         LUMINANCE = "L"
         RED = "R"
         GREEN = "G"
@@ -49,9 +49,9 @@ class Filter(models.Model):
         HYDROGEN = "H"
         OXYGEN = "O"
         SULFUR = "S"
-        SR = "SR"
-        SG = "SG"
-        SI = "SI"
+        SLOAN_R = "SR"
+        SLOAN_G = "SG"
+        SLOAN_I = "SI"
 
     filter_type = models.CharField(
         choices=FilterType.choices, db_column="type", max_length=2, primary_key=True
@@ -159,7 +159,7 @@ class MonitoringObservation(AbstractObservation):
 class ExpertObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
     dither_every = models.DecimalField(max_digits=5, decimal_places=2)
-    binning = models.CharField(max_length=50)
+    binning = models.IntegerField()
     gain = models.IntegerField()
     offset = models.IntegerField()
     start_observation = models.DateTimeField()
