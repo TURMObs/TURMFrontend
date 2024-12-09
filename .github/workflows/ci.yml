@@ -46,6 +46,9 @@ jobs:
       - name: Wait for Nextcloud
         run: ./scripts/wait-for-it.sh localhost:$NC_PORT -t 120
 
+      - name: Start Web
+        run: docker compose --profile test up -d web
+
       - name: Run migrations and populate data
         run: |
           docker compose exec -T web python manage.py migrate
