@@ -14,43 +14,50 @@ env:
   NC_URL: http://localhost:8080
   NC_USER: admin
   NC_PASSWORD: admin
+  DEBUG: "True"
+  WEB_PORT: 8000
+  DB_PORT: 5432
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: TURMFrontend
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements_dev.txt
-      - name: Check python code formatting
-        run: ruff format --check
-      - name: Check for python lints
-        run: ruff check --output-format=github .
-      - name: Check Django template formatting
-        run: djlint . --check
+
       - name: Check for typos
         uses: crate-ci/typos@v1.27.2
         with:
           config: ./typos.toml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and run Docker containers
+        run: |
+          docker-compose --profile test build
+          docker-compose --profile test up -d
+
+      - name: Wait for services to be ready
+        run: |
+          docker-compose exec -T web ./scripts/wait-for-it.sh db:5432 -t 60
+          docker-compose exec -T web ./scripts/wait-for-it.sh nextcloud:80 -t 60
+
+      - name: Run migrations and populate data
+        run: |
+          docker-compose exec -T web python manage.py migrate
+          docker-compose exec -T web python manage.py populate_observatories
+          docker-compose exec -T web python manage.py generate_admin_user
+
+      - name: Check python code formatting
+        run: docker-compose exec -T web ruff format --check
+
+      - name: Check for python lints
+        run: docker-compose exec -T web ruff check --output-format=github .
+
+      - name: Check Django template formatting
+        run: docker-compose exec -T web djlint . --check
+
       - name: Run tests
-        run: python manage.py test
+        run: docker-compose exec -T web python manage.py test
+
+      - name: Cleanup
+        run: docker-compose down -v
