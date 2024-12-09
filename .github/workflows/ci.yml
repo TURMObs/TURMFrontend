@@ -38,13 +38,13 @@ jobs:
         run: docker compose --profile test up -d db
 
       - name: Wait for database
-        run: ./scripts/wait-for-it.sh localhost:5432 -t 60
+        run: ./scripts/wait-for-it.sh localhost:5432 -t 120
 
       - name: Start Nextcloud
         run: docker compose --profile test up -d nextcloud
 
       - name: Wait for Nextcloud
-        run: ./scripts/wait-for-it.sh nextcloud:80 -t 180
+        run: ./scripts/wait-for-it.sh nextcloud:8080 -t 120
 
       - name: Run migrations and populate data
         run: |
