@@ -44,7 +44,7 @@ jobs:
         run: docker compose --profile test up -d nextcloud
 
       - name: Wait for Nextcloud
-        run: ./scripts/wait-for-it.sh nextcloud:80 -t 60
+        run: ./scripts/wait-for-it.sh nextcloud:80 -t 180
 
       - name: Run migrations and populate data
         run: |
