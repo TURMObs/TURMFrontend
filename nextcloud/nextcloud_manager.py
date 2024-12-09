@@ -130,7 +130,7 @@ def delete(nc_path: str) -> None:
 @_check_initialized
 def _delete_all():
     """
-    Deletes all files from the Nextcloud server. Indented to use for testing after nextcloud is newly initilized
+    Deletes all files from the Nextcloud server. Indented to use for testing after nextcloud is newly initialized
     """
     path = "" # root directory
     nodes = nc.files.listdir(path)
@@ -153,6 +153,3 @@ def mkdir(nc_path: str) -> None:
         except NextcloudException:
             #print("Folder '{}' already exists".format(path))
             pass
-
-
-
