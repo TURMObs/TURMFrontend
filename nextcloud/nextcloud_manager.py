@@ -58,7 +58,7 @@ def _check_initialized(method):
 @_check_initialized
 def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
-    Uploads a file to the Nextcloud server. Overwrites any existing file with same path+name in nextcloud.
+    Uploads a file to the Nextcloud server. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
 
     Example: ``upload_file("Documents/test.json", "./test.json")``
 
@@ -71,7 +71,7 @@ def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
 @_check_initialized
 def upload_dict(nc_path: str, data: dict) -> None:
     """
-    Uploads a file_stream to the Nextcloud. Overwrites any existing file with same path+name in nextcloud.
+    Uploads a file_stream to the Nextcloud. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
 
     Example: ``upload_dict("Documents/test.json", json.load(f))``
 
@@ -128,18 +128,31 @@ def delete(nc_path: str) -> None:
     nc.files.delete(nc_path)
 
 @_check_initialized
+def _delete_all():
+    """
+    Deletes all files from the Nextcloud server. Indented to use for testing after nextcloud is newly initilized
+    """
+    path = "" # root directory
+    nodes = nc.files.listdir(path)
+    for file in nodes:
+        delete(file.user_path)
+
+@_check_initialized
 def mkdir(nc_path: str) -> None:
     """
     Creates a directory on the Nextcloud server. If part of the path already exists, it will continue in this folder. No folder is overwritten
     Example: ``mkdir("Documents/example")``
     """
     dirs = nc_path.split("/")
+    if dirs[-1] == "":
+        dirs.pop()
     for i in range(1, len(dirs)+1):
         path = "/".join(dirs[:i])
         try:
             nc.files.mkdir(path)
         except NextcloudException:
-            print("Folder '{}' already exists".format(path))
+            #print("Folder '{}' already exists".format(path))
+            pass
 
 
 

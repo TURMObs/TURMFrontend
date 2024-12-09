@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from nc_py_api import NextcloudException
 from django.core.management import call_command
 from nextcloud import nextcloud_manager as nm
-from nextcloud.nextcloud_upload import upload_observations, build_nextcloud_path
+from nextcloud.nextcloud_upload import upload_observations, get_nextcloud_path, calc_progress
 from observation_data.models import AbstractObservation, ObservationType
 from observation_data.serializers import get_serializer
 
@@ -22,6 +22,7 @@ dict_nc = "dict1.json"
 
 class NextcloudManagerTestCaseWithoutInit(unittest.TestCase):
     def test_access_nc_without_init(self):
+        self.client = django.test.Client()
         with self.assertRaises(Exception):
             nm.delete("/does/not/matter")
 
@@ -215,7 +216,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         for observation in observations:
             obs_dict = get_serializer(observation.observation_type)(observation).data
 
-            paths.append(build_nextcloud_path(observation, obs_dict["name"]))
+            paths.append(get_nextcloud_path(observation, obs_dict["name"]))
 
         upload_observations()
 
@@ -246,6 +247,29 @@ class NextcloudManagerTestCase(django.test.TestCase):
             ),
             len(observations),
         )
-        nm.delete("TURMX/Projects")
-        nm.delete("TURMX2/Projects")
+        nm.delete("TURMX")
+        nm.delete("TURMX2")
+
+    def test_calc_progress(self):
+        # insert a specific Observation into the db and retrieve it as dict
+        self._create_imaging_observations()
+        observations = AbstractObservation.objects.filter(
+            project_status=AbstractObservation.ObservationStatus.PENDING
+        )
+        for observation in observations:
+            serializer_class = get_serializer(observation.observation_type)
+            serializer = serializer_class(observation)
+            obs_dict = serializer.data
+
+            if obs_dict["name"] == "Imaging_HOS_NGC7822":
+                break
+
+        progress1 = calc_progress(obs_dict)
+        self.assertEqual(progress1, 0) # initial progress is 0 (no images taken yet)
+
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
+        obs_dict["targets"][0]["exposures"][1]["acceptedAmount"] = 100
+        progress2 = calc_progress(obs_dict)
+        self.assertEqual(progress2, 2/3)
+
 
