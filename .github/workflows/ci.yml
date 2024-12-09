@@ -33,31 +33,31 @@ jobs:
 
       - name: Build and run Docker containers
         run: |
-          docker-compose --profile test build
-          docker-compose --profile test up -d
+          docker compose --profile test build
+          docker compose --profile test up -d
 
       - name: Wait for services to be ready
         run: |
-          docker-compose exec -T web ./scripts/wait-for-it.sh db:5432 -t 60
-          docker-compose exec -T web ./scripts/wait-for-it.sh nextcloud:80 -t 60
+          docker compose exec -T web ./scripts/wait-for-it.sh db:5432 -t 60
+          docker compose exec -T web ./scripts/wait-for-it.sh nextcloud:80 -t 60
 
       - name: Run migrations and populate data
         run: |
-          docker-compose exec -T web python manage.py migrate
-          docker-compose exec -T web python manage.py populate_observatories
-          docker-compose exec -T web python manage.py generate_admin_user
+          docker compose exec -T web python manage.py migrate
+          docker compose exec -T web python manage.py populate_observatories
+          docker compose exec -T web python manage.py generate_admin_user
 
       - name: Check python code formatting
-        run: docker-compose exec -T web ruff format --check
+        run: docker compose exec -T web ruff format --check
 
       - name: Check for python lints
-        run: docker-compose exec -T web ruff check --output-format=github .
+        run: docker compose exec -T web ruff check --output-format=github .
 
       - name: Check Django template formatting
-        run: docker-compose exec -T web djlint . --check
+        run: docker compose exec -T web djlint . --check
 
       - name: Run tests
-        run: docker-compose exec -T web python manage.py test
+        run: docker compose exec -T web python manage.py test
 
       - name: Cleanup
-        run: docker-compose down -v
+        run: docker compose down -v
