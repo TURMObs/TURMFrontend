@@ -20,7 +20,7 @@
     | `NC_PORT`                | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, only required for Nextcloud testing |
     | `NC_USER`                | User for the Nextcloud instance                                                                                                                               | **No**       | Nextcloud User                                        |
     | `NC_PASSWORD`            | Password for the Nextcloud instance                                                                                                                           | **No**       | Nextcloud password                                |
-    | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **YES**      | `http://localhost:8080`, when testing locally                                |
+    | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **YES**      | `http://localhost:8080`, when testing locally. 'http://turmfrontend-nextcloud:80' when run in Docker                                |
 
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
