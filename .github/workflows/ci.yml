@@ -31,15 +31,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and run Docker containers
-        run: |
-          docker compose --profile test build
-          docker compose --profile test up -d
+      - name: Build Docker containers
+        run: docker compose --profile test build
 
-      - name: Wait for services to be ready
-        run: |
-          docker compose exec -T web ./scripts/wait-for-it.sh db:5432 -t 60
-          docker compose exec -T web ./scripts/wait-for-it.sh nextcloud:80 -t 60
+      - name: Start database
+        run: docker compose --profile test up -d db
+
+      - name: Wait for database
+        run: ./scripts/wait-for-it.sh localhost:5432 -t 60
+
+      - name: Start Nextcloud
+        run: docker compose --profile test up -d nextcloud
+
+      - name: Wait for Nextcloud
+        run: ./scripts/wait-for-it.sh nextcloud:80 -t 60
 
       - name: Run migrations and populate data
         run: |
