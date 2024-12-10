@@ -14,6 +14,7 @@ from .models import InvitationToken, generate_invitation_link
 
 logger = logging.getLogger(__name__)
 
+
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
     password = forms.CharField(
