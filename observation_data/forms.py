@@ -62,7 +62,10 @@ class ExposureForm(forms.ModelForm):
             widget= forms.CheckboxSelectMultiple
         )
         for field in self.fields:
-            self.fields[field].widget.attrs.update({"class": "input_text Expert"})
+            if field == "filter_set":
+                self.fields[field].widget.attrs.update({"class": "Expert"})
+            else:
+                self.fields[field].widget.attrs.update({"class": "input_text Expert"})
 
         # Imaging
         self.label_widgets(
@@ -101,3 +104,8 @@ class ExposureForm(forms.ModelForm):
             widget = self.fields[field].widget
             prior = widget.attrs["class"]
             widget.attrs.update({"class": f"{prior} {html_class}"})
+
+from django import forms
+
+class MyWidget(forms.widgets.Input):
+    

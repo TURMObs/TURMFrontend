@@ -137,8 +137,27 @@
 
     .multiple_choice {
         display: flex;
+        justify-content: space-between;
+        background-color: var(--tom-dark-grey);
+
+        margin-top: 0.25em;
+        margin-bottom: 0.75em;
+
+        border: .1em solid transparent;
+        border-radius: 5px;
+
+        padding: 0.5em;
+        color: white;
+        font-family: var(--tom-base-font), sans-serif;
+        font-size: 1.15em;
+
+    }
+    .multiple_choice_div {
     }
 
+    .checkbox {
+
+    }
     </style>
 {% endblock %}
 {% block content %}
@@ -149,15 +168,31 @@
                     <h1>create new Observation</h1>
                 </div>
             </header>
-
             <script>
             window.onload = function() {
                 only_show('Imaging', document.getElementById('Imaging'));
+                remove_styling_from_checkboxes();
             };
+
+            function remove_styling_from_checkboxes() {
+                const fieldset = document.getElementsByClassName('multiple_choice').item(0);
+                fieldset.removeAttribute("style")
+                for (let div of fieldset.children) {
+                    div.classList.add('multiple_choice_div')
+                    for (let label of div.children) {
+                        label.removeAttribute("style")
+                        label.classList.add('checkbox')
+                        for (let input of label.children) {
+                            input.removeAttribute("style")
+                            input.classList.remove('multiple_choice')
+                        }
+                    }
+                }
+            }
 
             function set_element_visibility(element, show) {
                 if (show) {
-                    element.style.display = 'block';
+                    element.removeAttribute("style")
                     element.removeAttribute("disabled");
                 } else {
                     element.style.display = 'none';
@@ -217,7 +252,6 @@
                 {% csrf_token %}
                 <input type="submit" class="base_button">
             </form>
-            <div class="disabled_inputs"></div>
+            </div>
         </div>
-    </div>
 {% endblock %}
