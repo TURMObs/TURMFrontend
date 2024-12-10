@@ -48,11 +48,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "polymorphic",
     # Modules defined by TURMFrontend
     "authentication",
     "dashboard",
     "observation_data",
     "observation_request",
+    "nextcloud",
 ]
 
 MIDDLEWARE = [
