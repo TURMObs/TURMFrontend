@@ -16,12 +16,12 @@ import json
 import os
 from io import BytesIO
 from os import PathLike
-from pathlib import Path
 
 from nc_py_api import Nextcloud, NextcloudException
 from dotenv import load_dotenv
 
 nc: Nextcloud
+
 
 def initialize_connection() -> None:
     """
@@ -37,6 +37,7 @@ def initialize_connection() -> None:
     nc = Nextcloud(
         nextcloud_url=nc_url, nc_auth_user=nc_auth_user, nc_auth_pass=nc_auth_pass
     )
+
 
 def _check_initialized(method):
     """
@@ -55,6 +56,7 @@ def _check_initialized(method):
 
     return wrapper
 
+
 @_check_initialized
 def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
@@ -68,8 +70,9 @@ def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     with open(local_path, "rb") as file:
         nc.files.upload_stream(nc_path, file)
 
+
 @_check_initialized
-def upload_dict(nc_path: str, data: dict) -> None:
+def upload_dict(nc_path: str, data: dict, indent: int = 2) -> None:
     """
     Uploads a file_stream to the Nextcloud. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
 
@@ -77,9 +80,11 @@ def upload_dict(nc_path: str, data: dict) -> None:
 
     :param nc_path: Files path on the Nextcloud server
     :param data: Dict to be uploaded
+    :param indent: Number of spaces per indent
     """
-    json_stream = BytesIO(json.dumps(data, indent=2).encode("utf-8"))
+    json_stream = BytesIO(json.dumps(data, indent=indent).encode("utf-8"))
     nc.files.upload_stream(path=nc_path, fp=json_stream)
+
 
 @_check_initialized
 def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
@@ -95,6 +100,7 @@ def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     with open(local_path, "wb") as file:
         file.write(nc.files.download(nc_path))
 
+
 @_check_initialized
 def download_dict(nc_path: str) -> dict:
     """
@@ -107,6 +113,7 @@ def download_dict(nc_path: str) -> dict:
     byte_stream = nc.files.download(path=nc_path)
     return json.loads(byte_stream.decode("utf-8"))
 
+
 @_check_initialized
 def download_folder(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
@@ -118,6 +125,7 @@ def download_folder(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
     nc.files.download_directory_as_zip(nc_path, local_path)
 
+
 @_check_initialized
 def delete(nc_path: str) -> None:
     """
@@ -127,15 +135,17 @@ def delete(nc_path: str) -> None:
     """
     nc.files.delete(nc_path)
 
+
 @_check_initialized
 def _delete_all():
     """
     Deletes all files from the Nextcloud server. Indented to use for testing after nextcloud is newly initilized
     """
-    path = "" # root directory
+    path = ""  # root directory
     nodes = nc.files.listdir(path)
     for file in nodes:
         delete(file.user_path)
+
 
 @_check_initialized
 def mkdir(nc_path: str) -> None:
@@ -146,13 +156,11 @@ def mkdir(nc_path: str) -> None:
     dirs = nc_path.split("/")
     if dirs[-1] == "":
         dirs.pop()
-    for i in range(1, len(dirs)+1):
+    for i in range(1, len(dirs) + 1):
         path = "/".join(dirs[:i])
         try:
             nc.files.mkdir(path)
         except NextcloudException:
-            #print("Folder '{}' already exists".format(path))
+            # print("Folder '{}' already exists".format(path))
+            # todo maybe log
             pass
-
-
-
