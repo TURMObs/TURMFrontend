@@ -1,3 +1,4 @@
+import logging
 import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
@@ -11,6 +12,7 @@ import os
 
 from .models import InvitationToken, generate_invitation_link
 
+logger = logging.getLogger(__name__)
 
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
@@ -55,6 +57,7 @@ def login_user(request):
             request, form=LoginForm(), error="Invalid username or password"
         )
     auth.login(request, user)
+    logger.info(f"User {username} logged in successfully")
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 
@@ -80,6 +83,7 @@ def generate_user_invitation(request):
         return generate_invitation_template(
             request, form=GenerateInvitationForm(), error="Email already registered"
         )
+    logger.info(f"Invitation generated for email {email} by {request.user.username}")
     return generate_invitation_template(request, link=link)
 
 
@@ -120,6 +124,7 @@ def register_user(request, token):
     user.save()
     invitation.save()
     auth.login(request, user)
+    logger.info(f"Created new account for {user.username}")
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 
