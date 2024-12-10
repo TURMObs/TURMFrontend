@@ -27,6 +27,16 @@
         font-size: 1.15em;
     }
 
+    label:disabled {
+        font-size: 1.15em;
+        color: var(--tom-disabled-grey);
+    }
+    label[disabled] {
+        font-size: 1.15em;
+        color: var(--tom-disabled-grey);
+    }
+
+
     .input_text {
         display: block;
 
@@ -48,14 +58,14 @@
         font-size: 1.15em;
     }
 
-    .input_text:hover {
-
-    }
-
     .input_text:focus {
         outline: none;
 
         border: .1em solid white;
+    }
+
+    .input_text:invalid {
+        border: .1em solid var(--tom-info-error);
     }
 
     .base_button {
@@ -89,7 +99,7 @@
     .observation_type_radio {
         display: none;
     }
-    .observation_type_label {
+    .turm_radio_label {
         background-color: var(--tom-disabled-grey);
         padding: .5em;
 
@@ -99,16 +109,16 @@
 
 
     }
-    .observation_type_label:hover {
+    .turm_radio_label:hover {
         background-color: var(--tom-accent-color);
     }
-    .observation_type_label:first-child {
+    .turm_radio_label:first-child {
         -moz-border-radius-topleft: var(--tom-corner-radius);
         -webkit-border-top-left-radius: var(--tom-corner-radius);
         -moz-border-radius-bottomleft: var(--tom-corner-radius);
         -webkit-border-bottom-left-radius: var(--tom-corner-radius);
     }
-    .observation_type_label:nth-last-child(2) {
+    .turm_radio_label:nth-last-child(2) {
         border-left: transparent;
 
 
@@ -118,11 +128,11 @@
         -webkit-border-bottom-right-radius: var(--tom-corner-radius);
     }
 
-    .observation_type_label_active {
+    .turm_radio_label_active {
         background-color: var(--tom-primary-color);
     }
 
-    .observation_type_label_active:hover {
+    .turm_radio_label_active:hover {
         background-color: var(--tom-primary-color-dark);
     }
 
@@ -153,10 +163,34 @@
 
     }
     .multiple_choice_div {
+        display: flex;
+        gap: .5em;
+
+        margin: 0 1em;
     }
 
-    .checkbox {
+    .tooltip_div {
+        position: relative;
+        display: inline-block;
+    }
 
+    .tooltip_div .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: var(--tom-info-warning);
+        text-align: center;
+        padding: 5px 0;
+        border-radius: var(--tom-corner-radius);
+
+        position: absolute;
+        z-index: 1;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -60px;
+    }
+
+    .tooltip_div:hover .tooltiptext {
+      visibility: visible;
     }
     </style>
 {% endblock %}
@@ -170,77 +204,91 @@
             </header>
             <script>
             window.onload = function() {
-                only_show('Imaging', document.getElementById('Imaging'));
-                remove_styling_from_checkboxes();
+                only_apply('Imaging', document.getElementById('Imaging'), 'observation_type_radio_label', true, 'observation_type_dependent');
+                only_apply('turmx', document.getElementById('TURMX'), 'observatory_radio_label', false, 'observatory_dependent');
             };
 
-            function remove_styling_from_checkboxes() {
-                const fieldset = document.getElementsByClassName('multiple_choice').item(0);
-                fieldset.removeAttribute("style")
-                for (let div of fieldset.children) {
-                    div.classList.add('multiple_choice_div')
-                    for (let label of div.children) {
-                        label.removeAttribute("style")
-                        label.classList.add('checkbox')
-                        for (let input of label.children) {
-                            input.removeAttribute("style")
-                            input.classList.remove('multiple_choice')
-                        }
-                    }
-                }
-            }
-
-            function set_element_visibility(element, show) {
-                if (show) {
-                    element.removeAttribute("style")
-                    element.removeAttribute("disabled");
-                } else {
+            function set_element_visibility(element, hidden) {
+                if (hidden) {
                     element.style.display = 'none';
                     element.setAttribute("disabled", "disabled");
+                } else {
+                    element.removeAttribute("style");
+                    element.removeAttribute("disabled");
                 }
             }
 
+            function set_element_disable(element, disabled) {
+                if (disabled) {
+                    element.setAttribute("disabled", "disabled");
+                    if (element.tagName === "INPUT") {
+                        element.checked = false;
+                    }
+                } else {
+                    element.removeAttribute("disabled");
+                }
+            }
 
-            function only_show(className, obj) {
-                const observation_labels = document.getElementsByClassName('observation_type_label')
+            function only_apply(attribute, obj, input_selector, hide, effect_selector) {
+                const observation_labels = document.getElementsByClassName(input_selector)
                 for (let label of observation_labels) {
+
                     if (obj === undefined) break
+                    obj.checked = true;
                     if (label.htmlFor === obj.id) {
-                        label.classList.add('observation_type_label_active')
+                        label.classList.add('turm_radio_label_active')
                     } else {
-                        label.classList.remove('observation_type_label_active')
+                        label.classList.remove('turm_radio_label_active')
                     }
                 }
 
-                const all_elements = Array.from(document.getElementsByClassName('Expert'));
+                const all_elements = Array.from(document.getElementsByClassName(effect_selector));
 
                 for (let el of all_elements) {
-                    const show = el.classList.contains(className);
+                    const show = !!el.getAttribute("data-" + attribute);
+
                     const labels = document.getElementsByTagName('label');
-                    for (let label of labels) {
-                        if (label.htmlFor === el.id) {
-                            set_element_visibility(label, show);
+                    let label = null;
+                    for (let l of labels) {
+                        if (l.htmlFor === el.id) {
+                            label = l;
                         }
                     }
-                    set_element_visibility(el, show);
+                    const tooltips = document.getElementsByClassName('tooltiptext');
+                    let tooltip = null;
+                    for (let t of tooltips) {
+                        if (t.getAttribute("data-tip_for") === el.id) {
+                            tooltip = t;
+                        }
+                    }
+
+                    if (hide) {
+                        set_element_visibility(label, !show);
+                        set_element_visibility(el, !show);
+                    } else {
+                        set_element_disable(label, !show);
+                        set_element_disable(el, !show);
+                        if (!!tooltip) set_element_visibility(tooltip, show);
+                    }
                 }
             }
             </script>
 
             <form action="{{ create_form_url }}" method="post" class="input_form">
-                {% for name, form, options in forms %}
+                {% for name, form, radio in forms %}
                     <article class="form_body">
                         <h2 class="sub_form_heading">{{ name }}</h2>
-                        {% if options is not None %}
+                        {% if radio is not None %}
                             <div class="switch_button_container">
-                                {% for observation_t, require_super_user in options %}
+                                {% for option, require_super_user in radio.options %}
                                     {% if not require_super_user or True %}
-                                        <label class="observation_type_label" for="{{ observation_t }}">{{ observation_t }}</label>
+                                        <label class="turm_radio_label {{ radio.input_selector }}" for="{{ option }}">{{ option }}</label>
                                         <input class="observation_type_radio"
                                                type="radio"
-                                               id="{{ observation_t }}"
-                                               name="observation_type"
-                                               onclick="only_show('{{ observation_t }}', this)">
+                                               id="{{ option }}"
+                                               name="{{ radio.name }}"
+                                               value="{{ option }}"
+                                               onclick="only_apply('{{ option }}', this, '{{ radio.input_selector }}', {{ radio.hide }}, '{{ radio.effect_selector }}')">
                                     {% endif %}
                                 {% endfor %}
                             </div>
