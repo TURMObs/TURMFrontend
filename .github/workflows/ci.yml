@@ -23,6 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       - name: Check for typos
         uses: crate-ci/typos@v1.27.2
         with:
@@ -48,6 +53,9 @@ jobs:
 
       - name: Start Web
         run: docker compose --profile test up -d web
+
+      - name: Wait for Web
+        run: ./scripts/wait-for-it.sh localhost:$WEB_PORT -t 120
 
       - name: Run migrations and populate data
         run: |
