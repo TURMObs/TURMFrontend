@@ -64,7 +64,37 @@
                     style="display: none">
                     <td colspan="5">
                         <div class="expander-content">
-                            <p>Additional details for observation {{ observation.id }}</p>
+                            {% if observation.observation_type == 'Imaging' %}
+                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                <p>Required amount: {{ observation.required_amount }}</p>
+                            {% elif observation.observation_type == 'Exoplanet' %}
+                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                            {% elif observation.observation_type == 'Variable' %}
+                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                <p>Required amount: {{ observation.required_amount }}</p>
+                            {% elif observation.observation_type == 'Monitor' %}
+                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                <p>Cadence: {{ observation.cadence }}</p>
+                                <p>Required amount: {{ observation.required_amount }}</p>
+                            {% elif observation.observation_type == 'Expert' %}
+                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                <p>Dither every: {{ observation.dither_every }}</p>
+                                <p>Binning: {{ observation.binning }}</p>
+                                <p>Gain: {{ observation.gain }}</p>
+                                <p>Offset: {{ observation.offset }}</p>
+                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                <p>Cadence: {{ observation.cadence }}</p>
+                                <p>Moon seperation angle: {{ observation.moon_separation_angle }}</p>
+                                <p>Moon seperation width: {{ observation.moon_separation_width }}</p>
+                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                <p>Required amount: {{ observation.required_amount }}</p>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
