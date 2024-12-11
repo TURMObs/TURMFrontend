@@ -24,8 +24,8 @@
     }
 
     .observation-row:hover {
-            background-color: #313131;
-            cursor: pointer;
+        background-color: #313131;
+        cursor: pointer;
     }
     </style>
 {% endblock %}
@@ -51,10 +51,10 @@
                     <td class="left-align">{{ observation.target.name }}</td>
                     <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                     <td class="left-align">{{ observation.observation_type }}</td>
-                    <th class="left-align">
+                    <td class="left-align">
                         {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
-                    </th>
-                    <th class="right-align">{{ observation.exposure_time }}</th>
+                    </td>
+                    <td class="right-align">{{ observation.exposure_time }}</td>
                     <td class="right-align">{{ observation.project_status }}</td>
                     <td class="right-align">{{ observation.project_completion }}</td>
                     <td class="right-align">{{ observation.priority }}</td>

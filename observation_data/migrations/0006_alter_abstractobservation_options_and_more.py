@@ -5,40 +5,48 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('observation_data', '0005_alter_abstractobservation_observation_type_and_more'),
+        ("contenttypes", "0002_remove_content_type_name"),
+        (
+            "observation_data",
+            "0005_alter_abstractobservation_observation_type_and_more",
+        ),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='abstractobservation',
-            options={'base_manager_name': 'objects'},
+            name="abstractobservation",
+            options={"base_manager_name": "objects"},
         ),
         migrations.AlterModelOptions(
-            name='exoplanetobservation',
-            options={'base_manager_name': 'objects'},
+            name="exoplanetobservation",
+            options={"base_manager_name": "objects"},
         ),
         migrations.AlterModelOptions(
-            name='expertobservation',
-            options={'base_manager_name': 'objects'},
+            name="expertobservation",
+            options={"base_manager_name": "objects"},
         ),
         migrations.AlterModelOptions(
-            name='imagingobservation',
-            options={'base_manager_name': 'objects'},
+            name="imagingobservation",
+            options={"base_manager_name": "objects"},
         ),
         migrations.AlterModelOptions(
-            name='monitoringobservation',
-            options={'base_manager_name': 'objects'},
+            name="monitoringobservation",
+            options={"base_manager_name": "objects"},
         ),
         migrations.AlterModelOptions(
-            name='variableobservation',
-            options={'base_manager_name': 'objects'},
+            name="variableobservation",
+            options={"base_manager_name": "objects"},
         ),
         migrations.AddField(
-            model_name='abstractobservation',
-            name='polymorphic_ctype',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='polymorphic_%(app_label)s.%(class)s_set+', to='contenttypes.contenttype'),
+            model_name="abstractobservation",
+            name="polymorphic_ctype",
+            field=models.ForeignKey(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="polymorphic_%(app_label)s.%(class)s_set+",
+                to="contenttypes.contenttype",
+            ),
         ),
     ]
