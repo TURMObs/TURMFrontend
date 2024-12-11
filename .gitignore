@@ -143,3 +143,4 @@ data
 .ruff_cache
 .zed
 .DS_Store
+app.log
