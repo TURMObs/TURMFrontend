@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>test123</title>
+    </head>
+    <body>
+        <h1>local templates</h1>
+        <button id="create_json_button">press me</button>
+        <pre id="response_output"></pre>
+        <script>
+        document.getElementById("create_json_button").addEventListener("click", function() {
+            const jsonData = {
+                message: 'test',
+                status: 'success',
+                additionalField: 'test123'
+            }
+            fetch('/interactiveTest/createjson/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(jsonData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("response_output").textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => console.error("error: ", error))
+        });
+        </script>
+    </body>
+</html>

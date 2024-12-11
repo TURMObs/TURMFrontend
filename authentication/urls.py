@@ -1,6 +1,5 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import path
-from django.conf import settings
 
 from authentication.views import (
     generate_invitation,
@@ -16,7 +15,7 @@ urlpatterns = [
     path("login_user", login_user, name="login-user"),
     path(
         "logout/",
-        LogoutView.as_view(next_page=settings.LOGOUT_REDIRECT_URL),
+        LogoutView.as_view(next_page="login"),
         name="logout",
     ),
     path(
