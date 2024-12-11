@@ -2,14 +2,100 @@
 {% block title %}Dashboard{% endblock %}
 {% block style %}
     <style>
-    .observations-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 600px;
+    .observations-table {
+        width: 90%;
+        margin: auto;
+    }
+
+    .observations-table th, td {
+        padding: 8px;
+    }
+
+    .observations-table th {
+        font-weight: bold;
+    }
+
+    .left-align {
+        text-align: left;
+    }
+
+    .right-align {
+        text-align: right;
+    }
+
+    .observation-row:hover {
+            background-color: #313131;
+            cursor: pointer;
     }
     </style>
 {% endblock %}
 {% block content %}
-    <div class="observations-container">Your observation requests will be listed here</div>
+    <table class="observations-table">
+        <thead>
+            <tr>
+                <th class="left-align">Observatory</th>
+                <th class="left-align">Target</th>
+                <th class="right-align">Created at</th>
+                <th class="left-align">Type</th>
+                <th class="right-align">Project status</th>
+                <th class="right-align">Project completion</th>
+                <th class="right-align">Priority</th>
+                <th class="right-align">Exposure time</th>
+                <th class="right-align">Filters</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for observation in observations %}
+                <tr class="observation-row" data-id="{{ observation.id }}">
+                    <td class="left-align">{{ observation.observatory.name }}</td>
+                    <td class="left-align">{{ observation.target.name }}</td>
+                    <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
+                    <td class="left-align">{{ observation.observation_type }}</td>
+                    <td class="right-align">{{ observation.project_status }}</td>
+                    <td class="right-align">{{ observation.project_completion }}</td>
+                    <td class="right-align">{{ observation.priority }}</td>
+                    <th class="right-align">{{ observation.exposure_time }}</th>
+                    <th class="right-align">{{ observation.filter_set.filter_type }}</th>
+                </tr>
+                <tr class="expander-row"
+                    id="expander-{{ observation.id }}"
+                    style="display: none">
+                    <td colspan="5">
+                        <div class="expander-content">
+                            <p>Additional details for observation {{ observation.id }}</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.observation-row');
+            let currentlyExpanded = null;
+
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const expander = document.getElementById(`expander-${id}`);
+
+                    // Close currently expanded row if it's not the one we're clicking
+                    if (currentlyExpanded && currentlyExpanded !== expander) {
+                        currentlyExpanded.style.display = 'none';
+                    }
+
+                    // Toggle the clicked expander
+                    if (expander.style.display === 'none' || expander.style.display === '') {
+                        expander.style.display = 'table-row';
+                        currentlyExpanded = expander;
+                    } else {
+                        expander.style.display = 'none';
+                        currentlyExpanded = null;
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}
