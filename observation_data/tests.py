@@ -22,11 +22,11 @@ from observation_data.serializers import (
 
 
 def _create_user_and_login(test_instance):
-    call_command("generate_admin_user")
     load_dotenv()
     admin_username = os.getenv("ADMIN_EMAIL")
     if not admin_username:
         test_instance.fail("ADMIN_EMAIL environment variable not set")
+    call_command("generate_admin_user")
     test_instance.user = User.objects.get(username=admin_username)
     test_instance.client.force_login(test_instance.user)
 

@@ -61,59 +61,62 @@ def verify_field_integrity(name, value):
     Verify data integrity.
     :param name: Name of the attribute
     :param value: Value of the attribute
-    :return: Error if the value is invalid or None
+    :return: Error if the value is invalid or None if the value is valid
     """
     if isinstance(value, dict) or isinstance(value, list):
         return
 
-    if name == "frames_per_filter":
-        return _assert_number_in_range(name, value, 1, 10000)
-    elif name == "required_amount":
-        return _assert_number_in_range(name, value, 1, 100000)
-    elif name == "ra":
-        return _assert_matches_regex(name, value, r"\d{2} \d{2} \d{2}(?:\.\d{1,7})?")
-    elif name == "dec":
-        return _assert_matches_regex(
-            name, value, r"[+-]?\d{2} \d{2} \d{2}(?:\.\d{1,5})?"
-        )
-    elif name == "exposure_time":
-        return _assert_number_in_range(name, value, 0.1, 3600)
-    elif name == "dither_every":
-        return _assert_number_in_range(name, value, 0.0, 10.0)
-    elif name == "binning":
-        return _assert_number_in_range(name, value, 0, 10)
-    elif name == "gain":
-        return _assert_number_in_range(name, value, 0, 10000)
-    elif name == "offset":
-        return _assert_number_in_range(name, value, 0, 10000)
-    elif name == "cadence":
-        return _assert_number_in_range(name, value, 1, 1000)
-    elif name == "moon_separation_angle":
-        return _assert_number_in_range(name, value, 0.0, 180.0)
-    elif name == "moon_separation_width":
-        return _assert_number_in_range(name, value, 0, 100)
-    elif name == "minimum_altitude":
-        return _assert_number_in_range(name, value, 0.0, 90.0)
-    elif name == "priority":
-        return _assert_number_in_range(name, value, 1, 10000000)
-    elif name == "name":
-        if not isinstance(value, str):
-            return {"Must be a string."}
-    elif name == "catalog_id":
-        if not isinstance(value, str):
-            raise {"Must be a string."}
-    elif name in [
-        "observatory",
-        "user",
-        "start_observation",
-        "end_observation",
-        "start_scheduling",
-        "end_scheduling",
-        "observation_type",
-    ]:
-        return None
-    else:
-        return {name: "Unknown field."}
+    match name:
+        case "frames_per_filter":
+            return _assert_number_in_range(name, value, 1, 10000)
+        case "required_amount":
+            return _assert_number_in_range(name, value, 1, 100000)
+        case "ra":
+            return _assert_matches_regex(
+                name, value, r"\d{2} \d{2} \d{2}(?:\.\d{1,7})?"
+            )
+        case "dec":
+            return _assert_matches_regex(
+                name, value, r"[+-]?\d{2} \d{2} \d{2}(?:\.\d{1,5})?"
+            )
+        case "exposure_time":
+            return _assert_number_in_range(name, value, 0.1, 3600)
+        case "dither_every":
+            return _assert_number_in_range(name, value, 0.0, 10.0)
+        case "binning":
+            return _assert_number_in_range(name, value, 0, 10)
+        case "gain":
+            return _assert_number_in_range(name, value, 0, 10000)
+        case "offset":
+            return _assert_number_in_range(name, value, 0, 10000)
+        case "cadence":
+            return _assert_number_in_range(name, value, 1, 1000)
+        case "moon_separation_angle":
+            return _assert_number_in_range(name, value, 0.0, 180.0)
+        case "moon_separation_width":
+            return _assert_number_in_range(name, value, 0, 100)
+        case "minimum_altitude":
+            return _assert_number_in_range(name, value, 0.0, 90.0)
+        case "priority":
+            return _assert_number_in_range(name, value, 1, 10000000)
+        case "name":
+            if not isinstance(value, str):
+                return {"Must be a string."}
+        case "catalog_id":
+            if not isinstance(value, str):
+                return {"Must be a string."}
+        case (
+            "observatory"
+            | "user"
+            | "start_observation"
+            | "end_observation"
+            | "start_scheduling"
+            | "end_scheduling"
+            | "observation_type"
+        ):
+            return None
+        case _:
+            return {name: "Unknown field."}
 
 
 def verify_filter_selection(filters, observatory):
