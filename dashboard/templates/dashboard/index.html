@@ -35,10 +35,10 @@
             <tr>
                 <th class="left-align">Observatory</th>
                 <th class="left-align">Target</th>
-                <th class="right-align">Created at</th>
                 <th class="left-align">Type</th>
                 <th class="left-align">Filters</th>
                 <th class="right-align">Exposure time</th>
+                <th class="right-align">Created at</th>
                 <th class="right-align">Project status</th>
                 <th class="right-align">Project completion</th>
                 <th class="right-align">Priority</th>
@@ -49,12 +49,12 @@
                 <tr class="observation-row" data-id="{{ observation.id }}">
                     <td class="left-align">{{ observation.observatory.name }}</td>
                     <td class="left-align">{{ observation.target.name }}</td>
-                    <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                     <td class="left-align">{{ observation.observation_type }}</td>
                     <td class="left-align">
                         {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
                     </td>
                     <td class="right-align">{{ observation.exposure_time }}</td>
+                    <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                     <td class="right-align">{{ observation.project_status }}</td>
                     <td class="right-align">{{ observation.project_completion }}</td>
                     <td class="right-align">{{ observation.priority }}</td>
