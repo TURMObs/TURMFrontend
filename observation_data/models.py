@@ -112,12 +112,6 @@ class AbstractObservation(PolymorphicModel):
         ERROR = "Error"
         COMPLETED = "Completed"
 
-    class ObservationStatus(models.TextChoices):
-        PENDING = "Pending Upload"
-        UPLOADED = "Uploaded"
-        ERROR = "Error"
-        COMPLETED = "Completed"
-
     observatory = models.ForeignKey(
         Observatory,
         on_delete=models.PROTECT,
