@@ -15,6 +15,7 @@ class ObservationType(models.TextChoices):
     EXPERT = "Expert"
 
 
+
 class CelestialTarget(models.Model):
     """
     Model for the celestial targets that can be observed.
@@ -111,6 +112,12 @@ class AbstractObservation(PolymorphicModel):
         ERROR = "Error"
         COMPLETED = "Completed"
 
+    class ObservationStatus(models.TextChoices):
+        PENDING = "Pending Upload"
+        UPLOADED = "Uploaded"
+        ERROR = "Error"
+        COMPLETED = "Completed"
+
     observatory = models.ForeignKey(
         Observatory,
         on_delete=models.PROTECT,
@@ -144,11 +151,6 @@ class ExoplanetObservation(AbstractObservation):
     end_observation = models.DateTimeField()
 
 
-class VariableObservation(AbstractObservation):
-    minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
-    required_amount = models.IntegerField()
-
-
 class MonitoringObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
     start_scheduling = models.DateTimeField()
@@ -157,7 +159,21 @@ class MonitoringObservation(AbstractObservation):
     required_amount = models.IntegerField()
 
 
-class ExpertObservation(AbstractObservation):
+class ScheduledObservation(AbstractObservation):
+    class Meta:
+        abstract = True
+
+    start_scheduling = models.DateTimeField()
+    end_scheduling = models.DateTimeField()
+
+
+class VariableObservation(ScheduledObservation):
+    frames_per_filter = models.IntegerField()
+    cadence = models.IntegerField()
+    required_amount = models.IntegerField()
+
+
+class ExpertObservation(ScheduledObservation):
     frames_per_filter = models.IntegerField()
     dither_every = models.DecimalField(max_digits=5, decimal_places=2)
     binning = models.CharField(max_length=50)
