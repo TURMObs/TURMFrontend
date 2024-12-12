@@ -5,26 +5,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{% static "/css/generate_invitation.css" %}">
+    <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
  
 {% endblock %}
 {% block content %}
     <div class= "outer">
         <div class= "wrapper">
             <h1>Generate Invitation Link</h1>
-            {% if error is not None %}<p style="color: red">{{ error }}</p>{% endif %}
+            {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             {% if link is None %}
             <form method="post" action="{% url 'generate-user-invitation' %}">
                 {% csrf_token %}
                 <div class= "input-field">
-                    <label for="email">Email:</label>
                     {{ form.email }}
-                    <i class='bx bxs-user'></i>
+                    <i class="bx bx-envelope"></i>
                 </div>
                 <button class= "generatebutton" type="submit">Generate</button>
             </form>
             {% else %}
                 <p id="invitationLink">{{ link }}</p>
-                <button onclick="copyLink()">Copy Link</button>
+                <button class= "copybutton" onclick="copyLink()">Copy Link</button>
                 <script>
                     function copyLink() {
                         var linkText =

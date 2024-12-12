@@ -20,7 +20,7 @@ class LoginForm(forms.Form):
 
 
 class GenerateInvitationForm(forms.Form):
-    email = forms.EmailField()
+    email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
 
 
 @require_GET
