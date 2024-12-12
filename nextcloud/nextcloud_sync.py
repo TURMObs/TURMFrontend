@@ -1,9 +1,7 @@
 from itertools import chain
 
 from django.utils import timezone
-from datetime import datetime, timedelta
 
-from nc_py_api import NextcloudException
 
 from observation_data.models import (
     AbstractObservation,
@@ -68,20 +66,20 @@ def calc_progress(observation: dict) -> float:
     return accepted_amount / required_amount
 
 
+"""
 def update_database():
-    """
+    
     Checks which observations have been done and updates the database accordingly.
     First it gets all observation that are not finished yet and gets the corresponding dicts from both the nc and the db.
     Then it calculates the progress from the nc JSON. If it has changed (aka pictures have been taken) it updates the database accordingly.
     If an observation is entirely finished, its status is set accordingly and the JSON is deleted from the nc.
-    """
+    
 
     # gets all observations not finished yet
     observations = AbstractObservation.objects.filter(project_completion__lt=100)
     for observation in observations:
         serializer_class = get_serializer(observation.observation_type)
         serializer = serializer_class(observation)
-        obs_dict_db = serializer.data
 
         # downloads the JSON of the observation from the NC and calculates the progress
         nc_path = get_nextcloud_path(observation)
@@ -100,6 +98,7 @@ def update_database():
                 observation.project_status = ObservationStatus.COMPLETED
                 nm.delete(nc_path=nc_path)
             observation.save()
+"""
 
 
 def upload_observations(today=timezone.now()):
@@ -125,19 +124,23 @@ def upload_observations(today=timezone.now()):
         .exclude(project_status=ObservationStatus.ERROR)
     )
     for obs in scheduled_observations:
-        if obs.start_scheduling > today or obs.end_scheduling < today:
+        if timezone.localdate(obs.start_scheduling) > timezone.localdate(
+            today
+        ) or timezone.localdate(obs.end_scheduling) < timezone.localdate(today):
             continue
-        if (today - obs.start_scheduling).days % obs.cadence != 0:
+        if (
+            timezone.localdate(today) - timezone.localdate(obs.start_scheduling)
+        ).days % obs.cadence != 0:
             continue
         pending_observations = chain(pending_observations, [obs])
 
     # print(pending_observations)
-    l = list(pending_observations)
-    print("Length of pending_observations: ", len(l))
+    test_list = list(pending_observations)
+    # print("Length of pending_observations: ", len(test_list))
 
     # upload all pending_observation to Nextcloud.
     nm.initialize_connection()
-    for obs in l:
+    for obs in test_list:
         try:
             serializer_class = get_serializer(obs.observation_type)
             serializer = serializer_class(obs)
@@ -152,5 +155,4 @@ def upload_observations(today=timezone.now()):
         except Exception:
             # todo log as critical error
             print("Failed to upload observation: ", obs.id)
-            # pass
         obs.save()
