@@ -1,7 +1,6 @@
 import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
@@ -22,6 +21,22 @@ class LoginForm(forms.Form):
 class GenerateInvitationForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
 
+
+class SetPasswordForm(forms.Form):
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Confirm Password"})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("new_password1")
+        password2 = cleaned_data.get("new_password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords do not match")
+        return cleaned_data
 
 @require_GET
 @login_not_required
@@ -94,7 +109,7 @@ def register(request, token):
         )
 
     return register_from_invitation_template(
-        request, token, form=SetPasswordForm(User()), email=invitation.email
+        request, token, form=SetPasswordForm(), email=invitation.email
     )
 
 
@@ -108,7 +123,7 @@ def register_user(request, token):
             request, token, error="Invalid invitation link"
         )
 
-    form = SetPasswordForm(User(), request.POST)
+    form = SetPasswordForm(request.POST)
     if not form.is_valid():
         return register_from_invitation_template(
             request, token, error="Invalid password"

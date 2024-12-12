@@ -1,11 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
-@import url("css/base_template.css");
+@import "base_template.css";
 
-body {
-    font-family: "Poppins", sans-serif;
-    text-align: center;
-    padding: 20px;
-}
 
 .outer {
     display: flex;
@@ -26,7 +21,7 @@ body {
     margin-bottom: 40px;
 }
 
-button {
+.wrapper button {
     padding: 10px 20px;
     font-size: 16px;
     margin: 10px;
@@ -37,7 +32,7 @@ button {
     border-radius: 5px;
 }
 
-button:hover {
+.wrapper button:hover {
     background-color: var(--tom-primary-color-dark);
 }
 
