@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import sys
 
 from django.conf.global_settings import STATICFILES_DIRS
 from pathlib import Path
@@ -194,3 +195,6 @@ LOGGING = {
         },
     },
 }
+
+if "test" in sys.argv:
+    LOGGING["handlers"]["console"]["level"] = "CRITICAL"

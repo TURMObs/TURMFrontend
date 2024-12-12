@@ -158,7 +158,7 @@ class MonitoringObservation(AbstractObservation):
 
 class ExpertObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
-    dither_every = models.DecimalField(max_digits=5, decimal_places=2)
+    dither_every = models.IntegerField()
     binning = models.IntegerField()
     gain = models.IntegerField()
     offset = models.IntegerField()

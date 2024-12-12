@@ -236,7 +236,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
                 "moon_separation_angle": 30.0,
-                "moon_separation_width": 30.0,
+                "moon_separation_width": 7.0,
                 "minimum_altitude": 35,
                 "priority": 100,
                 "required_amount": 100,
@@ -261,7 +261,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
                 "moon_separation_angle": 30.0,
-                "moon_separation_width": 30.0,
+                "moon_separation_width": 7.0,
                 "minimum_altitude": 35,
                 "priority": 100,
                 "required_amount": 100,
@@ -302,16 +302,27 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
-    def _test_exoplanet_overlap(self, start1, end1, start2, end2, expected_status_code):
+    def _test_exoplanet_overlap(
+        self,
+        start1,
+        end1,
+        start2,
+        end2,
+        expected_status_code,
+        obs1="TURMX",
+        obs2="TURMX",
+    ):
         data = self.base_request.copy()
         data["observation_type"] = "Exoplanet"
         data["start_observation"] = start1
         data["end_observation"] = end1
+        data["observatory"] = obs1
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
         data["start_observation"] = start2
         data["end_observation"] = end2
+        data["observatory"] = obs2
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, expected_status_code, response.json())
 
@@ -375,7 +386,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["end_scheduling"] = "2021-01-01T01:00:00Z"
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
-        data["moon_separation_width"] = 30.0
+        data["moon_separation_width"] = 7.0
         data["minimum_altitude"] = 35
         data["priority"] = 100
         data["required_amount"] = 100
@@ -395,6 +406,17 @@ class ObservationCreationTestCase(django.test.TestCase):
             datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
             datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
             201,
+        )
+
+    def test_overlap_different_observatory(self):
+        self._test_exoplanet_overlap(
+            datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 0, 15, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 1, 45, tzinfo=timezone.utc),
+            201,
+            obs1="TURMX",
+            obs2="TURMX2",
         )
 
     def test_invalid_ra_format(self):
@@ -444,12 +466,60 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_invalid_exposure_time(self):
         data = self._get_flat_base_request()
         data["observation_type"] = "Imaging"
-        data["exposure_time"] = 3601  # Out of valid range
+        data["exposure_time"] = 31  # not a valid option
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"exposure_time": ["Must be between 0.1 and 3600."]}
+            response, 400, {"exposure_time": ["Must be one of [30, 60, 120, 300]."]}
+        )
+
+    def test_valid_exposure_time_expert(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Expert"
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = 1
+        data["subframe"] = "Full"
+        data["gain"] = 1
+        data["exposure_time"] = 31  # valid because it's an expert observation
+        data["start_observation"] = "2021-01-01T00:00:00Z"
+        data["end_observation"] = "2021-01-01T01:00:00Z"
+        data["start_scheduling"] = "2021-01-01T00:00:00Z"
+        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["cadence"] = 1
+        data["moon_separation_angle"] = 30.0
+        data["moon_separation_width"] = 7.0
+        data["minimum_altitude"] = 35
+        data["priority"] = 100
+        data["required_amount"] = 100
+        data["offset"] = 1
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_invalid_exposure_time_expert(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Expert"
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = 1
+        data["subframe"] = "Full"
+        data["gain"] = 1
+        data["exposure_time"] = 1801  # invalid because it's out of range
+        data["start_observation"] = "2021-01-01T00:00:00Z"
+        data["end_observation"] = "2021-01-01T01:00:00Z"
+        data["start_scheduling"] = "2021-01-01T00:00:00Z"
+        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["cadence"] = 1
+        data["moon_separation_angle"] = 30.0
+        data["moon_separation_width"] = 7.0
+        data["minimum_altitude"] = 35
+        data["priority"] = 100
+        data["required_amount"] = 100
+        data["offset"] = 1
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"exposure_time": ["Must be between 1 and 1800."]}
         )
 
     def test_invalid_frames_per_filter(self):
@@ -459,7 +529,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"frames_per_filter": ["Must be between 1 and 10000."]}
+            response, 400, {"frames_per_filter": ["Must be between 1 and 1000."]}
         )
 
     def test_invalid_required_amount(self):
@@ -469,7 +539,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 1
         response = self._send_post_request(data)
         self._assert_error_response(
-            response, 400, {"required_amount": ["Must be between 1 and 100000."]}
+            response, 400, {"required_amount": ["Must be between 1 and 1000."]}
         )
 
     def test_missing_required_amount_and_invalid_dec(self):
