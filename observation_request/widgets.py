@@ -1,4 +1,4 @@
-from django.forms import Widget
+from django.forms import Widget, TextInput
 from django.utils.safestring import mark_safe
 
 from observation_data.models import Observatory, Filter
@@ -47,3 +47,19 @@ class TURMCheckboxSelectWidget(Widget):
 
     def _render_tooltip(self, id):
         return f'<span class="tooltiptext" data-tip_for="{id}" style="display: none">{self.tooltip} text</span>'
+
+class TURMNumericInputWidget(TextInput):
+    def __init__(self, minimum=None, maximum=None, step=None, limit=False, pattern=None):
+        super().__init__()
+        self.attrs.update({"inputmode": "numeric"})
+        if minimum:
+            self.attrs.update({"min": minimum})
+        if maximum:
+            self.attrs.update({"max": maximum})
+        if step:
+            self.attrs.update({"step": step})
+        if limit:
+            self.attrs.update({"data-limitinput": "true"})
+        if pattern:
+            self.attrs.update({"pattern": pattern})
+

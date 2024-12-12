@@ -64,10 +64,6 @@
         border: .1em solid white;
     }
 
-    .input_text:invalid {
-        border: .1em solid var(--tom-info-error);
-    }
-
     .base_button {
         background-color: var(--tom-primary-color);
 
@@ -204,8 +200,12 @@
             </header>
             <script>
             window.onload = function() {
-                only_apply('Imaging', document.getElementById('Imaging'), 'observation_type_radio_label', true, 'observation_type_dependent');
-                only_apply('turmx', document.getElementById('TURMX'), 'observatory_radio_label', false, 'observatory_dependent');
+                only_apply('Imaging', document.getElementById('Imaging'), 'observation_type_radio_label', true,
+                    'observation_type_dependent');
+                only_apply('turmx', document.getElementById('TURMX'), 'observatory_radio_label', false,
+                    'observatory_dependent');
+                apply_regex_filters();
+                //addEventListener('input', apply_regex);
             };
 
             function set_element_visibility(element, hidden) {
@@ -272,6 +272,50 @@
                     }
                 }
             }
+
+            function apply_regex(e) {
+                if (e.target.getAttribute("data-input") == null) return;
+                console.log(e);
+                if (e.inputType === "insertText") {
+
+                }
+            }
+
+            function coordinate_formatter(e, ra) {
+                if (e.inputType !== "insertText") {
+                    return;
+                }
+                e.target
+            }
+
+            function apply_regex_filters() {
+                let inputs = Array.from(document.getElementsByTagName('INPUT'));
+                inputs = inputs.filter(el => !!el.getAttribute("data-limitinput"))
+                for (let input of inputs) {
+                    input.addEventListener('beforeinput', _ => {
+                        let before_value = input.value;
+                        input.addEventListener(
+                            "input",
+                            _ => {
+                                console.log(input.validity)
+                                if (!!input.getAttribute("pattern") &&
+                                    !(RegExp(input.getAttribute("pattern")).test(input.value))) {
+                                    input.value = before_value
+                                    console.log("regwegxt")
+                                    return;
+                                }
+                                if (input.validity.badInput) input.value = before_value;
+                            },
+                            { once: true }
+                        );
+                    });
+                }
+            }
+
+            function format(el) {
+                console.log(el);
+            }
+
             </script>
 
             <form action="{{ create_form_url }}" method="post" class="input_form">

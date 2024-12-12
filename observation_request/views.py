@@ -15,7 +15,7 @@ def simple_request(request):
     observatories_radio = {
         'options': ((obs, False) for obs in Observatory.objects.all().reverse()),
         'hide': 'false',
-        'name': 'observatory',
+        'name': 'observatory', #todo: change to model meta field name
         'input_selector': 'observatory_radio_label',
         'effect_selector': QueryEnum.observatory_dependent.name
     }
