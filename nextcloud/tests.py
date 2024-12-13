@@ -2,10 +2,13 @@ import filecmp
 import json
 import django
 import django.test
+import os
 from django.contrib.auth.models import User
+from dotenv import load_dotenv
 from nc_py_api import NextcloudException
 from django.core.management import call_command
 from numpy.ma.testutils import assert_equal
+from datetime import datetime, timedelta
 
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_sync import (
@@ -62,7 +65,7 @@ def _create_imaging_observations(
         observatory=observatory,
         target=target,
         user=self.user,
-        created_at=timezone.now(),
+        created_at=datetime.now(),
         observation_type=ObservationType.IMAGING,
         project_status=project_status,
         project_completion=project_completion,
@@ -88,11 +91,11 @@ def _create_exoplanet_observation(
     priority: int = 1,
     exposure_time: float = 10.0,
     start_observation: datetime = (
-        timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         - timedelta(seconds=1)
     ),
     end_observation: datetime = (
-        timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         + timedelta(days=1)
     ),
 ):
@@ -107,7 +110,7 @@ def _create_exoplanet_observation(
         observatory=observatory,
         target=target,
         user=self.user,
-        created_at=timezone.now(),
+        created_at=datetime.now(),
         observation_type=ObservationType.EXOPLANET,
         project_status=project_status,
         project_completion=project_completion,
@@ -144,7 +147,7 @@ def _create_variable_observation(
         observatory=observatory,
         target=target,
         user=self.user,
-        created_at=timezone.now(),
+        created_at=datetime.now(),
         observation_type=ObservationType.VARIABLE,
         project_status=project_status,
         project_completion=project_completion,
@@ -167,8 +170,8 @@ def _create_monitoring_observation(
     project_completion: float = 0.0,
     priority: int = 1,
     exposure_time: float = 10.0,
-    start_scheduling: datetime = timezone.now(),
-    end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
+    start_scheduling: datetime = datetime.now(),
+    end_scheduling: datetime = (datetime.now() + timedelta(days=1)),
     frames_per_filter: int = 10,
     cadence: int = 1,
     required_amount: int = 100,
@@ -184,7 +187,7 @@ def _create_monitoring_observation(
         observatory=observatory,
         target=target,
         user=self.user,
-        created_at=timezone.now(),
+        created_at=datetime.now(),
         observation_type=ObservationType.MONITORING,
         project_status=project_status,
         project_completion=project_completion,
@@ -210,15 +213,15 @@ def _create_expert_observation(
     project_completion: float = 0.0,
     priority: int = 1,
     exposure_time: float = 10.0,
-    start_scheduling: datetime = timezone.now(),
-    end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
+    start_scheduling: datetime = datetime.now(),
+    end_scheduling: datetime = (datetime.now() + timedelta(days=1)),
     frames_per_filter: int = 10,
     dither_every: float = 10.0,
     binning: str = "auto",
     gain: int = 10,
     offset: float = 10,
-    start_observation: datetime = timezone.now(),
-    end_observation: datetime = (timezone.now() + timedelta(days=1)),
+    start_observation: datetime = datetime.now(),
+    end_observation: datetime = (datetime.now() + timedelta(days=1)),
     cadence: int = 1,
     moon_separation_angle: float = 10.0,
     moon_separation_width: int = 1,
@@ -236,7 +239,7 @@ def _create_expert_observation(
         observatory=observatory,
         target=target,
         user=self.user,
-        created_at=timezone.now(),
+        created_at=datetime.now(),
         observation_type=ObservationType.EXPERT,
         project_status=project_status,
         project_completion=project_completion,
@@ -486,10 +489,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm._delete_all()
         nm.mkdir("TURMX/Projects")
         nm.mkdir("TURMX2/Projects")
-        dayM2 = timezone.now() - timedelta(days=2)
-        dayM1 = timezone.now() - timedelta(days=1)
-        dayP1 = timezone.now() + timedelta(days=1)
-        dayP2 = timezone.now() + timedelta(days=2)
+        dayM2 = datetime.now() - timedelta(days=2)
+        dayM1 = datetime.now() - timedelta(days=1)
+        dayP1 = datetime.now() + timedelta(days=1)
+        dayP2 = datetime.now() + timedelta(days=2)
 
         _create_expert_observation(self, target_name="E1")
         _create_expert_observation(
@@ -549,7 +552,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm._delete_all()
 
         def day(d: int):
-            return timezone.now() + timedelta(days=d)
+            return datetime.now() + timedelta(days=d)
 
         _create_expert_observation(
             self,
