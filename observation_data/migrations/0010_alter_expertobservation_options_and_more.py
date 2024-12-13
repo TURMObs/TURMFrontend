@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0009_merge_20241213_0939'),
+        ("observation_data", "0009_merge_20241213_0939"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='expertobservation',
+            name="expertobservation",
             options={},
         ),
         migrations.AlterModelOptions(
-            name='monitoringobservation',
+            name="monitoringobservation",
             options={},
         ),
     ]

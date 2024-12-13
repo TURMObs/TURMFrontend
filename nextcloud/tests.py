@@ -1,6 +1,5 @@
 import filecmp
 import json
-import unittest
 import django
 import django.test
 from django.contrib.auth.models import User
