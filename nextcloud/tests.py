@@ -16,7 +16,6 @@ from nextcloud.nextcloud_sync import (
 )
 from observation_data.models import (
     AbstractObservation,
-    ObservationStatus,
     ObservationType,
     ExoplanetObservation,
     MonitoringObservation,
@@ -26,6 +25,7 @@ from observation_data.models import (
     Filter,
     Observatory,
     ExpertObservation,
+    ObservationStatus,
 )
 from observation_data.serializers import get_serializer
 
@@ -88,9 +88,13 @@ def _create_exoplanet_observation(
     project_completion: float = 0.0,
     priority: int = 1,
     exposure_time: float = 10.0,
-    start_observation: datetime = (timezone.now() - timedelta(seconds=1)),
+    start_observation: datetime = (
+        timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        - timedelta(seconds=1)
+    ),
     end_observation: datetime = (
-        timezone.now() + timedelta(days=1) - timedelta(seconds=1)
+        timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        + timedelta(days=1)
     ),
 ):
     """
@@ -164,10 +168,8 @@ def _create_monitoring_observation(
     project_completion: float = 0.0,
     priority: int = 1,
     exposure_time: float = 10.0,
-    start_scheduling: datetime = (timezone.now() - timedelta(seconds=1)),
-    end_scheduling: datetime = (
-        timezone.now() + timedelta(days=1) - timedelta(seconds=1)
-    ),
+    start_scheduling: datetime = timezone.now(),
+    end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
     frames_per_filter: int = 10,
     cadence: int = 1,
     required_amount: int = 100,
@@ -209,19 +211,15 @@ def _create_expert_observation(
     project_completion: float = 0.0,
     priority: int = 1,
     exposure_time: float = 10.0,
-    start_scheduling: datetime = (timezone.now() - timedelta(seconds=1)),
-    end_scheduling: datetime = (
-        timezone.now() + timedelta(days=1) - timedelta(seconds=1)
-    ),
+    start_scheduling: datetime = timezone.now(),
+    end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
     frames_per_filter: int = 10,
     dither_every: float = 10.0,
     binning: str = "auto",
     gain: int = 10,
     offset: float = 10,
-    start_observation: datetime = (timezone.now() - timedelta(seconds=1)),
-    end_observation: datetime = (
-        timezone.now() + timedelta(days=1) - timedelta(seconds=1)
-    ),
+    start_observation: datetime = timezone.now(),
+    end_observation: datetime = (timezone.now() + timedelta(days=1)),
     cadence: int = 1,
     moon_separation_angle: float = 10.0,
     moon_separation_width: int = 1,
@@ -262,6 +260,26 @@ def _create_expert_observation(
     )
 
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+
+
+def _obs_exists_in_nextcloud(obs: AbstractObservation) -> bool:
+    """
+    Checks if observation exists in nextcloud. Work by trying to download the observation.
+
+    :param obs: AbstractObservation to check whether it exists in nextcloud
+    :return True if Observation exists in nextcloud; else false
+    """
+    try:
+        nm.download_dict(get_nextcloud_path(obs))
+    except NextcloudException:
+        return False
+    return True
+
+
+def _get_obs_by_target_name(name: str) -> AbstractObservation:
+    for obs in AbstractObservation.objects.all():
+        if obs.target.name == name:
+            return obs
 
 
 def _create_user_and_login(test_instance):
@@ -350,81 +368,6 @@ class NextcloudManagerTestCase(django.test.TestCase):
 
 
 class NextcloudSyncTestCase(django.test.TestCase):
-    def setUp(self):
-        nm.initialize_connection()
-        call_command("populate_observatories")
-
-        self.LOCAL_PATH = "test_data"
-
-        self.maxDiff = None
-        self.client = django.test.Client()
-        self.user = None
-        _create_user_and_login(self)
-
-        nm._delete_all()
-
-    def test_upload_from_db_simple(self):
-        nm._delete_all()
-        nm.mkdir("TURMX/Projects")
-        nm.mkdir("TURMX2/Projects")
-        turmx2 = Observatory.objects.all()[1]
-        nm.initialize_connection()
-
-        # insert test data
-        _create_imaging_observations(self, target_name="I1")
-        _create_imaging_observations(self, target_name="I2", observatory=turmx2)
-        _create_exoplanet_observation(self, target_name="E1")
-        _create_exoplanet_observation(self, target_name="E2", observatory=turmx2)
-        _create_variable_observation(self, target_name="V1")
-        _create_variable_observation(self, target_name="V2", observatory=turmx2)
-        _create_monitoring_observation(self, target_name="M1")
-        _create_monitoring_observation(self, target_name="M2", observatory=turmx2)
-        _create_expert_observation(self, target_name="X1")
-        _create_expert_observation(self, target_name="X2", observatory=turmx2)
-
-        _create_expert_observation(
-            self,
-            target_name="X3",
-            observatory=turmx2,
-            project_status=ObservationStatus.COMPLETED,
-        )
-        _create_variable_observation(
-            self,
-            target_name="V3",
-            observatory=turmx2,
-            project_status=ObservationStatus.ERROR,
-        )
-
-        # upload observation
-        upload_observations()
-
-        # completed files should not exist in the nextcloud
-        observations_not_pending = AbstractObservation.objects.filter(
-            project_status=ObservationStatus.COMPLETED
-        )
-        for obs in observations_not_pending:
-            with self.assertRaises(Exception):
-                nm.delete(get_nextcloud_path(obs))
-
-        # all files with status upload pending should exist in the nc
-        observations_pending = AbstractObservation.objects.filter(
-            project_status=ObservationStatus.PENDING
-        )
-        for obs in observations_pending:
-            try:
-                nm.delete(
-                    get_nextcloud_path(obs)
-                )  # raises an exception when file does not exist
-            except Exception:
-                self.fail("Unexpected exception when deleting {}".format(obs))
-
-        nm.delete("TURMX")
-        nm.delete("TURMX2")
-
-    def test_upload_from_db_complex(self):
-        # todo write tests that test the behavior of scheduled observations
-        pass
-
     def test_calc_progress(self):
         # insert a specific Observation into the db and retrieve it as dict
         _create_imaging_observations(
@@ -451,6 +394,268 @@ class NextcloudSyncTestCase(django.test.TestCase):
     def test_get_nextcloud_path(self):
         _create_imaging_observations(self, target_name="I1", required_amount=100)
         observation = AbstractObservation.objects.all()[0]
-        assert_equal(
-            get_nextcloud_path(observation), "TURMX/Projects/00001_Imaging_L_I1.json"
+        self.assertRegex(
+            get_nextcloud_path(observation), r"TURMX/Projects/\d+_Imaging_L_I1\.json"
         )
+
+    def setUp(self):
+        nm.initialize_connection()
+        call_command("populate_observatories")
+
+        self.LOCAL_PATH = "test_data"
+
+        self.maxDiff = None
+        self.client = django.test.Client()
+        self.user = None
+        _create_user_and_login(self)
+
+        nm._delete_all()
+
+    def test_upload_from_db_simple(self):
+        nm.initialize_connection()
+        nm._delete_all()
+        nm.mkdir("TURMX/Projects")
+        nm.mkdir("TURMX2/Projects")
+        turmx2 = Observatory.objects.all()[1]
+
+        # insert test data
+        _create_imaging_observations(self, target_name="I1")
+        _create_imaging_observations(self, target_name="I2", observatory=turmx2)
+        _create_exoplanet_observation(self, target_name="E1")
+        _create_exoplanet_observation(self, target_name="E2", observatory=turmx2)
+        _create_variable_observation(self, target_name="V1")
+        _create_variable_observation(self, target_name="V2", observatory=turmx2)
+        _create_monitoring_observation(self, target_name="M1")
+        _create_monitoring_observation(self, target_name="M2", observatory=turmx2)
+        _create_expert_observation(self, target_name="X1")
+        _create_expert_observation(self, target_name="X2", observatory=turmx2)
+        # these should not be uploaded
+        _create_expert_observation(
+            self, target_name="X3", project_status=ObservationStatus.COMPLETED
+        )
+        _create_variable_observation(
+            self,
+            target_name="V3",
+            observatory=turmx2,
+            project_status=ObservationStatus.ERROR,
+        )
+
+        # upload observation
+        upload_observations()
+
+        # completed files should not exist in the nextcloud
+        observations_not_pending = AbstractObservation.objects.filter(
+            project_status=ObservationStatus.COMPLETED
+        )
+        for obs in observations_not_pending:
+            with self.assertRaises(Exception):
+                nm.delete(get_nextcloud_path(obs))
+
+        # all files that have been uploaded should have status uploaded
+        observations_uploaded = AbstractObservation.objects.filter(
+            project_status=ObservationStatus.UPLOADED
+        )
+
+        for obs in observations_uploaded:
+            try:
+                nm.delete(
+                    get_nextcloud_path(obs)
+                )  # raises an exception when file does not exist
+            except Exception:
+                self.fail("Unexpected exception when deleting {}".format(obs))
+
+        # all ten observations that had status PENDING are now uploaded
+        assert_equal(
+            10,
+            AbstractObservation.objects.filter(
+                project_status=ObservationStatus.UPLOADED
+            ).count(),
+        )
+
+        # no file should have status PENDING, since with this status were uploaded and changed accordingly
+        assert_equal(
+            0,
+            AbstractObservation.objects.filter(
+                project_status=ObservationStatus.PENDING
+            ).count(),
+        )
+
+        # nm._delete_all()
+
+    def test_upload_from_db_scheduling(self):
+        nm.initialize_connection()
+        nm._delete_all()
+        nm.mkdir("TURMX/Projects")
+        nm.mkdir("TURMX2/Projects")
+        dayM2 = timezone.now() - timedelta(days=2)
+        dayM1 = timezone.now() - timedelta(days=1)
+        dayP1 = timezone.now() + timedelta(days=1)
+        dayP2 = timezone.now() + timedelta(days=2)
+
+        _create_expert_observation(self, target_name="E1")
+        _create_expert_observation(
+            self, target_name="E2", start_scheduling=dayP1, end_scheduling=dayP2
+        )
+        _create_expert_observation(
+            self, target_name="E3", start_scheduling=dayM1, end_scheduling=dayM2
+        )
+        _create_monitoring_observation(self, target_name="M1")
+        _create_monitoring_observation(
+            self, target_name="M2", start_scheduling=dayP1, end_scheduling=dayP2
+        )
+        _create_monitoring_observation(
+            self, target_name="M2", start_scheduling=dayM1, end_scheduling=dayM2
+        )
+
+        upload_observations()
+
+        # observations E1 and E2 have been uploaded
+        observations_day0 = AbstractObservation.objects.filter(
+            project_status=ObservationStatus.UPLOADED
+        )
+        assert_equal(2, observations_day0.count())
+        for obs in observations_day0:
+            try:
+                nm.delete(get_nextcloud_path(obs))  # throws error when no existent
+            except Exception:
+                self.fail("Unexpected exception when deleting {}".format(obs))
+
+        # upload observations for tomorrow. Currently, nextcloud is empty
+        upload_observations(dayP1)
+
+        # test if the observations for tomorrow are uploaded correctly
+        observations_until_day1 = AbstractObservation.objects.filter(
+            project_status=ObservationStatus.UPLOADED
+        )
+        assert_equal(4, observations_until_day1.count())
+        for obs in AbstractObservation.objects.filter(
+            project_status=ObservationStatus.UPLOADED
+        ):
+            # since all observations have cadence = 1. Projects, E1,E2,M1,M2 should exist in NC
+            try:
+                nm.delete(get_nextcloud_path(obs))  # throws error when no existent
+            except NextcloudException:
+                self.fail("Unexpected exception when deleting {}".format(obs))
+
+        # the observations that were already outdated until today should not have been uploaded
+        assert_equal(
+            2,
+            AbstractObservation.objects.filter(
+                project_status=ObservationStatus.PENDING
+            ).count(),
+        )
+
+    def test_upload_from_db_repetitive_observations(self):
+        nm.initialize_connection()
+        nm._delete_all()
+
+        def day(d: int):
+            return timezone.now() + timedelta(days=d)
+
+        _create_expert_observation(
+            self,
+            target_name="E0",
+            start_scheduling=day(0),
+            end_scheduling=day(7),
+            cadence=1,
+        )
+        _create_expert_observation(
+            self,
+            target_name="E1",
+            start_scheduling=day(0),
+            end_scheduling=day(7),
+            cadence=2,
+        )
+        _create_monitoring_observation(
+            self,
+            target_name="M0",
+            start_scheduling=day(0),
+            end_scheduling=day(7),
+            cadence=3,
+        )
+        _create_monitoring_observation(
+            self,
+            target_name="M1",
+            start_scheduling=day(1),
+            end_scheduling=day(3),
+            cadence=1,
+            project_status=ObservationStatus.UPLOADED,
+        )
+        _create_monitoring_observation(
+            self,
+            target_name="M2",
+            start_scheduling=day(2),
+            end_scheduling=day(7),
+            cadence=3,
+            project_status=ObservationStatus.UPLOADED,
+        )
+        assert_equal(5, AbstractObservation.objects.all().count())
+
+        test_obs = [
+            _get_obs_by_target_name("E0"),
+            _get_obs_by_target_name("E1"),
+            _get_obs_by_target_name("M0"),
+            _get_obs_by_target_name("M1"),
+            _get_obs_by_target_name("M2"),
+        ]
+
+        # expected uploads of observations from day 0 to day 8 (both inclusive)
+        expected_upload_e0 = [True, True, True, True, True, True, True, True, False]  # noqa
+        expected_upload_e1 = [True, False, True, False, True, False, True, False, False]  # noqa
+        expected_upload_m0 = [
+            True,
+            False,
+            False,
+            True,
+            False,
+            False,
+            True,
+            False,
+            False,
+        ]  # noqa
+        expected_upload_m1 = [
+            False,
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+            False,
+        ]  # noqa
+        expected_upload_m2 = [
+            False,
+            False,
+            True,
+            False,
+            False,
+            True,
+            False,
+            False,
+            False,
+        ]  # noqa
+
+        expected_uploads = [
+            expected_upload_e0,
+            expected_upload_e1,
+            expected_upload_m0,
+            expected_upload_m1,
+            expected_upload_m2,
+        ]
+
+        # simulate day 0-8. Check if upload_status matches the one in the matrix
+        for i in range(9):
+            nm.mkdir("TURMX/Projects")
+            nm.mkdir("TURMX2/Projects")
+            upload_observations(day(i))
+            for j, obs in enumerate(test_obs):
+                should_be_uploaded = expected_uploads[j][i]
+                is_uploaded = _obs_exists_in_nextcloud(obs)
+                obs.target_name = obs.target.name
+                self.assertEqual(
+                    is_uploaded,
+                    should_be_uploaded,
+                    f"Day: {i} – Expected upload: {should_be_uploaded}, actual: {is_uploaded} for {obs.target.name}",
+                )
+            nm._delete_all()
