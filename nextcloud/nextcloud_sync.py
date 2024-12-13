@@ -9,8 +9,6 @@ from observation_data.models import (
     ObservationStatus,
 )
 from observation_data.serializers import get_serializer
-import os
-import django
 import logging
 import nextcloud.nextcloud_manager as nm
 
@@ -18,11 +16,6 @@ import nextcloud.nextcloud_manager as nm
 This module retrieves the observation requests for a night and uses the nextcloud_manager to upload them to the nextcloud.
 It is supposed to run in a cron-Job
 """
-
-# todo fix this when deployed so the script can run on its own
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "TURMFrontend.settings")
-django.setup()
-
 
 logger = logging.getLogger(__name__)
 
@@ -138,12 +131,12 @@ def upload_observations(today=timezone.now()):
             continue
         pending_observations = chain(pending_observations, [obs])
 
-    # print(pending_observations)
     test_list = list(pending_observations)
-    # print("Length of pending_observations: ", len(test_list))
 
     # upload all pending_observation to Nextcloud.
     nm.initialize_connection()
+
+    logger.info(f"Uploading {len(test_list)} observations ...")
     for obs in test_list:
         try:
             serializer_class = get_serializer(obs.observation_type)
@@ -154,7 +147,7 @@ def upload_observations(today=timezone.now()):
 
             nm.upload_dict(nc_path, obs_dict)
             obs.project_status = ObservationStatus.UPLOADED
-            # print(f"Uploaded observation to {nc_path}")
+            logger.info(f"Uploaded observation {obs.id} to {nc_path}")
 
         except Exception:
             logger.error(f"Failed to upload observation: {obs.id}")
