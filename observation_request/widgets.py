@@ -49,7 +49,7 @@ class TURMCheckboxSelectWidget(Widget):
         return f'<span class="tooltiptext" data-tip_for="{id}" style="display: none">{self.tooltip} text</span>'
 
 class TURMNumericInputWidget(TextInput):
-    def __init__(self, minimum=None, maximum=None, step=None, limit=False, pattern=None):
+    def __init__(self, minimum=None, maximum=None, step=None, numeric_type=None):
         super().__init__()
         self.attrs.update({"inputmode": "numeric"})
         if minimum:
@@ -58,8 +58,9 @@ class TURMNumericInputWidget(TextInput):
             self.attrs.update({"max": maximum})
         if step:
             self.attrs.update({"step": step})
-        if limit:
-            self.attrs.update({"data-limitinput": "true"})
-        if pattern:
-            self.attrs.update({"pattern": pattern})
+        match numeric_type:
+            case "integer":
+                self.attrs.update({"data-suppressed": "\D"})
+            case "decimal":
+                self.attrs.update({"data-suppressed": "[^\d*\.+]"})
 

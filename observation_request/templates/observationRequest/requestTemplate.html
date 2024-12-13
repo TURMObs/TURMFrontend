@@ -290,21 +290,17 @@
 
             function apply_regex_filters() {
                 let inputs = Array.from(document.getElementsByTagName('INPUT'));
-                inputs = inputs.filter(el => !!el.getAttribute("data-limitinput"))
+                inputs = inputs.filter(el => !!el.getAttribute("data-suppressed"))
                 for (let input of inputs) {
                     input.addEventListener('beforeinput', _ => {
                         let before_value = input.value;
                         input.addEventListener(
                             "input",
                             _ => {
-                                console.log(input.validity)
-                                if (!!input.getAttribute("pattern") &&
-                                    !(RegExp(input.getAttribute("pattern")).test(input.value))) {
+                                if (invalid_format(input))
+                                {
                                     input.value = before_value
-                                    console.log("regwegxt")
-                                    return;
                                 }
-                                if (input.validity.badInput) input.value = before_value;
                             },
                             { once: true }
                         );
@@ -312,8 +308,37 @@
                 }
             }
 
-            function format(el) {
-                console.log(el);
+            function invalid_format(input) {
+                const suppressed = input.getAttribute("data-suppressed");
+                console.log("input")
+                if (suppressed != null) {
+                    console.log(input.value, input.value.replace(RegExp(suppressed), ''));
+                    input.value = input.value.replace(RegExp(suppressed), '');
+                } // limit input to allowed characters
+
+                let txt_value = input.value.replace(/\s+/g, '') // remove whitespaces for processing
+
+                if (txt_value === '') return false; // allow empty inputs
+
+                const fval = parseFloat(input.value);
+                const max = input.getAttribute("max");
+                const min = input.getAttribute("min");
+
+                if (isNaN(fval) && !(txt_value === '.')) {
+                    console.log("val")
+                    return true;
+                }
+
+                console.log(fval)
+                /*if (!max || val > max) {
+                    console.log("max")
+                    return true;
+                }
+                if (!min || val < min) {
+                    console.log("min")
+                    return true;
+                }*/
+                return false
             }
 
             </script>
