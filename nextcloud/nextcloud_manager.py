@@ -161,6 +161,4 @@ def mkdir(nc_path: str) -> None:
         try:
             nc.files.mkdir(path)
         except NextcloudException:
-            # print("Folder '{}' already exists".format(path))
-            # todo maybe log
             pass

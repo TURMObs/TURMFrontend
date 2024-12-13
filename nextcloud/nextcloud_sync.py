@@ -11,16 +11,20 @@ from observation_data.models import (
 from observation_data.serializers import get_serializer
 import os
 import django
+import logging
 import nextcloud.nextcloud_manager as nm
 
 """
 This module retrieves the observation requests for a night and uses the nextcloud_manager to upload them to the nextcloud.
-It is supposed to run in a cron-Job 
+It is supposed to run in a cron-Job
 """
 
 # todo fix this when deployed so the script can run on its own
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "TURMFrontend.settings")
 django.setup()
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_nextcloud_path(
@@ -68,12 +72,12 @@ def calc_progress(observation: dict) -> float:
 
 """
 def update_database():
-    
+
     Checks which observations have been done and updates the database accordingly.
     First it gets all observation that are not finished yet and gets the corresponding dicts from both the nc and the db.
     Then it calculates the progress from the nc JSON. If it has changed (aka pictures have been taken) it updates the database accordingly.
     If an observation is entirely finished, its status is set accordingly and the JSON is deleted from the nc.
-    
+
 
     # gets all observations not finished yet
     observations = AbstractObservation.objects.filter(project_completion__lt=100)
@@ -153,6 +157,5 @@ def upload_observations(today=timezone.now()):
             # print(f"Uploaded observation to {nc_path}")
 
         except Exception:
-            # todo log as critical error
-            print("Failed to upload observation: ", obs.id)
+            logger.error(f"Failed to upload observation: {obs.id}")
         obs.save()
