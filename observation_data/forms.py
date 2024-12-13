@@ -10,18 +10,24 @@ from .models import (
     CelestialTarget,
     ExpertObservation,
     ObservationType,
-    Filter, Observatory
+    Filter,
+    Observatory,
 )
+
 
 def observatory_dependency_attribute_factory(filter):
     out = ""
-    for observatory in Observatory.objects.filter(filter_set__filter_type__icontains=filter).iterator():
+    for observatory in Observatory.objects.filter(
+        filter_set__filter_type__icontains=filter
+    ).iterator():
         out += f'data-{observatory}="True"'
     return out
+
 
 class QueryEnum(Enum):
     observation_type_dependent = "observation_type_dependent"
     observatory_dependent = "observatory_dependent"
+
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -57,9 +63,9 @@ class ExposureForm(forms.ModelForm):
             "frames_per_filter",
             "dither_every",
             "binning",
-            #"sub_frame",
-            #"gain",
-            #"offset"
+            # "sub_frame",
+            # "gain",
+            # "offset"
             "start_observation",
             "end_observation",
             "start_scheduling",
@@ -73,28 +79,40 @@ class ExposureForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ExposureForm, self).__init__(*args, **kwargs)
 
-        self.fields["exposure_time"].widget = TURMNumericInputWidget(minimum=0, maximum=100, step=0.01,
-                                                                     numeric_type="integer") # todo 30, 60, 120, 300 sec, im expert frei
+        self.fields["exposure_time"].widget = TURMNumericInputWidget(
+            minimum=0, maximum=100, step=0.01, numeric_type="integer"
+        )  # todo 30, 60, 120, 300 sec, im expert frei
 
-        self.fields["frames_per_filter"].widget = TURMNumericInputWidget(minimum=1, maximum=1_000, step=1,
-                                                                         numeric_type="integer")
+        self.fields["frames_per_filter"].widget = TURMNumericInputWidget(
+            minimum=1, maximum=1_000, step=1, numeric_type="integer"
+        )
 
         for field in ["start_observation", "end_observation"]:
-            self.fields[field].widget = DateTimeInput(attrs={"min": datetime.now().strftime("%Y-%d-%mT%H:%M"), "type": "datetime-local"})
+            self.fields[field].widget = DateTimeInput(
+                attrs={
+                    "min": datetime.now().strftime("%Y-%d-%mT%H:%M"),
+                    "type": "datetime-local",
+                }
+            )
 
-        self.fields["minimum_altitude"].widget = TURMNumericInputWidget(minimum=0, maximum=60, step=1,
-                                                                        numeric_type="integer")
+        self.fields["minimum_altitude"].widget = TURMNumericInputWidget(
+            minimum=0, maximum=60, step=1, numeric_type="integer"
+        )
 
-        self.fields["cadence"].widget = TURMNumericInputWidget(minimum=1, maximum=14, step=1, numeric_type="integer")
+        self.fields["cadence"].widget = TURMNumericInputWidget(
+            minimum=1, maximum=14, step=1, numeric_type="integer"
+        )
 
         for field in ["start_scheduling", "end_scheduling"]:
-            self.fields[field].widget = DateInput(attrs={"min": date.today(), "type": "date"})
-
+            self.fields[field].widget = DateInput(
+                attrs={"min": date.today(), "type": "date"}
+            )
 
         # integer inputs zero or greater
         for field in ["frames_per_filter", "minimum_altitude"]:
-            self.fields[field].widget = TURMNumericInputWidget(minimum=0, maximum=100, step=1, numeric_type="integer")
-
+            self.fields[field].widget = TURMNumericInputWidget(
+                minimum=0, maximum=100, step=1, numeric_type="integer"
+            )
 
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
@@ -138,14 +156,18 @@ class ExposureForm(forms.ModelForm):
         )
 
         # filter set
-        self.fields['filter_set'] = forms.Field(widget=TURMCheckboxSelectWidget(
-            queryset=Filter.objects.all(),
-            extra_attribute_factory=observatory_dependency_attribute_factory,
-            tooltip="selected Observatory does not support this filter"
-        ))
-        self.fields['filter_set'].widget.attrs.update({"class": QueryEnum.observatory_dependent.name})
+        self.fields["filter_set"] = forms.Field(
+            widget=TURMCheckboxSelectWidget(
+                queryset=Filter.objects.all(),
+                extra_attribute_factory=observatory_dependency_attribute_factory,
+                tooltip="selected Observatory does not support this filter",
+            )
+        )
+        self.fields["filter_set"].widget.attrs.update(
+            {"class": QueryEnum.observatory_dependent.name}
+        )
 
-    def label_widgets(self, fields, attr, html_class:str):
+    def label_widgets(self, fields, attr, html_class: str):
         for field in fields:
             widget = self.fields[field].widget
 

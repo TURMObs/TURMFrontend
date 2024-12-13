@@ -342,7 +342,6 @@
             }
 
             </script>
-
             <form action="{{ create_form_url }}" method="post" class="input_form">
                 {% for name, form, radio in forms %}
                     <article class="form_body">
@@ -351,7 +350,8 @@
                             <div class="switch_button_container">
                                 {% for option, require_super_user in radio.options %}
                                     {% if not require_super_user or True %}
-                                        <label class="turm_radio_label {{ radio.input_selector }}" for="{{ option }}">{{ option }}</label>
+                                        <label class="turm_radio_label {{ radio.input_selector }}"
+                                               for="{{ option }}">{{ option }}</label>
                                         <input class="observation_type_radio"
                                                type="radio"
                                                id="{{ option }}"
@@ -369,6 +369,6 @@
                 {% csrf_token %}
                 <input type="submit" class="base_button">
             </form>
-            </div>
         </div>
+    </div>
 {% endblock %}
