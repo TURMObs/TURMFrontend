@@ -9,7 +9,7 @@ from observation_data.models import (
 
 
 class Command(BaseCommand):
-    help("Populate the observatories, exposure settings and filters in the database.")
+    help = "Populate the observatories, exposure settings and filters in the database."
 
     def handle(self, *args, **options):
         """
@@ -121,9 +121,9 @@ class Command(BaseCommand):
             )
 
         for filter_type in [
-            Filter.FilterType.SR,
-            Filter.FilterType.SG,
-            Filter.FilterType.SI,
+            Filter.FilterType.SLOAN_R,
+            Filter.FilterType.SLOAN_G,
+            Filter.FilterType.SLOAN_I,
         ]:
             Filter.objects.get_or_create(
                 filter_type=filter_type,
@@ -146,8 +146,8 @@ class Command(BaseCommand):
             turmx.filter_set.add(Filter.objects.get(filter_type=filter_type))
             turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
         for filter_type in [
-            Filter.FilterType.SR,
-            Filter.FilterType.SG,
-            Filter.FilterType.SI,
+            Filter.FilterType.SLOAN_R,
+            Filter.FilterType.SLOAN_G,
+            Filter.FilterType.SLOAN_I,
         ]:
             turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))

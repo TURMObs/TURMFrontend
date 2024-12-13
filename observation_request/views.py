@@ -2,7 +2,6 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
-from urllib.parse import parse_qs, parse_qsl, urlparse
 
 from observation_data.models import ObservationType, Observatory
 from observation_data.forms import ProjectForm, CelestialTargetForm, ExposureForm, QueryEnum
@@ -49,10 +48,4 @@ def simple_request(request):
 @require_POST
 @api_view(["POST"])
 def test_request(request):
-    parsed_data = parse_qs(request.body)
-    decoded_data = {
-        key.decode("utf-8"): [vi.decode("utf-8") for vi in value] if len(value) > 1 else value[0].decode("utf-8")
-        for key, value in parsed_data.items()
-    }
-
-    return HttpResponse(f"req:<br>{request.body}<br>decoded:<br>{decoded_data}")
+    return HttpResponse(request.data.dict())
