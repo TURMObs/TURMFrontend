@@ -1,9 +1,11 @@
+from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
+from TURMFrontend import settings
 from observation_data.models import ObservationType
 from observation_data.serializers import get_serializer
 
@@ -56,7 +58,8 @@ def create_observation(request):
     serializer = serializer_class(data=request_data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return redirect(settings.LOGIN_REDIRECT_URL)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -81,6 +84,6 @@ def _nest_observation_request(data, mappings):
 
 def dict_list_to_single_entry(input):
     for key, value in input.items():
-        if len(value) != "filter_set":
+        if key != "filter_set":
             input[key] = value[0]
     return input
