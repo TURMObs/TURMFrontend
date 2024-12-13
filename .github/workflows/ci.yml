@@ -10,10 +10,6 @@ env:
   POSTGRES_DB: TURMFrontend
   POSTGRES_USER: root
   POSTGRES_PASSWORD: root
-  NC_PORT: 8080
-  NC_URL: http://localhost:8080
-  NC_USER: admin
-  NC_PASSWORD: admin
 jobs:
   build:
     runs-on: ubuntu-latest
