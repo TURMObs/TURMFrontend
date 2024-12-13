@@ -10,6 +10,8 @@ env:
   POSTGRES_DB: TURMFrontend
   POSTGRES_USER: root
   POSTGRES_PASSWORD: root
+  ADMIN_EMAIL: admin@gmail.com
+  ADMIN_PASSWORD: admin
 jobs:
   build:
     runs-on: ubuntu-latest
