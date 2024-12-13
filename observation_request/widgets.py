@@ -2,7 +2,6 @@ from django.forms import Widget, TextInput
 from django.utils.safestring import mark_safe
 
 
-
 def attr_to_html(attr):
     out = ""
     for key, value in attr.items():
