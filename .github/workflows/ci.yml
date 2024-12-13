@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened, ready_for_review]
 env:
   POSTGRES_DB: TURMFrontend
   POSTGRES_USER: root
@@ -14,6 +15,7 @@ env:
   ADMIN_PASSWORD: admin
 jobs:
   build:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     services:
       postgres:
