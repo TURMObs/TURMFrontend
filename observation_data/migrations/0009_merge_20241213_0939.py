@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0006_alter_abstractobservation_options_and_more'),
-        ('observation_data', '0008_alter_expertobservation_dither_every'),
+        ("observation_data", "0006_alter_abstractobservation_options_and_more"),
+        ("observation_data", "0008_alter_expertobservation_dither_every"),
     ]
 
-    operations = [
-    ]
+    operations = []
