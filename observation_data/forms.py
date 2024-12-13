@@ -2,7 +2,7 @@ from datetime import date, datetime
 from enum import Enum
 
 from django import forms
-from django.forms import DateInput
+from django.forms import DateInput, TextInput
 from django.forms.widgets import DateTimeInput
 
 from observation_request.widgets import TURMCheckboxSelectWidget, TURMNumericInputWidget
@@ -39,17 +39,32 @@ class ProjectForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
 
+class WipForm(forms.Form):
+    required_amount = forms.CharField()
+    def __init__(self, *args, **kwargs):
+        super(WipForm, self).__init__(*args, **kwargs)
+        #super(, self).__init__(*args, **kwargs)
+        self.fields["required_amount"].widget = TURMNumericInputWidget(
+            minimum=0, maximum=100, step=1, numeric_type="integer"
+        )
+        self.fields["required_amount"].widget.attrs.update({"class": "input_text observation_type_dependent",
+                                                            "data-imaging": "true",
+                                                            "data-variable": "true",
+                                                            "data-monitor": "true",
+                                                            "data-expert": "true"})
+        widget = self.fields["required_amount"].widget
 
 class CelestialTargetForm(forms.ModelForm):
     class Meta:
         model = CelestialTarget
-        fields = ["name", "ra", "dec"]
+        fields = ["name", "catalog_id","ra", "dec"]
 
     def __init__(self, *args, **kwargs):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
-        self.fields["name"].widget.attrs.update({"placeholder": "M42"})
+        self.fields["name"].widget.attrs.update({"placeholder": "OrionNebula"})
+        self.fields["catalog_id"].widget.attrs.update({"placeholder": "M42"})
         self.fields["ra"].widget.attrs.update({"placeholder": "hh mm ss"})
         self.fields["dec"].widget.attrs.update({"placeholder": "dd mm ss"})
 

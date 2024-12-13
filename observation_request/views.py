@@ -7,7 +7,7 @@ from observation_data.models import ObservationType, Observatory
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureForm,
-    QueryEnum,
+    QueryEnum, WipForm,
 )
 
 
@@ -15,8 +15,9 @@ def simple_request(request):
     context = {}
     # Observation Types
     # list of Name and if they should only be displayed to a super_user
+    print(Observatory.objects.first().pk)
     observatories_radio = {
-        "options": ((obs, False) for obs in Observatory.objects.all().reverse()),
+        "options": ((obs.pk, False) for obs in Observatory.objects.all()),
         "hide": "false",
         "name": "observatory",  # todo: change to model meta field name
         "input_selector": "observatory_radio_label",
@@ -41,12 +42,13 @@ def simple_request(request):
         ("Project", "", observatories_radio),
         ("Target", CelestialTargetForm(), None),
         ("Exposure", ExposureForm(), observation_types_radio),
+        ("", WipForm(), None),
     ]
     context["forms"] = c_forms
 
     # endpoint url
-    # context['create_form_url'] = '../observation_data/create/'
-    context["create_form_url"] = "test/"
+    context['create_form_url'] = '../observation-data/create/'
+    #context["create_form_url"] = "test/"
 
     return render(request, "observationRequest/requestTemplate.html", context)
 

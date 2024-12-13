@@ -24,7 +24,8 @@ def create_observation(request):
             status=HTTP_401_UNAUTHORIZED,
         )
 
-    request_data = request.data.copy()
+    request_data = dict_list_to_single_entry(dict(request.data.copy()))
+
     request_data["user"] = request.user.id
 
     observation_type = request_data.get("observation_type")
@@ -77,3 +78,9 @@ def _nest_observation_request(data, mappings):
             d[keys[-1]] = value
     nested_data.update(data)
     return nested_data
+
+def dict_list_to_single_entry(input):
+    for key, value in input.items():
+        if len(value) != "filter_set":
+            input[key] = value[0]
+    return input

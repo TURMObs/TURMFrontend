@@ -349,7 +349,7 @@
                         {% if radio is not None %}
                             <div class="switch_button_container">
                                 {% for option, require_super_user in radio.options %}
-                                    {% if not require_super_user or True %}
+                                    {% if not require_super_user or user.is_superuser %}
                                         <label class="turm_radio_label {{ radio.input_selector }}"
                                                for="{{ option }}">{{ option }}</label>
                                         <input class="observation_type_radio"
