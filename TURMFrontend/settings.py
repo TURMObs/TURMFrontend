@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "dashboard",
     "observation_data",
     "observation_request",
+    "dsgvo",
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ MIDDLEWARE = [
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
+DSGVO_URL = "dsgvo"
 
 ROOT_URLCONF = "TURMFrontend.urls"
 
