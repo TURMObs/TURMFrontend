@@ -7,11 +7,11 @@ from observation_data.models import ObservationType, Observatory
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureForm,
-    QueryEnum, WipForm,
+    QueryEnum, WipForm, ExposureSettingsForm,
 )
 
 
-def simple_request(request):
+def _simple_request(request):
     context = {}
     # Observation Types
     # list of Name and if they should only be displayed to a super_user
@@ -51,8 +51,20 @@ def simple_request(request):
 
     return render(request, "observationRequest/requestTemplate.html", context)
 
+def simple_request(request):
+    context = {}
+    # Forms
+    forms = [
+        ("Project", None),
+        ("Target", CelestialTargetForm()),
+        ("Exposure", ExposureSettingsForm()),
+    ]
+    context["forms"] = forms
+    context['create_form_url'] = '/observation-request/test/'
+    return render(request, "observationRequest/requestTemplateV2.html", context)
+
 
 @require_POST
 @api_view(["POST"])
 def test_request(request):
-    return HttpResponse(request.data.dict())
+    return HttpResponse(f'<p>"{str(dict(request.data))}"</p>')

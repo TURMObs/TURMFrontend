@@ -5,13 +5,14 @@ from django import forms
 from django.forms import DateInput, TextInput
 from django.forms.widgets import DateTimeInput
 
+from observation_request.TURMInput import TURMIntegerInput, TURMField, TURMFloatInput, TURMModelField
 from observation_request.widgets import TURMCheckboxSelectWidget, TURMNumericInputWidget
 from .models import (
     CelestialTarget,
     ExpertObservation,
     ObservationType,
     Filter,
-    Observatory,
+    Observatory, ImagingObservation,
 )
 
 
@@ -194,3 +195,8 @@ class ExposureForm(forms.ModelForm):
                 widget.attrs.update({"class": html_class})
 
             widget.attrs.update({f"data-{attr}": "True"})
+
+
+class ExposureSettingsForm(forms.Form):
+    test = TURMField(TURMIntegerInput("test"), "test int")
+    test2 = TURMModelField(ImagingObservation._meta.fields[8])
