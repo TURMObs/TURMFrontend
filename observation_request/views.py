@@ -48,7 +48,6 @@ def simple_request(request):
 
     # endpoint url
     context['create_form_url'] = '../observation-data/create/'
-    #context["create_form_url"] = "test/"
 
     return render(request, "observationRequest/requestTemplate.html", context)
 
