@@ -127,7 +127,11 @@ def register_user(request, token):
     form = SetPasswordForm(request.POST)
     if not form.is_valid():
         return register_from_invitation_template(
-            request, token, error="Invalid password"
+            request,
+            token,
+            form=SetPasswordForm(),
+            email=invitation.email,
+            error="Invalid password",
         )
 
     invitation.delete()

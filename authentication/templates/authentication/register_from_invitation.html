@@ -13,28 +13,25 @@
     <body>
         <div class= "wrapper">
             <h1>Create account</h1>
-            {% if error %}
-                <p style="color: red">Invalid invitation link</p>
-            {% else %}
-                <div class= "wrapper-body">
-                    <div class= "given-email">
-                        <p>Email: {{ email }}</p>
-                        <box-icon type='solid' name='user'></box-icon>
-                    </div>
-                    <form method="post" action="{% url 'signup' token %}">
-                        {% csrf_token %}
-                        <div class="input-field">
-                            {{ form.new_password1 }}
-                            <i class='bx bxs-lock-open-alt'></i>
-                        </div>
-                        <div class="input-field">
-                            {{ form.new_password2 }}
-                            <i class='bx bxs-lock-alt'></i>
-                        </div>
-                        <button type="submit" class= "btn">Register</button>
-                    </form>
+            <div class= "wrapper-body">
+                <div class= "given-email">
+                    <p>Email: {{ email }}</p>
+                    <box-icon type='solid' name='user'></box-icon>
                 </div>
-            {% endif %}
+                <form method="post" action="{% url 'signup' token %}">
+                    {% csrf_token %}
+                    <div class="input-field">
+                        {{ form.new_password1 }}
+                        <i class='bx bxs-lock-open-alt'></i>
+                    </div>
+                    <div class="input-field">
+                        {{ form.new_password2 }}
+                        <i class='bx bxs-lock-alt'></i>
+                    </div>
+                    {% if error %}<p class="error-message">{{ error }}</p>{% endif %}
+                    <button type="submit" class= "btn">Register</button>
+                </form>
+            </div>
         </div>
     </body>
 </html>
