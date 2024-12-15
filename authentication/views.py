@@ -38,6 +38,7 @@ class SetPasswordForm(forms.Form):
             raise forms.ValidationError("Passwords do not match")
         return cleaned_data
 
+
 @require_GET
 @login_not_required
 def login(request):
