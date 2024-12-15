@@ -58,7 +58,28 @@ def _check_initialized(method):
 
 
 @_check_initialized
-def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
+def file_exists(nc_path: PathLike[bytes] | str) -> bool:
+    """
+    Checks if a file exists on the Nextcloud server.
+    Works by first trying to find the directory of the file. If it exists it is checked whether the file exists in it.
+    Return true if it does. If files does not exist or an exception is raised, return False.
+
+    :param nc_path: Path to the file to check whether it exists
+    """
+    try:
+        path_to_file = nc.files.listdir(str(os.path.dirname(nc_path)))
+        for file in path_to_file:
+            if file.user_path == nc_path:
+                return True
+        return False
+    except Exception:
+        return False
+
+
+@_check_initialized
+def upload_file(
+    nc_path: str, local_path: PathLike[bytes] | str, overwrite_existing: bool = True
+) -> bool:
     """
     Uploads a file to the Nextcloud server. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
 
@@ -66,24 +87,40 @@ def upload_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
 
     :param nc_path: Files path on the Nextcloud server
     :param local_path: Local path of the file to upload
+    :param overwrite_existing: Whether to overwrite a file with same path already exists
+    :return True if new file was uploaded, else False
     """
+
+    if not overwrite_existing and file_exists(nc_path):
+        return False
+
     with open(local_path, "rb") as file:
         nc.files.upload_stream(nc_path, file)
 
+    return True
+
 
 @_check_initialized
-def upload_dict(nc_path: str, data: dict, indent: int = 2) -> None:
+def upload_dict(
+    nc_path: str, data: dict, overwrite_existing: bool = True, indent: int = 2
+) -> bool:
     """
-    Uploads a file_stream to the Nextcloud. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
+    Uploads a dict to the Nextcloud. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
 
     Example: ``upload_dict("Documents/test.json", json.load(f))``
 
-    :param nc_path: Files path on the Nextcloud server
+    :param nc_path: File path on the Nextcloud server
     :param data: Dict to be uploaded
-    :param indent: Number of spaces per indent
+    :param overwrite_existing: Whether to overwrite a file with same path already exists
+    :param indent: Number of spaces per indent for the generated JSON
+    :return True if new file was uploaded, else False
     """
+    if not overwrite_existing and file_exists(nc_path):
+        return False
+
     json_stream = BytesIO(json.dumps(data, indent=indent).encode("utf-8"))
     nc.files.upload_stream(path=nc_path, fp=json_stream)
+    return True
 
 
 @_check_initialized
@@ -134,17 +171,6 @@ def delete(nc_path: str) -> None:
     :raises NextcloudException: If the file does not exist on the server
     """
     nc.files.delete(nc_path)
-
-
-@_check_initialized
-def _delete_all():
-    """
-    Deletes all files from the Nextcloud server. Indented to use for testing after nextcloud is newly initialized
-    """
-    path = ""  # root directory
-    nodes = nc.files.listdir(path)
-    for file in nodes:
-        delete(file.user_path)
 
 
 @_check_initialized

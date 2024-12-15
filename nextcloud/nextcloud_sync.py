@@ -1,8 +1,5 @@
 from itertools import chain
-
 from django.utils import timezone
-
-
 from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
@@ -14,7 +11,7 @@ import nextcloud.nextcloud_manager as nm
 
 """
 This module retrieves the observation requests for a night and uses the nextcloud_manager to upload them to the nextcloud.
-It is supposed to run in a cron-Job
+Method upload_observation is supposed to be triggered using a cron-Job
 """
 
 logger = logging.getLogger(__name__)
@@ -24,10 +21,11 @@ def get_nextcloud_path(
     abstract_observation: AbstractObservation, dec_offset: int = 5
 ) -> str:
     """
-    Creates the path of the file according to the scheme "[Observatory]/Projects/[Observation_ID].json". Observation_ID is the unique identifier for all observations.
+    Creates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
+    Observation_ID is the unique identifier for all observations.
 
     :param abstract_observation: Abstract observation. Is instance of subclass of AbstractObservation and contains all necessary information to build the path
-    :project_name: Name of the observation project. Needs to be included because it is not possible to extract this from abstract_observation.
+    :param dec_offset: Leading zero padding for observation id in file name
     :return path of the file in nextcloud
     """
 
@@ -37,10 +35,10 @@ def get_nextcloud_path(
     ).data["name"]
 
     observatory_string = str(abstract_observation.observatory.name).upper()
-    id = abstract_observation.id
-    offset_f = f"{id:0{dec_offset}}"
-    s = observatory_string + "/Projects/" + offset_f + "_" + project_name + ".json"
-    return s
+    obs_id = abstract_observation.id
+    offset_f = f"{obs_id:0{dec_offset}}"
+
+    return observatory_string + "/Projects/" + offset_f + "_" + project_name + ".json"
 
 
 def calc_progress(observation: dict) -> float:
@@ -60,42 +58,7 @@ def calc_progress(observation: dict) -> float:
         required_amount += f["requiredAmount"]
         accepted_amount += f["acceptedAmount"]
 
-    return accepted_amount / required_amount
-
-
-"""
-def update_database():
-
-    Checks which observations have been done and updates the database accordingly.
-    First it gets all observation that are not finished yet and gets the corresponding dicts from both the nc and the db.
-    Then it calculates the progress from the nc JSON. If it has changed (aka pictures have been taken) it updates the database accordingly.
-    If an observation is entirely finished, its status is set accordingly and the JSON is deleted from the nc.
-
-
-    # gets all observations not finished yet
-    observations = AbstractObservation.objects.filter(project_completion__lt=100)
-    for observation in observations:
-        serializer_class = get_serializer(observation.observation_type)
-        serializer = serializer_class(observation)
-
-        # downloads the JSON of the observation from the NC and calculates the progress
-        nc_path = get_nextcloud_path(observation)
-        obs_dict_nc = nm.download_dict(nc_path=nc_path)
-        progress_nc = calc_progress(obs_dict_nc)
-
-        if progress_nc != observation.project_completion:
-            # schreiben des neuen JSON in DB
-            # todo
-
-            # ändern der project_completion
-            observation.project_completion = progress_nc
-
-            # falls fertig beobachtet: Status ändern und JSON aus NC löschen
-            if observation.project_completion == 100:
-                observation.project_status = ObservationStatus.COMPLETED
-                nm.delete(nc_path=nc_path)
-            observation.save()
-"""
+    return round(accepted_amount / required_amount, 2)
 
 
 def upload_observations(today=timezone.now()):
@@ -105,12 +68,10 @@ def upload_observations(today=timezone.now()):
     :params today: datetime; default=timezone.now(). Can be changed for debugging purposes.
     """
 
-    # Handling of observations, that can be uploaded anytime (all non scheduled observations)
+    # Handling of observations, that can be uploaded anytime (all non-scheduled observations)
     pending_observations = AbstractObservation.objects.filter(
         project_status=ObservationStatus.PENDING
-    ).not_instance_of(
-        ScheduledObservation
-    )  # exclude ScheduledObservation. They are handled explicit
+    ).not_instance_of(ScheduledObservation)
 
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
     scheduled_observations = (
@@ -120,24 +81,25 @@ def upload_observations(today=timezone.now()):
         )
         .exclude(project_status=ObservationStatus.ERROR)
     )
+    local_day = timezone.localdate(today)
     for obs in scheduled_observations:
-        if timezone.localdate(obs.start_scheduling) > timezone.localdate(
-            today
-        ) or timezone.localdate(obs.end_scheduling) < timezone.localdate(today):
+        if (timezone.localdate(obs.start_scheduling) > local_day) or timezone.localdate(
+            obs.end_scheduling
+        ) < local_day:
             continue
-        if (
-            timezone.localdate(today) - timezone.localdate(obs.start_scheduling)
-        ).days % obs.cadence != 0:
+        if local_day != timezone.localdate(obs.next_upload):
             continue
         pending_observations = chain(pending_observations, [obs])
 
-    test_list = list(pending_observations)
-
     # upload all pending_observation to Nextcloud.
-    nm.initialize_connection()
+    list_to_upload = list(pending_observations)
+    logger.info(f"Uploading {len(list_to_upload)} observations ...")
+    try:
+        nm.initialize_connection()
+    except Exception:
+        logger.error("Failed to initialize connection ...")
 
-    logger.info(f"Uploading {len(test_list)} observations ...")
-    for obs in test_list:
+    for obs in list_to_upload:
         try:
             serializer_class = get_serializer(obs.observation_type)
             serializer = serializer_class(obs)

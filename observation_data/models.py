@@ -156,6 +156,7 @@ class ScheduledObservation(AbstractObservation):
 
     start_scheduling = models.DateTimeField()
     end_scheduling = models.DateTimeField()
+    next_upload = models.DateTimeField()
     cadence = models.IntegerField()
 
 
@@ -172,8 +173,6 @@ class ExpertObservation(ScheduledObservation):
     offset = models.IntegerField()
     start_observation = models.DateTimeField()
     end_observation = models.DateTimeField()
-    start_scheduling = models.DateTimeField()
-    end_scheduling = models.DateTimeField()
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
