@@ -12,6 +12,9 @@
 {% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
+    <script> onload = _ => {
+        check_radio_if_none_selected()
+    };</script>
 {% endblock %}
 {% block content %}
     <div class="container_center">

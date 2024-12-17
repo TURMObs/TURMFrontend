@@ -1,13 +1,14 @@
+from django.db.models import ForeignKey
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 
-from observation_data.models import ObservationType, Observatory
+from observation_data.models import ObservationType, Observatory, AbstractObservation, ExpertObservation
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureForm,
-    QueryEnum, WipForm, ExposureSettingsForm,
+    QueryEnum, WipForm, ExposureSettingsForm, TRUMProjectForm
 )
 
 
@@ -55,7 +56,7 @@ def simple_request(request):
     context = {}
     # Forms
     forms = [
-        ("Project", None),
+        ("Project", TRUMProjectForm()),
         ("Target", CelestialTargetForm()),
         ("Exposure", ExposureSettingsForm()),
     ]

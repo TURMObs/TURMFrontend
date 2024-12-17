@@ -1,136 +1,176 @@
-from django.forms.fields import Field
 from django.forms import Widget
 from django.utils.safestring import mark_safe
-from django.db import models
-from rest_framework.utils.formatting import camelcase_to_spaces
 
+
+def _render_attrs_static(attr):
+    rendered_attrs = []
+    for key, value in attr.items():
+        if isinstance(value, list):
+            attr_values = ' '.join([item for item in value])
+            rendered_attrs.append(f'{key}="{attr_values}"')
+
+        else:
+            rendered_attrs.append(f'{key}="{value}"')
+    return ' '.join(rendered_attrs)
 
 class _TURMInput(Widget):
+    """
+        Abstract base class for all TURMWidgets
+
+        implements renderer for attributes and dependencies
+
+        requires subclasses to implement the @render function
+    """
     def __init__(self, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attrs["name"] = name
 
     def _render_attrs(self, attr):
-        attr = self.attrs | attr
-        html_attrs = ""
-        for key, value in attr.items():
-            html_attrs += f'{key}="{value}" '
-        return html_attrs
+        return _render_attrs_static(self.attrs | attr)
 
+    def add_dependencies(self, dependencies:dict):
+        for d_type, d in dependencies.items():
+            self.attrs[d_type] = d
+        return self
+
+    def render(self, name, value, attrs=None, renderer=None):
+        raise NotImplementedError("Subclasses must implement this method.")
+
+""" --- TURM Numeric Inputs """
 class _TURMNumericInput(_TURMInput):
+    """
+        Abstract base class for all Numeric style TURMWidgets
+
+        implements optional measurement_unit, minimum, maximum and step attributes
+
+        provides subclasses with a generic render function
+    """
+    measurement_unit = None
     minimum = None
     maximum = None
     step = None
 
-    def __init__(self, name: str, minimum=None, maximum=None, step=None, *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    def __init__(self, name: str, measurement_unit=None, minimum=None, maximum=None, step=None,
+                 *args, **kwargs):
+        super().__init__(name=name, *args, **kwargs)
+        self.measurement_unit = measurement_unit
         self.attrs["type"] = "text"
         self.attrs["inputmode"] = "numeric"
         if minimum: self.attrs["min"] = str(self.minimum)
         if maximum: self.attrs["max"] = str(self.maximum)
         if step: self.attrs["step"] = str(self.step)
 
+    def render(self, name, value, attrs=None, renderer=None):
+        html_render = f'<input {self._render_attrs(attrs)}></input>'
+        if self.measurement_unit: html_render += f'<span><span class="measurement_unit">{self.measurement_unit}</span></span>'
+        return mark_safe(html_render)
 
 class TURMIntegerInput(_TURMNumericInput):
-    def __init__(self, name, minimum: int= None, maximum: int=None, step: int=None, *args, **kwargs):
-        super().__init__(name, minimum, maximum, step, *args, **kwargs)
+    """
+        provides a numeric input that restricts input to only whole numbers.
+    """
+    def __init__(self, name, measurement_unit=None, minimum: int= None, maximum: int=None, step: int=None, *args,
+                 **kwargs):
+        if step:
+            step = int(step)
+        super().__init__(name=name, measurement_unit=measurement_unit, minimum=minimum, maximum=maximum, step=step,
+                         *args, **kwargs)
         self.attrs["oninput"] = "discard_input(event, this, '[^\\\\d*\\\\s*]')"
 
-    def render(self, name, value, attrs=None, renderer=None):
-        return mark_safe(f'<input {self._render_attrs(attrs)}>')
-
-
 class TURMFloatInput(_TURMNumericInput):
-    def __init__(self, name, minimum: float = None, maximum: float = None, step: float = None, *args, **kwargs):
-        super().__init__(name, minimum, maximum, step, *args, **kwargs)
+    """
+        provides a numeric input that restricts input to decimal numbers.
+    """
+    def __init__(self, name, measurement_unit=None, minimum: float = None, maximum: float = None, step: float = None,
+                 *args, **kwargs):
+        super().__init__(name=name, measurement_unit=measurement_unit, minimum=minimum, maximum=maximum, step=step,
+                         *args, **kwargs)
         self.attrs["oninput"] = "discard_input(event, this, '[^\\\\d*\\\\s*\\\\.*]')" #todo restrict multiple dots
 
-    def render(self, name, value, attrs=None, renderer=None):
-        return mark_safe(f'<input {self._render_attrs(attrs)}>')
 
+""" --- TURM Choice Inputs """
+class _TURMChoiceInput(_TURMInput):
+    """
+        Abstract base class for all choice style TURMWidgets
 
-class TURMChoiceInput(_TURMInput):
-    pass
+        implements choices and optional dependency_generator attributes
 
-class TURMField(Field):
-    def __init__(self, widget: _TURMInput, label_name: str= None, *args, **kwargs):
-        super().__init__(widget=widget,label=label_name)
+        provides subclasses with a generic render function
+    """
+    choices = []
+    dependency_generator = None
 
-class TURMModelField(TURMField):
-    def __init__(self, model_field: models.Field, label_name: str= None, *args, **kwargs):
-        if label_name is None:
-            label_name = model_field.name
-        match type(model_field):
-            case models.DecimalField:
-                widget = TURMFloatInput(name=model_field.name, *args, **kwargs)
-            case models.IntegerField:
-                widget = TURMIntegerInput(name=model_field.name, *args, **kwargs)
-            #case models.ManyToManyField:
-                #widget = TURMChoiceInput(label_name=label_name, *args, **kwargs)
-            case _:
-                raise NotImplementedError(f"{type(model_field)} is not supported yet.")
-        super().__init__(widget=widget,label=label_name)
-
-"""
-class TURMCheckboxSelectWidget(Widget):
-    queryset = None
-    extra_attribute_factory = None
-    tooltip = None
-
-    def __init__(
-        self,
-        queryset,
-        extra_attribute_factory=None,
-        tooltip=None,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        if queryset is None:
-            queryset = {}
-        self.queryset = queryset
-        self.extra_attribute_factory = extra_attribute_factory
-        self.tooltip = tooltip
+    def __init__(self, name, choices, *args, **kwargs):
+        super().__init__(name=name, *args, **kwargs)
+        self.choices = choices
 
     def render(self, name, value, attrs=None, renderer=None):
-        out = f'<div id="id_{name}" class="multiple_choice">'
-        html_attributes = attr_to_html(self.attrs)
-        i = 0
+        label_attrs = self.attrs | attrs
+        name = label_attrs["name"]
+        label_attrs.pop("type", None)
+        label_attrs.pop("name", None)
+        label_attrs.pop("required", None)
+        label_attrs.pop("onclick", None)
 
-        for q in self.queryset:
-            out += (
-                f'<div class="{" tooltip_div" if self.tooltip is not None else ""}"> '
-                f'<div class="multiple_choice_div">'
-                f'<input type="checkbox" name="{name}" value="{q}" '
-                f'id="id_{name}_{i}" {html_attributes} '
-                f'{self.extra_attribute_factory(q) if self.extra_attribute_factory is not None else ""}>'
-                f'<label for="id_{name}_{i}"> {q} </label>'
-                f'{self._render_tooltip(f"id_{name}_{i}") if self.tooltip is not None else ""}'
-                f'</div></div>'
-            )
-            i += 1
-        out += "</div>"
+        html_render = ""
+        for i in range(len(self.choices)):
+            dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i])) if self.dependency_generator else ""
+            html_render += f'<input id="id_{name}_{i}" {self._render_attrs(attrs)}{dependency_attr}>'
+            html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i]}</label>'
+        return mark_safe(html_render)
 
-        # print(Filter.objects.filter(observatories="TURMX"))
-        # print(Observatory.objects.filter(filter_set__filter_type__icontains="R"))
-        return mark_safe(out)
+    def add_dependency_generator(self,  dependency_generator):
+        self.dependency_generator = dependency_generator
+        return self
 
-    def _render_tooltip(self, id):
-        return f'<span class="tooltiptext" data-tip_for="{id}" style="display: none">{self.tooltip} text</span>'
+class TURMRadioInput(_TURMChoiceInput):
+    def __init__(self, name, choices, *args, **kwargs):
+        super().__init__(name=name, choices=choices, *args, **kwargs)
+        self.attrs["type"] = "radio"
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html_render = f'<div class="radio_input_div">'
+        html_render += super().render(name, value, attrs, renderer)
+        html_render += '</div>'
+        return mark_safe(html_render)
+
+class TURMCheckboxInput(_TURMChoiceInput):
+    def __init__(self, name, choices, *args, **kwargs):
+        super().__init__(name=name, choices=choices, *args, **kwargs)
+        self.attrs["type"] = "checkbox"
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html_render = f'<div class="checkbox_input_div">'
+        html_render += super().render(name, value, attrs, renderer)
+        html_render += '</div>'
+        return mark_safe(html_render)
 
 
-class TURMNumericInputWidget(TextInput):
-    def __init__(self, minimum=None, maximum=None, step=None, numeric_type=None):
-        super().__init__()
-        self.attrs.update({"inputmode": "numeric"})
-        if minimum:
-            self.attrs.update({"min": minimum})
-        if maximum:
-            self.attrs.update({"max": maximum})
-        if step:
-            self.attrs.update({"step": step})
-        match numeric_type:
-            case "integer":
-                self.attrs.update({"data-suppressed": "\D"})
-            case "decimal":
-                self.attrs.update({"data-suppressed": "[^\d*\.+]"})
-"""
+""" --- TURM Misc Inputs """
+class TURMGridInput(_TURMInput):
+    widgets = []
+    grid_dim = ()
+
+    def __init__(self, widgets: list[_TURMInput], grid_dim=(1, 1), *args, **kwargs):
+        super().__init__(name="", *args, *kwargs)
+        self.widgets = widgets
+        self.grid_dim = grid_dim
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html_render = f'<div class="grid_input_div" style="{self.render_rows_style()}">'
+        for widget in self.widgets:
+            html_render += f'<div><label>{widget.attrs["name"]}</label>'
+            html_render += widget.render(name, value, attrs, renderer)
+            html_render += '</div>'
+        html_render += f'</div>'
+        return mark_safe(html_render)
+
+    def render_rows_style(self):
+        style_render = "grid-template-rows:"
+        for x in range(self.grid_dim[1]):
+            style_render += ' 1fr'
+        style_render += "; grid-template-columns:"
+        for y in range(self.grid_dim[0]):
+            style_render += ' 1fr'
+        style_render += ";"
+        return style_render

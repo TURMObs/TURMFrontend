@@ -1,3 +1,50 @@
-input[type=text] {
+input[type=text]/*, input[type=number] */ {
     background-color: #5a090d;
+}
+
+.radio_input_div input[type=radio] {
+    display: none;
+}
+
+.radio_input_div label {
+    background-color: var(--tom-disabled-grey);
+    padding: .5em;
+
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+}
+
+.radio_input_div label:hover {
+    background-color: var(--tom-accent-color);
+}
+.radio_input_div label:nth-child(2) {
+    -moz-border-radius-topleft: var(--tom-corner-radius);
+    -webkit-border-top-left-radius: var(--tom-corner-radius);
+    -moz-border-radius-bottomleft: var(--tom-corner-radius);
+    -webkit-border-bottom-left-radius: var(--tom-corner-radius);
+}
+.radio_input_div label:last-child {
+    border-left: transparent;
+
+    -moz-border-radius-topright: var(--tom-corner-radius);
+    -webkit-border-top-right-radius: var(--tom-corner-radius);
+    -moz-border-radius-bottomright: var(--tom-corner-radius);
+    -webkit-border-bottom-right-radius: var(--tom-corner-radius);
+}
+
+.radio_input_div input[type=radio]:checked + label {
+    background-color: var(--tom-primary-color);
+}
+
+.radio_input_div input:checked + label:hover {
+    background-color: var(--tom-primary-color-dark);
+}
+
+.measurement_unit {
+   margin-left: -100%;
+}
+
+.grid_input_div {
+    display: grid;
 }
