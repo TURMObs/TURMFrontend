@@ -107,16 +107,15 @@ def upload_observations(today=timezone.now()):
 
         obs_dict = serializer.data
         nc_path = get_nextcloud_path(obs)
-
         try:
             nm.upload_dict(nc_path, obs_dict)
             obs.project_status = ObservationStatus.UPLOADED
             logger.info(
-                f"Uploaded observation {obs_dict["name"]} with {obs.id} to {nc_path}"
+                f"Uploaded observation {obs_dict['name']} with id {obs.id} to {nc_path}"
             )
 
         except Exception:
             logger.error(
-                f"Failed to upload observation {obs_dict["name"]} with {obs.id}"
+                f"Failed to upload observation {obs_dict['name']} with id {obs.id}"
             )
         obs.save()
