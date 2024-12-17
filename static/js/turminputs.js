@@ -18,9 +18,8 @@ function check_radio_if_none_selected() {
                 break;
             }
         }
-        console.log(selected_or_first_radio);
         selected_or_first_radio.checked = true;
-        if (selected_or_first_radio.onclick != null) selected_or_first_radio.onclick.call()
+        if (selected_or_first_radio.onclick != null) selected_or_first_radio.click()
     }
 }
 
@@ -28,6 +27,16 @@ function disable_inputs(el) {
     console.log("Disabled Inputs", el);
 }
 
-function hide_inputs() {
-    console.log("Hide Inputs");
+function hide_inputs(dependency_type, dependency) {
+    console.log("Disabled Inputs", dependency_type, dependency);
+    const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
+        .filter(el => !!el.getAttribute(dependency_type));
+
+    for (let input of dependent_inputs) {
+        if (input.getAttribute(dependency_type).includes(dependency)) {
+            console.log(input, "contains");
+        } else {
+            console.log(input, "doesn't contains");
+        }
+    }
 }

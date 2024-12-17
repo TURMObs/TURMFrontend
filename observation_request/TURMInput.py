@@ -99,6 +99,7 @@ class _TURMChoiceInput(_TURMInput):
     """
     choices = []
     dependency_generator = None
+    on_click = None
 
     def __init__(self, name, choices, *args, **kwargs):
         super().__init__(name=name, *args, **kwargs)
@@ -115,12 +116,20 @@ class _TURMChoiceInput(_TURMInput):
         html_render = ""
         for i in range(len(self.choices)):
             dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i])) if self.dependency_generator else ""
-            html_render += f'<input id="id_{name}_{i}" {self._render_attrs(attrs)}{dependency_attr}>'
+            on_click_attr = f'onclick="{self.on_click(self.choices[i])}"' if self.on_click else ""
+            html_render += f'<input id="id_{name}_{i}" {self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
             html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i]}</label>'
         return mark_safe(html_render)
 
     def add_dependency_generator(self,  dependency_generator):
         self.dependency_generator = dependency_generator
+        return self
+
+    def add_on_click(self, func_call_generator):
+        """
+            @param: func_call_generator Function from choice to the rendered function call
+        """
+        self.on_click = func_call_generator
         return self
 
 class TURMRadioInput(_TURMChoiceInput):
@@ -174,3 +183,23 @@ class TURMGridInput(_TURMInput):
             style_render += ' 1fr'
         style_render += ";"
         return style_render
+
+    def add_dependencies(self, dependencies):
+        for widget in self.widgets:
+            widget.add_dependencies(dependencies)
+        return self
+
+    def add_dependency_generator(self, dependency_generator):
+        for widget in self.widgets:
+            if isinstance(widget, _TURMChoiceInput):
+                widget.add_dependency_generator(dependency_generator)
+        return self
+
+    def add_on_click(self, func_call_generator):
+        """
+            @param: func_call Function from choice to the rendered function call
+        """
+        for widget in self.widgets:
+            if isinstance(widget, _TURMChoiceInput):
+                widget.add_on_click(func_call_generator)
+        return self

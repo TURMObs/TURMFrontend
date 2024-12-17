@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from observation_data.models import ObservationType, Observatory, AbstractObservation, ExpertObservation
 from observation_data.forms import (
     CelestialTargetForm,
-    QueryEnum, ExposureSettingsForm, TRUMProjectForm
+    ExposureSettingsForm, TRUMProjectForm
 )
 
 def simple_request(request):

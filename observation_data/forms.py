@@ -5,21 +5,18 @@ from django import forms
 from django.forms import DateInput
 from django.forms.widgets import DateTimeInput
 
-from observation_request.TURMField import TURMModelField, TURMGridField, TURMField, TURMRadioInput
-from observation_request.widgets import TURMCheckboxSelectWidget, TURMNumericInputWidget
+from observation_request.TURMField import TURMModelField, TURMGridField, TURMField, TURMRadioInput, TURMSelectField
 from .models import (
     CelestialTarget,
     ExpertObservation,
     ObservationType,
-    Filter,
-    Observatory, ImagingObservation, AbstractObservation, ExoplanetObservation, VariableObservation,
-    MonitoringObservation, ExposureSettings,
+    Observatory, AbstractObservation, ExposureSettings,
 )
 
 
-class QueryEnum(Enum):
-    observation_type_dependent = "observation_type_dependent"
-    observatory_dependent = "observatory_dependent"
+class Dependency(Enum):
+    observation_type = "observation_type_dependent"
+    observatory = "observatory_dependent"
 
 class CelestialTargetForm(forms.ModelForm):
     class Meta:
@@ -39,26 +36,25 @@ class TRUMProjectForm(forms.Form):
     observatory = TURMModelField(AbstractObservation._meta.get_field("observatory"))
 
 def filter_set_dependency_generator(filter):
-    dependency = {"observatory_dependant": []}
+    dependency = {Dependency.observatory.value: []}
     for observatory in Observatory.objects.filter(filter_set__filter_type__icontains=filter).iterator():
-        dependency["observatory_dependant"].append(str(observatory))
+        dependency[Dependency.observatory.value].append(str(observatory))
     print(dependency)
     return dependency
 
 class ExposureSettingsForm(forms.Form):
-    #
-    observation_type_dependant = "observation_type_dependent"
+    observation_type = (TURMSelectField("observation_type", [o_type[1] for o_type in ObservationType.choices]) #{}
+                        .add_on_click(lambda o_type : f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"))
     # combined
-    filter_set = TURMModelField(ExpertObservation._meta.get_field("filter_set"), dependency_generator=filter_set_dependency_generator)
+    filter_set = (TURMModelField(ExpertObservation._meta.get_field("filter_set"))
+                  .add_dependency_generator(filter_set_dependency_generator))
 
 
     exposure_time = TURMField(TURMRadioInput(name="exposure_time", choices=['15s', '30s', '60s', '120s', f'300s']),
-                              label_name="exposure_time", dependencies=[
-            ObservationType.IMAGING, ObservationType.EXOPLANET, ObservationType.VARIABLE])
-    exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time"),
-                                          dependencies={"observation_type_dependent": [ObservationType.IMAGING,
-                                                                                       ObservationType.EXOPLANET,
-                                                                                       ObservationType.VARIABLE]})
+                              label_name="exposure_time").add_dependencies(
+        {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET, ObservationType.VARIABLE]})
+    exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time")).add_dependencies(
+        {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET, ObservationType.VARIABLE]})
 
     # exposure
     exposure_settings = [
