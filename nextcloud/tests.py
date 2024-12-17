@@ -306,6 +306,7 @@ def _create_user_and_login(test_instance):
 def _day(d: int):
     return timezone.now() + timedelta(days=d)
 
+
 @unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
     def test_access_nc_without_init(self):
@@ -382,6 +383,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         self.assertFalse(file_exists("Test/file/exists/test_again.json"))
         self.assertFalse(file_exists("Test/file"))
         nm.delete("Test")
+
 
 @unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudSyncTestCase(django.test.TestCase):
