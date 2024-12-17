@@ -21,7 +21,7 @@ def get_nextcloud_path(
     abstract_observation: AbstractObservation, dec_offset: int = 5
 ) -> str:
     """
-    Creates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
+    Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
     Observation_ID is the unique identifier for all observations.
 
     :param abstract_observation: Abstract observation. Is instance of subclass of AbstractObservation and contains all necessary information to build the path
@@ -36,9 +36,11 @@ def get_nextcloud_path(
 
     observatory_string = str(abstract_observation.observatory.name).upper()
     obs_id = abstract_observation.id
-    offset_f = f"{obs_id:0{dec_offset}}"
+    formatted_id = f"{obs_id:0{dec_offset}}"
 
-    return observatory_string + "/Projects/" + offset_f + "_" + project_name + ".json"
+    return (
+        observatory_string + "/Projects/" + formatted_id + "_" + project_name + ".json"
+    )
 
 
 def calc_progress(observation: dict) -> float:
@@ -100,17 +102,21 @@ def upload_observations(today=timezone.now()):
         logger.error("Failed to initialize connection ...")
 
     for obs in list_to_upload:
+        serializer_class = get_serializer(obs.observation_type)
+        serializer = serializer_class(obs)
+
+        obs_dict = serializer.data
+        nc_path = get_nextcloud_path(obs)
+
         try:
-            serializer_class = get_serializer(obs.observation_type)
-            serializer = serializer_class(obs)
-
-            obs_dict = serializer.data
-            nc_path = get_nextcloud_path(obs)
-
             nm.upload_dict(nc_path, obs_dict)
             obs.project_status = ObservationStatus.UPLOADED
-            logger.info(f"Uploaded observation {obs.id} to {nc_path}")
+            logger.info(
+                f"Uploaded observation {obs_dict["name"]} with {obs.id} to {nc_path}"
+            )
 
         except Exception:
-            logger.error(f"Failed to upload observation: {obs.id}")
+            logger.error(
+                f"Failed to upload observation {obs_dict["name"]} with {obs.id}"
+            )
         obs.save()

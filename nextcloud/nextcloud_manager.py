@@ -61,14 +61,13 @@ def _check_initialized(method):
 def file_exists(nc_path: PathLike[bytes] | str) -> bool:
     """
     Checks if a file exists on the Nextcloud server.
-    Works by first trying to find the directory of the file. If it exists it is checked whether the file exists in it.
-    Return true if it does. If files does not exist or an exception is raised, return False.
 
     :param nc_path: Path to the file to check whether it exists
+    :return true if file exists, else false
     """
     try:
-        path_to_file = nc.files.listdir(str(os.path.dirname(nc_path)))
-        for file in path_to_file:
+        file_dir = nc.files.listdir(str(os.path.dirname(nc_path)))
+        for file in file_dir:
             if file.user_path == nc_path:
                 return True
         return False
@@ -81,7 +80,7 @@ def upload_file(
     nc_path: str, local_path: PathLike[bytes] | str, overwrite_existing: bool = True
 ) -> bool:
     """
-    Uploads a file to the Nextcloud server. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
+    Uploads a file to the Nextcloud server. Directory that should contain the file must already exist.
 
     Example: ``upload_file("Documents/test.json", "./test.json")``
 
@@ -105,7 +104,7 @@ def upload_dict(
     nc_path: str, data: dict, overwrite_existing: bool = True, indent: int = 2
 ) -> bool:
     """
-    Uploads a dict to the Nextcloud. Overwrites any existing file with same path+name in nextcloud. Directory that should contain the file must already exist.
+    Uploads a dict to the Nextcloud. Directory that should contain the file must already exist.
 
     Example: ``upload_dict("Documents/test.json", json.load(f))``
 
@@ -126,7 +125,7 @@ def upload_dict(
 @_check_initialized
 def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
     """
-    Downloads a file from the Nextcloud server. Overwrites any existing local file with same path+name.
+    Downloads a file from the Nextcloud server. Overwrites any existing local file with same path.
 
     Example: ``download_file("Documents/test.json", "./test.json")``
 
@@ -141,7 +140,7 @@ def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
 @_check_initialized
 def download_dict(nc_path: str) -> dict:
     """
-    Downloads a dict from the Nextcloud server and return it without storing it. Overwrites any existing local file with same path+name.
+    Downloads a dict from the Nextcloud server and returns it without storing it. Overwrites any existing local file with same path.
 
     :param nc_path: File path on the Nextcloud server
     :raises NextcloudException: If the file does not exist on the server

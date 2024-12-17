@@ -48,7 +48,7 @@ dict_nc = "dict1.json"
 def _create_imaging_observations(
     self,
     obs_id: int,
-    observatory: Observatory = Observatory.objects.all()[0],
+    observatory: Observatory,
     target_name: str = "TestTargetImaging",
     target_ra: str = "0",
     target_dec: str = "0",
@@ -90,7 +90,7 @@ def _create_imaging_observations(
 def _create_exoplanet_observation(
     self,
     obs_id: int,
-    observatory: Observatory = Observatory.objects.all()[0],
+    observatory: Observatory,
     target_name: str = "TestTargetExoplanet",
     target_ra: str = "0",
     target_dec: str = "0",
@@ -129,7 +129,7 @@ def _create_exoplanet_observation(
 def _create_variable_observation(
     self,
     obs_id: int,
-    observatory: Observatory = Observatory.objects.all()[0],
+    observatory: Observatory,
     target_name: str = "TestTargetVariable",
     target_ra: str = "0",
     target_dec: str = "0",
@@ -168,7 +168,7 @@ def _create_variable_observation(
 def _create_monitoring_observation(
     self,
     obs_id: int,
-    observatory: Observatory = Observatory.objects.all()[0],
+    observatory: Observatory,
     target_name: str = "TestTargetMonitoring",
     target_ra: str = "0",
     target_dec: str = "0",
@@ -214,7 +214,7 @@ def _create_monitoring_observation(
 def _create_expert_observation(
     self,
     obs_id: int,
-    observatory: Observatory = Observatory.objects.all()[0],
+    observatory: Observatory,
     target_name: str = "TestTargetExpert",
     target_ra: str = "0",
     target_dec: str = "0",
@@ -315,8 +315,8 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
             nm.delete("/does/not/matter")
 
 
-@unittest.skip("Skip in CI until solution for nc-container in found")
 # noinspection DuplicatedCode
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -400,8 +400,14 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def test_calc_progress(self):
         # insert a specific Observation into the db and retrieve it as dict
+        turmx = Observatory.objects.filter(name="TURMX")[0]
         _create_imaging_observations(
-            self, obs_id=1, target_name="I1", required_amount=100, second_filter=True
+            self,
+            obs_id=1,
+            target_name="I1",
+            required_amount=100,
+            second_filter=True,
+            observatory=turmx,
         )
         observation = AbstractObservation.objects.all()[0]
         serializer_class = get_serializer(observation.observation_type)
@@ -422,8 +428,9 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.delete("test.json")
 
     def test_get_nextcloud_path(self):
+        turmx = Observatory.objects.filter(name="TURMX")[0]
         _create_imaging_observations(
-            self, obs_id=42, target_name="I1", required_amount=100
+            self, obs_id=42, target_name="I1", required_amount=100, observatory=turmx
         )
         observation = AbstractObservation.objects.all()[0]
         self.assertEqual(
@@ -435,18 +442,21 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir("TURMX/Projects")
         nm.mkdir("TURMX2/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
         turmx2 = Observatory.objects.filter(name="TURMX2")[0]
 
+
+
         # insert test data
-        _create_imaging_observations(self, obs_id=0, target_name="I1")
+        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx)
         _create_imaging_observations(self, obs_id=1, target_name="I2", observatory=turmx2)
-        _create_exoplanet_observation(self, obs_id=2, target_name="E1")
+        _create_exoplanet_observation(self, obs_id=2, target_name="E1", observatory=turmx)
         _create_exoplanet_observation(self, obs_id=3, target_name="E2", observatory=turmx2)
-        _create_variable_observation(self, obs_id=4, target_name="V1")
+        _create_variable_observation(self, obs_id=4, target_name="V1", observatory=turmx)
         _create_variable_observation(self, obs_id=5, target_name="V2", observatory=turmx2)
-        _create_monitoring_observation(self, obs_id=6, target_name="M1")
+        _create_monitoring_observation(self, obs_id=6, target_name="M1", observatory=turmx)
         _create_monitoring_observation(self, obs_id=7, target_name="M2", observatory=turmx2)
-        _create_expert_observation(self, obs_id=8, target_name="X1")
+        _create_expert_observation(self, obs_id=8, target_name="X1", observatory=turmx)
         _create_expert_observation(self, obs_id=9, target_name="X2", observatory=turmx2, project_status=ObservationStatus.COMPLETED)
         _create_variable_observation(self, obs_id=10, target_name="V3", observatory=turmx2, project_status=ObservationStatus.ERROR)
         self.assertEqual(11, AbstractObservation.objects.all().count())
@@ -473,15 +483,16 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir("TURMX/Projects")
         nm.mkdir("TURMX2/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
         # fmt: off
         # since the tested properties are inherited by ScheduledObservation, MonitoringObservation does not need to be tested manually
-        _create_expert_observation(self, obs_id=0, target_name="E0")
-        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(1), end_scheduling=_day(2))
-        _create_expert_observation(self, obs_id=2, target_name="E2", start_scheduling=_day(-2), end_scheduling=_day(-3))
-        _create_imaging_observations(self, obs_id=3, target_name="I0")
-        _create_imaging_observations(self, obs_id=4, target_name="I1", project_status=ObservationStatus.COMPLETED)
-        _create_imaging_observations(self, obs_id=5, target_name="I2", project_status=ObservationStatus.ERROR)
+        _create_expert_observation(self, obs_id=0, target_name="E0", observatory=turmx)
+        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(1), end_scheduling=_day(2), observatory=turmx)
+        _create_expert_observation(self, obs_id=2, target_name="E2", start_scheduling=_day(-2), end_scheduling=_day(-3), observatory=turmx)
+        _create_imaging_observations(self, obs_id=3, target_name="I0", observatory=turmx)
+        _create_imaging_observations(self, obs_id=4, target_name="I1", project_status=ObservationStatus.COMPLETED, observatory=turmx)
+        _create_imaging_observations(self, obs_id=5, target_name="I2", project_status=ObservationStatus.ERROR, observatory=turmx)
         self.assertEqual(6, AbstractObservation.objects.all().count())
 
         # Expected values for day -1 to 4 (both included)
@@ -510,12 +521,13 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir("TURMX/Projects")
         nm.mkdir("TURMX2/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1)
-        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(0), end_scheduling=_day(7), cadence=2)
-        _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3)
-        _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED)
-        _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
+        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(0), end_scheduling=_day(7), cadence=2, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED, observatory=turmx)
         assert_equal(5, AbstractObservation.objects.all().count())
 
         test_obs = [_get_obs_by_id(i) for i in range(5)]
