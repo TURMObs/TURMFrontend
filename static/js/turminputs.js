@@ -28,15 +28,20 @@ function disable_inputs(el) {
 }
 
 function hide_inputs(dependency_type, dependency) {
-    console.log("Disabled Inputs", dependency_type, dependency);
     const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
         .filter(el => !!el.getAttribute(dependency_type));
 
     for (let input of dependent_inputs) {
         if (input.getAttribute(dependency_type).includes(dependency)) {
-            console.log(input, "contains");
+            for (let label of input.labels) {
+                label.removeAttribute("style")
+            }
+            input.removeAttribute("style")
         } else {
-            console.log(input, "doesn't contains");
+            for (let label of input.labels) {
+                label.style.display = 'none';
+            }
+            input.style.display = 'none';
         }
     }
 }

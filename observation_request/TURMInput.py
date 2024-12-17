@@ -168,8 +168,8 @@ class TURMGridInput(_TURMInput):
     def render(self, name, value, attrs=None, renderer=None):
         html_render = f'<div class="grid_input_div" style="{self.render_rows_style()}">'
         for widget in self.widgets:
-            html_render += f'<div><label>{widget.attrs["name"]}</label>'
-            html_render += widget.render(name, value, attrs, renderer)
+            html_render += f'<div><label for="id_{widget.attrs["name"]}">{widget.attrs["name"]}</label>'
+            html_render += widget.render(widget.attrs["name"], value, {"id": f'id_{widget.attrs["name"]}'}, renderer)
             html_render += '</div>'
         html_render += f'</div>'
         return mark_safe(html_render)

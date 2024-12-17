@@ -54,7 +54,7 @@ class ExposureSettingsForm(forms.Form):
                               label_name="exposure_time").add_dependencies(
         {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET, ObservationType.VARIABLE]})
     exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time")).add_dependencies(
-        {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET, ObservationType.VARIABLE]})
+        {Dependency.observation_type.value: [ObservationType.EXPERT]})
 
     # exposure
     exposure_settings = [
@@ -65,10 +65,13 @@ class ExposureSettingsForm(forms.Form):
         ExposureSettings._meta.get_field("gain"),
         ExposureSettings._meta.get_field("offset"),
     ]
-    exposure = TURMGridField(exposure_settings, (2, 3))
+    exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies({Dependency.observation_type.value:
+                                                                              [ObservationType.EXPERT]})
 
     # imaging
-    frames_per_filter = TURMModelField(ExpertObservation._meta.get_field("frames_per_filter"))
+    frames_per_filter = TURMModelField(ExpertObservation._meta.get_field("frames_per_filter")).add_dependencies({
+        Dependency.observation_type.value:
+            [ObservationType.IMAGING]})
 
     # exoplanet
     # start_observation = TURMModelField(ExpertObservation._meta.get_field("start_observation"))
