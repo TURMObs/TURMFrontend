@@ -24,6 +24,8 @@ from .models import (
     Observatory,
     Filter,
     ObservationType,
+    ObservationStatus,
+    ScheduledObservation,
 )
 
 priorities = {
@@ -59,12 +61,15 @@ def _create_observation(validated_data, observation_type, model):
         dec=target_data.get("dec"),
     )
 
-    validated_data["project_status"] = "Pending Upload"
+    validated_data["project_status"] = ObservationStatus.PENDING
     validated_data["project_completion"] = 0.0
     validated_data["created_at"] = datetime.now(timezone.utc)
 
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
+
+    if issubclass(model, ScheduledObservation):
+        validated_data["next_upload"] = validated_data["start_scheduling"]
 
     filter_set = validated_data.pop("filter_set")
     observation = model.objects.create(target=created_target, **validated_data)

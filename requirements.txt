@@ -4,3 +4,5 @@ python-dotenv~=1.0.1
 psycopg2>=2.8.4
 astropy>=6.0
 django-polymorphic @ git+https://github.com/jazzband/django-polymorphic.git@v4.0.0a#egg=django-polymorphic
+setuptools>=65.0.0
+nc_py_api>=0.18.0
