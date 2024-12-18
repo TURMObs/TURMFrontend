@@ -1,7 +1,7 @@
 from django.forms.fields import Field
 from django.db import models
 from observation_request.TURMInput import (_TURMInput, TURMIntegerInput, TURMFloatInput, TURMRadioInput,
-                                           TURMCheckboxInput, TURMGridInput)
+                                           TURMCheckboxInput, TURMGridInput, TURMDateTimeInput, TURMDateInput)
 
 
 class TURMField(Field):
@@ -22,6 +22,10 @@ class TURMField(Field):
             case models.ForeignKey:
                 return TURMRadioInput(name=model_field.name, choices=model_field.remote_field.model.objects.all(),
                                       *args, **kwargs)
+            case models.DateTimeField:
+                return TURMDateTimeInput(name=model_field.name, *args, **kwargs)
+            case models.DateField:
+                return TURMDateInput(name=model_field.name, *args, **kwargs)
             case _:
                 raise NotImplementedError(f"{type(model_field)} is not supported yet.")
 
@@ -57,7 +61,7 @@ class TURMModelSelectField(TURMField):
 
 
 class TURMGridField(TURMField):
-    def __init__(self, model_fields: list[models.Field], grid_dim = None, *args, **kwargs):
-        sub_widgets = [self.model_field_to_input(field) for field in model_fields]
+    def __init__(self, model_fields: list[tuple[models.Field, str]], grid_dim = None, *args, **kwargs):
+        sub_widgets = [(self.model_field_to_input(field[0]), field[1]) for field in model_fields]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim = grid_dim, *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)

@@ -39,49 +39,55 @@ def filter_set_dependency_generator(filter):
     dependency = {Dependency.observatory.value: []}
     for observatory in Observatory.objects.filter(filter_set__filter_type__icontains=filter).iterator():
         dependency[Dependency.observatory.value].append(str(observatory))
-    print(dependency)
     return dependency
 
 class ExposureSettingsForm(forms.Form):
-    observation_type = (TURMSelectField("observation_type", [o_type[1] for o_type in ObservationType.choices]) #{}
+    observation_type = (TURMSelectField("observation_type", [o_type[0] for o_type in ObservationType.choices])
                         .add_on_click(lambda o_type : f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"))
     # combined
     filter_set = (TURMModelField(ExpertObservation._meta.get_field("filter_set"))
                   .add_dependency_generator(filter_set_dependency_generator))
 
-
-    exposure_time = TURMField(TURMRadioInput(name="exposure_time", choices=['15s', '30s', '60s', '120s', f'300s']),
+    #
+    exposure_time = TURMField(TURMRadioInput(name="exposure_time", choices=['15s', '30s', '60s', '120s','300s']),
                               label_name="exposure_time").add_dependencies(
-        {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET, ObservationType.VARIABLE]})
+        {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET,
+                                             ObservationType.VARIABLE, ObservationType.MONITORING]})
     exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time")).add_dependencies(
         {Dependency.observation_type.value: [ObservationType.EXPERT]})
 
     # exposure
     exposure_settings = [
-        ExpertObservation._meta.get_field("frames_per_filter"),
-        ExpertObservation._meta.get_field("dither_every"),
-        ExposureSettings._meta.get_field("binning"),
-        ExposureSettings._meta.get_field("subFrame"),
-        ExposureSettings._meta.get_field("gain"),
-        ExposureSettings._meta.get_field("offset"),
+        #(ExpertObservation._meta.get_field("frames_per_filter"), "Frames per filter"),
+        (ExpertObservation._meta.get_field("dither_every"), "dither every"),
+         (ExposureSettings._meta.get_field("binning"), "binning"),
+          (ExposureSettings._meta.get_field("subFrame"), "sub frame"),
+           (ExposureSettings._meta.get_field("gain"), "gain"),
+            (ExposureSettings._meta.get_field("offset"), "offset"),
     ]
+
     exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies({Dependency.observation_type.value:
                                                                               [ObservationType.EXPERT]})
-
     # imaging
     frames_per_filter = TURMModelField(ExpertObservation._meta.get_field("frames_per_filter")).add_dependencies({
         Dependency.observation_type.value:
-            [ObservationType.IMAGING]})
+            [ObservationType.IMAGING, ObservationType.MONITORING, ObservationType.EXPERT]})
 
     # exoplanet
-    # start_observation = TURMModelField(ExpertObservation._meta.get_field("start_observation"))
-    # end_observation =  TURMModelField(ExpertObservation._meta.get_field("end_observation"))
+    star_end_observation = (TURMGridField([(ExpertObservation._meta.get_field("start_observation"), "start observation"),
+                                (ExpertObservation._meta.get_field("end_observation"), "end observation")], (2, 1))
+                  .add_dependencies({Dependency.observation_type.value: [ObservationType.EXOPLANET, ObservationType.EXPERT]}))
 
     # variable
-    minimum_altitude = TURMModelField(ExpertObservation._meta.get_field("minimum_altitude"))
+    minimum_altitude = TURMModelField(ExpertObservation._meta.get_field("minimum_altitude")).add_dependencies({
+        Dependency.observation_type.value: [ObservationType.VARIABLE, ObservationType.EXPERT]
+    })
 
     # monitoring
-    # start_scheduling = TURMModelField(ExpertObservation._meta.get_field("start_scheduling"))
-    # end_scheduling = TURMModelField(ExpertObservation._meta.get_field("end_scheduling"))
-    cadence = TURMModelField(ExpertObservation._meta.get_field("cadence"))
+    scheduling = (TURMGridField([(ExpertObservation._meta.get_field("start_scheduling"), "start scheduling"),
+                                (ExpertObservation._meta.get_field("end_scheduling"), "end scheduling")], (2, 1))
+                  .add_dependencies({Dependency.observation_type.value: [ObservationType.MONITORING, ObservationType.EXPERT]}))
+
+    cadence = TURMModelField(ExpertObservation._meta.get_field("cadence")).add_dependencies({
+        Dependency.observation_type.value: [ObservationType.MONITORING, ObservationType.EXPERT]})
 

@@ -87,6 +87,28 @@ class TURMFloatInput(_TURMNumericInput):
                          *args, **kwargs)
         self.attrs["oninput"] = "discard_input(event, this, '[^\\\\d*\\\\s*\\\\.*]')" #todo restrict multiple dots
 
+""" --- TURM Choice Inputs """
+
+class _TURMDateTimeInput(_TURMInput):
+    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
+        super().__init__(name, *args, **kwargs)
+        if minimum: self.attrs["min"] = minimum
+        if maximum: self.attrs["max"] = maximum
+
+    def render(self, name, value, attrs=None, renderer=None):
+        return mark_safe(f'<input {self._render_attrs(attrs)}></input>')
+
+class TURMDateTimeInput(_TURMDateTimeInput):
+    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
+        super().__init__(name, minimum, maximum, *args, **kwargs)
+        if minimum: self.attrs["type"] = "datetime"
+
+class TURMDateInput(_TURMDateTimeInput):
+    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
+        super().__init__(name, minimum, maximum*args, **kwargs)
+        if minimum: self.attrs["type"] = "date"
+
+
 
 """ --- TURM Choice Inputs """
 class _TURMChoiceInput(_TURMInput):
@@ -160,15 +182,15 @@ class TURMGridInput(_TURMInput):
     widgets = []
     grid_dim = ()
 
-    def __init__(self, widgets: list[_TURMInput], grid_dim=(1, 1), *args, **kwargs):
+    def __init__(self, widgets: list[tuple[_TURMInput, str]], grid_dim=(1, 1), *args, **kwargs):
         super().__init__(name="", *args, *kwargs)
         self.widgets = widgets
         self.grid_dim = grid_dim
 
     def render(self, name, value, attrs=None, renderer=None):
         html_render = f'<div class="grid_input_div" style="{self.render_rows_style()}">'
-        for widget in self.widgets:
-            html_render += f'<div><label for="id_{widget.attrs["name"]}">{widget.attrs["name"]}</label>'
+        for widget, w_name in self.widgets:
+            html_render += f'<div><label for="id_{widget.attrs["name"]}">{w_name}</label>'
             html_render += widget.render(widget.attrs["name"], value, {"id": f'id_{widget.attrs["name"]}'}, renderer)
             html_render += '</div>'
         html_render += f'</div>'
@@ -185,12 +207,12 @@ class TURMGridInput(_TURMInput):
         return style_render
 
     def add_dependencies(self, dependencies):
-        for widget in self.widgets:
+        for widget, _ in self.widgets:
             widget.add_dependencies(dependencies)
         return self
 
     def add_dependency_generator(self, dependency_generator):
-        for widget in self.widgets:
+        for widget, _ in self.widgets:
             if isinstance(widget, _TURMChoiceInput):
                 widget.add_dependency_generator(dependency_generator)
         return self
