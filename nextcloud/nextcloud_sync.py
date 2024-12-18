@@ -18,17 +18,17 @@ logger = logging.getLogger(__name__)
 
 
 def get_nextcloud_path(
-    abstract_observation: AbstractObservation, dec_offset: int = 5
+    abstract_observation: AbstractObservation
 ) -> str:
     """
     Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
     Observation_ID is the unique identifier for all observations.
 
     :param abstract_observation: Abstract observation. Is instance of subclass of AbstractObservation and contains all necessary information to build the path
-    :param dec_offset: Leading zero padding for observation id in file name
     :return path of the file in nextcloud
     """
 
+    DEC_OFFSET = 5
     # get the name of the project. Inefficient to get serializer again, but prevents necessity of another argument
     project_name = get_serializer(abstract_observation.observation_type)(
         abstract_observation
@@ -36,7 +36,7 @@ def get_nextcloud_path(
 
     observatory_string = str(abstract_observation.observatory.name).upper()
     obs_id = abstract_observation.id
-    formatted_id = f"{obs_id:0{dec_offset}}"
+    formatted_id = f"{obs_id:0{DEC_OFFSET}}"
 
     return (
         observatory_string + "/Projects/" + formatted_id + "_" + project_name + ".json"
