@@ -86,7 +86,7 @@ def upload_file(
 
     :param nc_path: Files path on the Nextcloud server
     :param local_path: Local path of the file to upload
-    :param overwrite_existing: Whether to overwrite a file with same path already exists
+    :param overwrite_existing: Whether an existing file should be overwritten
     :return True if new file was uploaded, else False
     """
 
@@ -110,7 +110,7 @@ def upload_dict(
 
     :param nc_path: File path on the Nextcloud server
     :param data: Dict to be uploaded
-    :param overwrite_existing: Whether to overwrite a file with same path already exists
+    :param overwrite_existing: Whether an existing file should be overwritten
     :param indent: Number of spaces per indent for the generated JSON
     :return True if new file was uploaded, else False
     """
