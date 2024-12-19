@@ -1,3 +1,4 @@
+import unittest
 
 import django.test
 from django.contrib.auth.models import User
@@ -88,6 +89,7 @@ def _clear_data():
         pass
 
 
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class DSGVOUserDataTestCase(django.test.TestCase):
     def setUp(self):
         initialize_connection()
