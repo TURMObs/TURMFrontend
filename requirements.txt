@@ -6,3 +6,5 @@ astropy>=6.0
 django-polymorphic @ git+https://github.com/jazzband/django-polymorphic.git@v4.0.0a#egg=django-polymorphic
 setuptools>=65.0.0
 nc_py_api>=0.18.0
+numpy~=2.1.3
+regex~=2024.11.6

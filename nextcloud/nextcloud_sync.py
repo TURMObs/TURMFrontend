@@ -1,5 +1,7 @@
 from itertools import chain
 from django.utils import timezone
+from nc_py_api import NextcloudException
+
 from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
@@ -15,32 +17,6 @@ Method upload_observation is supposed to be triggered using a cron-Job
 """
 
 logger = logging.getLogger(__name__)
-
-
-def get_nextcloud_path(
-    abstract_observation: AbstractObservation
-) -> str:
-    """
-    Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
-    Observation_ID is the unique identifier for all observations.
-
-    :param abstract_observation: Abstract observation. Is instance of subclass of AbstractObservation and contains all necessary information to build the path
-    :return path of the file in nextcloud
-    """
-
-    DEC_OFFSET = 5
-    # get the name of the project. Inefficient to get serializer again, but prevents necessity of another argument
-    project_name = get_serializer(abstract_observation.observation_type)(
-        abstract_observation
-    ).data["name"]
-
-    observatory_string = str(abstract_observation.observatory.name).upper()
-    obs_id = abstract_observation.id
-    formatted_id = f"{obs_id:0{DEC_OFFSET}}"
-
-    return (
-        observatory_string + "/Projects/" + formatted_id + "_" + project_name + ".json"
-    )
 
 
 def calc_progress(observation: dict) -> float:
@@ -98,15 +74,15 @@ def upload_observations(today=timezone.now()):
     logger.info(f"Uploading {len(list_to_upload)} observations ...")
     try:
         nm.initialize_connection()
-    except Exception:
-        logger.error("Failed to initialize connection ...")
+    except NextcloudException as e:
+        logger.error(f"Failed to initialize connection: {e}")
 
     for obs in list_to_upload:
         serializer_class = get_serializer(obs.observation_type)
         serializer = serializer_class(obs)
 
         obs_dict = serializer.data
-        nc_path = get_nextcloud_path(obs)
+        nc_path = nm.generate_observation_path(obs)
         try:
             nm.upload_dict(nc_path, obs_dict)
             obs.project_status = ObservationStatus.UPLOADED
@@ -114,8 +90,8 @@ def upload_observations(today=timezone.now()):
                 f"Uploaded observation {obs_dict['name']} with id {obs.id} to {nc_path}"
             )
 
-        except Exception:
+        except NextcloudException as e:
             logger.error(
-                f"Failed to upload observation {obs_dict['name']} with id {obs.id}"
+                f"Failed to upload observation {obs_dict['name']} with id {obs.id}: {e}"
             )
         obs.save()
