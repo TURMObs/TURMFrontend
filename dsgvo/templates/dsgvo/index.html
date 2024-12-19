@@ -109,7 +109,6 @@
     }
     </style>
 {% endblock %}
-
 {% block content %}
     <div class="container_center">
         <div class="container_column">
@@ -118,9 +117,7 @@
             <button id="deleteBtn">Delete User Data</button>
         </div>
     </div>
-
     <meta name="csrf-token" content="{{ csrf_token }}">
-
     <script>
         function getCSRFToken() {
             return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -162,5 +159,4 @@
     });
 
     </script>
-
 {% endblock %}
