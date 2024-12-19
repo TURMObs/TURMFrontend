@@ -15,12 +15,8 @@ from django.core.management import call_command
 from numpy.ma.testutils import assert_equal
 
 from nextcloud import nextcloud_manager as nm
-from nextcloud.nextcloud_manager import file_exists
-from nextcloud.nextcloud_sync import (
-    upload_observations,
-    calc_progress,
-    get_nextcloud_path,
-)
+from nextcloud.nextcloud_manager import file_exists, generate_observation_path
+from nextcloud.nextcloud_sync import upload_observations, calc_progress
 from observation_data.models import (
     AbstractObservation,
     ObservationType,
@@ -282,7 +278,7 @@ def _obs_exists_in_nextcloud(obs: AbstractObservation) -> bool:
     :param obs: AbstractObservation to check whether it exists in nextcloud
     :return True if Observation exists in nextcloud; else false
     """
-    return nm.file_exists(get_nextcloud_path(obs))
+    return nm.file_exists(generate_observation_path(obs))
 
 
 def _get_obs_by_id(obs_id: int) -> AbstractObservation:
@@ -335,6 +331,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         self.assertTrue(are_eq)
         nm.delete(file_nc)
 
+    # noinspection PyTypeChecker
     def test_nc_upload_and_download_dict(self):
         with open(dict_upload, "r") as f:
             data = json.load(f)
@@ -434,7 +431,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
         )
         observation = AbstractObservation.objects.all()[0]
         self.assertEqual(
-            get_nextcloud_path(observation), "TURMX/Projects/00042_Imaging_L_I1.json"
+            generate_observation_path(observation),
+            "TURMX/Projects/00042_Imaging_L_I1.json",
         )
 
     def test_upload_from_db_simple(self):
@@ -468,7 +466,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         # check if correct files were uploaded and status set accordingly
         for i, should_be_uploaded in enumerate(expected_uploads):
             obs = _get_obs_by_id(i)
-            obs_is_uploaded = file_exists(get_nextcloud_path(obs))
+            obs_is_uploaded = file_exists(generate_observation_path(obs))
             self.assertEqual(should_be_uploaded, obs_is_uploaded)
             if obs_is_uploaded:
                 assert_equal(obs.project_status, ObservationStatus.UPLOADED)
@@ -560,7 +558,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
                     f"Day: {i} – Expected upload: {should_be_uploaded}, actual: {is_uploaded} for obs {obs.id}",
                 )
                 if is_uploaded:
-                    nm.delete(get_nextcloud_path(obs))
+                    nm.delete(generate_observation_path(obs))
                     # Setting next upload needs to be done manually in test. During deployment will be handled during NC download. For testing, it assumes that the observation during this night succeeded.
                     obs.next_upload += timedelta(days=obs.cadence)
                     obs.save()
