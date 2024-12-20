@@ -172,6 +172,9 @@
                            aria-label="new project">
                             <span class="navbar_link">NEW PROJECT</span>
                         </a>
+                        <a class="navbar_link" href="{% url 'dsgvo' %}" aria-label="dsgvo">
+                            <span class="navbar_link">USER DATA SETTINGS</span>
+                        </a>
                         {% if request.user.is_superuser %}
                             <a class="navbar_link"
                                href="{% url 'generate-invitation' %}"

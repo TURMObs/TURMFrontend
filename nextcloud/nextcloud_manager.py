@@ -16,9 +16,13 @@ import json
 import os
 from io import BytesIO
 from os import PathLike
+import re
 
 from nc_py_api import Nextcloud, NextcloudException
 from dotenv import load_dotenv
+
+from observation_data.models import AbstractObservation
+from observation_data.serializers import get_serializer
 
 nc: Nextcloud
 
@@ -71,8 +75,58 @@ def file_exists(nc_path: PathLike[bytes] | str) -> bool:
             if file.user_path == nc_path:
                 return True
         return False
-    except Exception:
+    except NextcloudException:
         return False
+
+
+@_check_initialized
+def get_observation_file(observation: AbstractObservation) -> str | None:
+    """
+    Returns the path of the observation request file in the nextcloud if it exists, else None
+
+    :param observation: Abstract observation
+    :return path of the file in nextcloud or None if the file does not exist
+    """
+    observatory_string = str(observation.observatory.name).upper()
+    base_path = observatory_string + "/Projects/"
+    obs_id = observation.id
+    target_pattern = re.compile(rf"(?<!\d)0*{obs_id}_")
+    try:
+        file_dir = nc.files.listdir(base_path)
+        for file in file_dir:
+            path = os.path.basename(file.user_path)
+            if target_pattern.match(path):
+                return file.user_path
+    except NextcloudException:
+        return None
+    return None
+
+
+@_check_initialized
+def generate_observation_path(
+    observation: AbstractObservation, dec_offset: int = 5
+) -> str:
+    """
+    Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
+    Observation_ID is the unique identifier for all observations.
+
+    :param observation: Abstract observation. Is instance of subclass of AbstractObservation and contains all necessary information to build the path
+    :param dec_offset: 0 padding for the observation ID in the file name
+    :return path of the file in the nextcloud
+    """
+
+    # get the name of the project. Inefficient to get serializer again, but prevents necessity of another argument
+    project_name = get_serializer(observation.observation_type)(observation).data[
+        "name"
+    ]
+
+    observatory_string = str(observation.observatory.name).upper()
+    obs_id = observation.id
+    formatted_id = f"{obs_id:0{dec_offset}}"
+
+    return (
+        observatory_string + "/Projects/" + formatted_id + "_" + project_name + ".json"
+    )
 
 
 @_check_initialized
