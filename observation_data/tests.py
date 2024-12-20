@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import timezone, datetime
+from datetime import datetime, timezone, timedelta
 
 import django.test
 from django.core.management import call_command
@@ -165,20 +165,28 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def test_exoplanet_insert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
         self._test_observation_insert(
             ObservationType.EXOPLANET,
             {
-                "start_observation": "2021-01-01T00:00:00Z",
-                "end_observation": "2021-01-01T01:00:00Z",
+                "start_observation": start.isoformat(),
+                "end_observation": end.isoformat(),
             },
         )
 
     def test_exoplanet_insert_flat(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
         self._test_observation_insert(
             ObservationType.EXOPLANET,
             {
-                "start_observation": "2021-01-02T00:00:00Z",
-                "end_observation": "2021-01-02T01:00:00Z",
+                "start_observation": start.isoformat(),
+                "end_observation": end.isoformat(),
             },
             flat=True,
         )
@@ -219,6 +227,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_expert_insert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
         self.user.is_superuser = True
         self.user.save()
         self._test_observation_insert(
@@ -230,10 +242,10 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "subframe": "Full",
                 "gain": 1,
                 "offset": 1,
-                "start_observation": "2021-01-01T00:00:00Z",
-                "end_observation": "2021-01-01T01:00:00Z",
-                "start_scheduling": "2021-01-01T00:00:00Z",
-                "end_scheduling": "2021-01-01T01:00:00Z",
+                "start_observation": start.isoformat(),
+                "end_observation": end.isoformat(),
+                "start_scheduling": start.isoformat(),
+                "end_scheduling": end.isoformat(),
                 "cadence": 1,
                 "moon_separation_angle": 30.0,
                 "moon_separation_width": 7.0,
@@ -244,6 +256,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_expert_insert_flat(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
         self.user.is_superuser = True
         self.user.save()
         self._test_observation_insert(
@@ -255,10 +271,10 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "subframe": "Full",
                 "gain": 1,
                 "offset": 1,
-                "start_observation": "2021-01-01T00:00:00Z",
-                "end_observation": "2021-01-01T01:00:00Z",
-                "start_scheduling": "2021-01-01T00:00:00Z",
-                "end_scheduling": "2021-01-01T01:00:00Z",
+                "start_observation": start.isoformat(),
+                "end_observation": end.isoformat(),
+                "start_scheduling": start.isoformat(),
+                "end_scheduling": end.isoformat(),
                 "cadence": 1,
                 "moon_separation_angle": 30.0,
                 "moon_separation_width": 7.0,
@@ -331,10 +347,10 @@ class ObservationCreationTestCase(django.test.TestCase):
             self.assertIsInstance(overlapping, list)
             self.assertEqual(len(overlapping), 1)
             start_time = datetime.fromisoformat(
-                overlapping[0]["targets"][0]["startDateTime"]
+                overlapping[0]["start_observation"]
             )
             end_time = datetime.fromisoformat(
-                overlapping[0]["targets"][0]["endDateTime"]
+                overlapping[0]["end_observation"]
             )
 
             self.assertEqual(
@@ -343,34 +359,37 @@ class ObservationCreationTestCase(django.test.TestCase):
             self.assertEqual(end_time.replace(tzinfo=None), end1.replace(tzinfo=None))
 
     def test_whole_overlap_exoplanet(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_exoplanet_overlap(
-            datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 0, 15, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 0, 45, tzinfo=timezone.utc),
+            base_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
             400,
         )
 
     def test_partial_overlap_exoplanet_end(self):
-        # First test: check partial overlap from start of second observation
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_exoplanet_overlap(
-            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 15, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 30, tzinfo=timezone.utc),
+            base_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=0, minute=30, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=30, second=0, microsecond=0),
             400,
         )
 
     def test_partial_overlap_exoplanet_start(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_exoplanet_overlap(
-            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 15, tzinfo=timezone.utc),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=2, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=30, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=45, second=0, microsecond=0),
             400,
         )
 
     def test_overlap_expert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self.user.is_superuser = True
         self.user.save()
         data = self.base_request.copy()
@@ -380,10 +399,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["binning"] = 1
         data["subframe"] = "Full"
         data["gain"] = 1
-        data["start_observation"] = "2021-01-01T00:00:00Z"
-        data["end_observation"] = "2021-01-01T01:00:00Z"
-        data["start_scheduling"] = "2021-01-01T00:00:00Z"
-        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["start_observation"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        data["end_observation"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
+        data["start_scheduling"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        data["end_scheduling"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -394,26 +413,41 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
-        data["start_observation"] = "2021-01-01T00:30:00Z"
-        data["end_observation"] = "2021-01-01T01:30:00Z"
+        data["start_observation"] = base_time.replace(hour=1, minute=30, second=0, microsecond=0).isoformat()
+        data["end_observation"] = base_time.replace(hour=2, minute=0, second=0, microsecond=0).isoformat()
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+        data = self.base_request.copy()
+        data["observation_type"] = "Exoplanet"
+        data["start_observation"] = base_time.replace(hour=2, minute=5, second=0, microsecond=0).isoformat()
+        data["end_observation"] = base_time.replace(hour=2, minute=30, second=0, microsecond=0).isoformat()
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+        data["start_observation"] = base_time.replace(hour=0, minute=30, second=0, microsecond=0).isoformat()
+        data["end_observation"] = base_time.replace(hour=3, minute=30, second=0, microsecond=0).isoformat()
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(len(response.json()["overlapping_observations"]), 3)
 
     def test_no_overlap_exoplanet(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_exoplanet_overlap(
-            datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 2, 0, tzinfo=timezone.utc),
+            base_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=2, minute=0, second=0, microsecond=0),
             201,
         )
 
     def test_overlap_different_observatory(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_exoplanet_overlap(
-            datetime(2020, 1, 1, 0, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 0, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 0, 15, tzinfo=timezone.utc),
-            datetime(2020, 1, 1, 1, 45, tzinfo=timezone.utc),
+            base_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=1, minute=0, second=0, microsecond=0),
+            base_time.replace(hour=0, minute=15, second=0, microsecond=0),
+            base_time.replace(hour=2, minute=0, second=0, microsecond=0),
             201,
             obs1="TURMX",
             obs2="TURMX2",
@@ -475,6 +509,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_valid_exposure_time_expert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         data = self._get_flat_base_request()
         data["observation_type"] = "Expert"
         data["frames_per_filter"] = 1
@@ -483,10 +518,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["subframe"] = "Full"
         data["gain"] = 1
         data["exposure_time"] = 31  # valid because it's an expert observation
-        data["start_observation"] = "2021-01-01T00:00:00Z"
-        data["end_observation"] = "2021-01-01T01:00:00Z"
-        data["start_scheduling"] = "2021-01-01T00:00:00Z"
-        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["start_observation"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        data["end_observation"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
+        data["start_scheduling"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        data["end_scheduling"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -498,6 +533,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def test_invalid_exposure_time_expert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
         data = self._get_flat_base_request()
         data["observation_type"] = "Expert"
         data["frames_per_filter"] = 1
@@ -506,10 +545,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["subframe"] = "Full"
         data["gain"] = 1
         data["exposure_time"] = 1801  # invalid because it's out of range
-        data["start_observation"] = "2021-01-01T00:00:00Z"
-        data["end_observation"] = "2021-01-01T01:00:00Z"
-        data["start_scheduling"] = "2021-01-01T00:00:00Z"
-        data["end_scheduling"] = "2021-01-01T01:00:00Z"
+        data["start_observation"] = start.isoformat()
+        data["end_observation"] = end.isoformat()
+        data["start_scheduling"] = start.isoformat()
+        data["end_scheduling"] = end.isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0

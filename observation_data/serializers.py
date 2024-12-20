@@ -4,9 +4,9 @@ For a usage example, see the create_observation view in the views.py file.
 """
 
 from collections import OrderedDict
-from datetime import datetime, timezone
 from decimal import Decimal
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from .data_verification import (
@@ -63,7 +63,7 @@ def _create_observation(validated_data, observation_type, model):
 
     validated_data["project_status"] = ObservationStatus.PENDING
     validated_data["project_completion"] = 0.0
-    validated_data["created_at"] = datetime.now(timezone.utc)
+    validated_data["created_at"] = timezone.now()
 
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
@@ -200,7 +200,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     return rep
 
 
-def _validate_fields(attrs):
+def _validate_fields(attrs, validate_times=False):
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
@@ -214,6 +214,15 @@ def _validate_fields(attrs):
         filter_errors = verify_filter_selection(filters, observatory)
         if filter_errors:
             errors = {**errors, **filter_errors}
+
+    if validate_times:
+        time_errors = validate_time_range(
+            attrs.get("start_observation"),
+            attrs.get("end_observation"),
+            attrs.get("observatory"),
+        )
+        if time_errors:
+            errors = {**errors, **time_errors}
 
     if errors:
         raise serializers.ValidationError(errors)
@@ -282,12 +291,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        validate_time_range(
-            attrs.get("start_observation"),
-            attrs.get("end_observation"),
-            attrs.get("observatory"),
-        )
-        _validate_fields(attrs)
+        _validate_fields(attrs, validate_times=True)
         return attrs
 
     def create(self, validated_data):
@@ -413,12 +417,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        validate_time_range(
-            attrs.get("start_observation"),
-            attrs.get("end_observation"),
-            attrs.get("observatory"),
-        )
-        _validate_fields(attrs)
+        _validate_fields(attrs, validate_times=True)
         return attrs
 
     def create(self, validated_data):
