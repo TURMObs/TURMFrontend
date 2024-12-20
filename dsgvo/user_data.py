@@ -50,6 +50,12 @@ def get_all_data(user: AbstractBaseUser):
 
     data["user"] = model_to_dict(user)
     data["user"]["password"] = "PASSWORD HASH"
+    empty_fields = []
+    for key, value in data["user"].items():
+        if value is None or value == "" or value == []:
+            empty_fields.append(key)
+    for field in empty_fields:
+        data["user"].pop(field)
 
     return data
 

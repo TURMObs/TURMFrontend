@@ -103,16 +103,18 @@ def get_observation_file(observation: AbstractObservation) -> str | None:
 
 
 @_check_initialized
-def generate_observation_path(observation: AbstractObservation) -> str:
+def generate_observation_path(
+    observation: AbstractObservation, dec_offset: int = 5
+) -> str:
     """
     Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
     Observation_ID is the unique identifier for all observations.
 
     :param observation: Abstract observation. Is instance of subclass of AbstractObservation and contains all necessary information to build the path
+    :param dec_offset: 0 padding for the observation ID in the file name
     :return path of the file in the nextcloud
     """
 
-    dec_offset = 5
     # get the name of the project. Inefficient to get serializer again, but prevents necessity of another argument
     project_name = get_serializer(observation.observation_type)(observation).data[
         "name"

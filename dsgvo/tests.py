@@ -21,7 +21,18 @@ from observation_data.models import (
 )
 
 
-# Create your tests here.
+def _create_observation(test_instance, data: dict, user: User = None):
+    prev_user = test_instance.user
+    if user is not None:
+        test_instance.client.logout()
+        test_instance.client.force_login(user)
+    response = test_instance.client.post(
+        path="/observation-data/create/", data=data, content_type="application/json"
+    )
+    test_instance.assertEqual(response.status_code, 201, response.json())
+    if user is not None:
+        test_instance.client.logout()
+        test_instance.client.force_login(prev_user)
 
 
 def _create_imaging_observation(test_instance, target_name: str, user: User = None):
@@ -38,17 +49,7 @@ def _create_imaging_observation(test_instance, target_name: str, user: User = No
         "frames_per_filter": 1,
         "required_amount": 100,
     }
-    prev_user = test_instance.user
-    if user is not None:
-        test_instance.client.logout()
-        test_instance.client.force_login(user)
-    response = test_instance.client.post(
-        path="/observation-data/create/", data=data, content_type="application/json"
-    )
-    test_instance.assertEqual(response.status_code, 201, response.json())
-    if user is not None:
-        test_instance.client.logout()
-        test_instance.client.force_login(prev_user)
+    _create_observation(test_instance, data, user)
     return ImagingObservation.objects.get(target__name=target_name)
 
 
@@ -67,17 +68,7 @@ def _create_variable_observation(test_instance, target_name: str, user: User = N
         "minimum_altitude": 30.0,
         "required_amount": 450,
     }
-    prev_user = test_instance.user
-    if user is not None:
-        test_instance.client.logout()
-        test_instance.client.force_login(user)
-    response = test_instance.client.post(
-        path="/observation-data/create/", data=data, content_type="application/json"
-    )
-    test_instance.assertEqual(response.status_code, 201, response.json())
-    if user is not None:
-        test_instance.client.logout()
-        test_instance.client.force_login(prev_user)
+    _create_observation(test_instance, data, user)
     return VariableObservation.objects.get(target__name=target_name)
 
 
@@ -111,9 +102,6 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertEqual(len(data["observation_requests"]), 2)
         self.assertIn("user", data)
         for expected_key in [
-            "first_name",
-            "groups",
-            "last_name",
             "id",
             "is_staff",
             "is_active",
@@ -122,7 +110,6 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         ]:
             self.assertIn(expected_key, data["user"])
         self.assertEqual(data["user"]["username"], "testuser")
-        self.assertEqual(data["user"]["email"], "")
         self.assertEqual(data["user"]["password"], "PASSWORD HASH")
 
     def test_data_deletion(self):
