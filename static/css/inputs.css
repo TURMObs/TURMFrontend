@@ -1,5 +1,13 @@
-input[type=text]/*, input[type=number] */ {
-    background-color: #5a090d;
+input[type=text], input[type=date], input[type=datetime-local] {
+    width: 100%;
+    height: 3em;
+    background: transparent;
+    outline: none;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2em;
+    font-size: 16px;
+    color: #fff;
+    padding: 20px 45px 20px 20px;
 }
 
 .radio_input_div input[type=radio] {
