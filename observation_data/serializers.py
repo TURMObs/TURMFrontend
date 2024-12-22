@@ -11,8 +11,9 @@ from rest_framework import serializers
 
 from .data_verification import (
     verify_field_integrity,
-    validate_time_range,
+    validate_observation_time,
     verify_filter_selection,
+    validate_schedule_time,
 )
 from .models import (
     CelestialTarget,
@@ -200,10 +201,11 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     return rep
 
 
-def _validate_fields(attrs, validate_times=False):
+def _validate_fields(attrs, validate_times=False, validate_scheduling=False):
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
+        print(name, value)
         error = verify_field_integrity(name, value, observation_type)
         if error:
             errors = {**errors, **error}
@@ -216,10 +218,18 @@ def _validate_fields(attrs, validate_times=False):
             errors = {**errors, **filter_errors}
 
     if validate_times:
-        time_errors = validate_time_range(
+        time_errors = validate_observation_time(
             attrs.get("start_observation"),
             attrs.get("end_observation"),
             attrs.get("observatory"),
+        )
+        if time_errors:
+            errors = {**errors, **time_errors}
+
+    if validate_scheduling:
+        time_errors = validate_schedule_time(
+            attrs.get("start_scheduling"),
+            attrs.get("end_scheduling"),
         )
         if time_errors:
             errors = {**errors, **time_errors}

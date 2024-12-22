@@ -289,7 +289,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user.is_superuser = False
         self.user.save()
         data = self.base_request.copy()
-        data["observation_type"] = "Expert"
+        data["observation_type"] = ObservationType.EXPERT
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
@@ -300,7 +300,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_wrong_observatory(self):
         data = self.base_request.copy()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 1
         data["observatory"] = "INVALID"
         data["user"] = self.user.id
@@ -309,7 +309,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_target_exists(self):
         data = self.base_request.copy()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
         data["user"] = self.user.id
@@ -329,7 +329,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         obs2="TURMX",
     ):
         data = self.base_request.copy()
-        data["observation_type"] = "Exoplanet"
+        data["observation_type"] = ObservationType.EXOPLANET
         data["start_observation"] = start1
         data["end_observation"] = end1
         data["observatory"] = obs1
@@ -346,12 +346,8 @@ class ObservationCreationTestCase(django.test.TestCase):
             overlapping = response.json().get("overlapping_observations", [])
             self.assertIsInstance(overlapping, list)
             self.assertEqual(len(overlapping), 1)
-            start_time = datetime.fromisoformat(
-                overlapping[0]["start_observation"]
-            )
-            end_time = datetime.fromisoformat(
-                overlapping[0]["end_observation"]
-            )
+            start_time = datetime.fromisoformat(overlapping[0]["start_observation"])
+            end_time = datetime.fromisoformat(overlapping[0]["end_observation"])
 
             self.assertEqual(
                 start_time.replace(tzinfo=None), start1.replace(tzinfo=None)
@@ -393,16 +389,24 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user.is_superuser = True
         self.user.save()
         data = self.base_request.copy()
-        data["observation_type"] = "Expert"
+        data["observation_type"] = ObservationType.EXPERT
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
         data["subframe"] = "Full"
         data["gain"] = 1
-        data["start_observation"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        data["end_observation"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
-        data["start_scheduling"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        data["end_scheduling"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
+        data["start_observation"] = base_time.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ).isoformat()
+        data["end_observation"] = base_time.replace(
+            hour=1, minute=0, second=0, microsecond=0
+        ).isoformat()
+        data["start_scheduling"] = base_time.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ).isoformat()
+        data["end_scheduling"] = base_time.replace(
+            hour=1, minute=0, second=0, microsecond=0
+        ).isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -413,20 +417,32 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
-        data["start_observation"] = base_time.replace(hour=1, minute=30, second=0, microsecond=0).isoformat()
-        data["end_observation"] = base_time.replace(hour=2, minute=0, second=0, microsecond=0).isoformat()
+        data["start_observation"] = base_time.replace(
+            hour=1, minute=30, second=0, microsecond=0
+        ).isoformat()
+        data["end_observation"] = base_time.replace(
+            hour=2, minute=0, second=0, microsecond=0
+        ).isoformat()
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
         data = self.base_request.copy()
-        data["observation_type"] = "Exoplanet"
-        data["start_observation"] = base_time.replace(hour=2, minute=5, second=0, microsecond=0).isoformat()
-        data["end_observation"] = base_time.replace(hour=2, minute=30, second=0, microsecond=0).isoformat()
+        data["observation_type"] = ObservationType.EXOPLANET
+        data["start_observation"] = base_time.replace(
+            hour=2, minute=5, second=0, microsecond=0
+        ).isoformat()
+        data["end_observation"] = base_time.replace(
+            hour=2, minute=30, second=0, microsecond=0
+        ).isoformat()
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
 
-        data["start_observation"] = base_time.replace(hour=0, minute=30, second=0, microsecond=0).isoformat()
-        data["end_observation"] = base_time.replace(hour=3, minute=30, second=0, microsecond=0).isoformat()
+        data["start_observation"] = base_time.replace(
+            hour=0, minute=30, second=0, microsecond=0
+        ).isoformat()
+        data["end_observation"] = base_time.replace(
+            hour=3, minute=30, second=0, microsecond=0
+        ).isoformat()
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 400, response.json())
         self.assertEqual(len(response.json()["overlapping_observations"]), 3)
@@ -455,7 +471,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_invalid_ra_format(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["ra"] = "17 45 40.1234X"
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
@@ -466,7 +482,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_invalid_dec_format(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["dec"] = "-29 00 28.1234X"
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
@@ -477,7 +493,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_ra_out_of_range(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["ra"] = "24 00 00.00000000"
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
@@ -488,7 +504,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_dec_out_of_range(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["dec"] = "-90 00 00.00000000"
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
@@ -499,7 +515,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_invalid_exposure_time(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["exposure_time"] = 31  # not a valid option
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
@@ -511,17 +527,25 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_valid_exposure_time_expert(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
         data = self._get_flat_base_request()
-        data["observation_type"] = "Expert"
+        data["observation_type"] = ObservationType.EXPERT
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
         data["subframe"] = "Full"
         data["gain"] = 1
         data["exposure_time"] = 31  # valid because it's an expert observation
-        data["start_observation"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        data["end_observation"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
-        data["start_scheduling"] = base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        data["end_scheduling"] = base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat()
+        data["start_observation"] = base_time.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ).isoformat()
+        data["end_observation"] = base_time.replace(
+            hour=1, minute=0, second=0, microsecond=0
+        ).isoformat()
+        data["start_scheduling"] = base_time.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ).isoformat()
+        data["end_scheduling"] = base_time.replace(
+            hour=1, minute=0, second=0, microsecond=0
+        ).isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -538,7 +562,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
 
         data = self._get_flat_base_request()
-        data["observation_type"] = "Expert"
+        data["observation_type"] = ObservationType.EXPERT
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
@@ -563,7 +587,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_invalid_frames_per_filter(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 10001  # Out of valid range
         data["required_amount"] = 100
         response = self._send_post_request(data)
@@ -573,7 +597,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_invalid_required_amount(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["required_amount"] = 100001  # Out of valid range
         data["frames_per_filter"] = 1
         response = self._send_post_request(data)
@@ -583,7 +607,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_missing_required_amount_and_invalid_dec(self):
         data = self._get_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 1
         data["target"]["dec"] = "-29 00 XX.1699"
         response = self._send_post_request(data)
@@ -600,7 +624,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     # noinspection PyTypedDict
     def test_invalid_filter(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
         data["filter_set"] = ["X"]
@@ -611,7 +635,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_missing_filters(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
         data.pop("filter_set")
@@ -622,7 +646,7 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_unavailable_filters(self):
         data = self._get_flat_base_request()
-        data["observation_type"] = "Imaging"
+        data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
         data["filter_set"] = [
@@ -639,6 +663,24 @@ class ObservationCreationTestCase(django.test.TestCase):
                     "Filter SR is not available at observatory TURMX.",
                     "Filter SI is not available at observatory TURMX.",
                 ]
+            },
+        )
+
+    def test_multiple_errors(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = ObservationType.EXOPLANET
+        data["frames_per_filter"] = 1
+        data["required_amount"] = -1
+        data["filter_set"] = [Filter.FilterType.RED]
+        data["start_observation"] = "2021-01-01T01:00:00Z"
+        data["end_observation"] = "2021-01-01T00:00:00Z"
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response,
+            400,
+            {
+                "time_range": ["Start time must be before end time."],
+                "start_time": ["Start time must be in the future."],
             },
         )
 

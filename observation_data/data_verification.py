@@ -3,7 +3,6 @@ import logging
 import re
 
 from django.utils import timezone
-from rest_framework import serializers
 
 from observation_data.models import (
     ExoplanetObservation,
@@ -79,7 +78,7 @@ def _check_overlapping_observation(
         )
     )
     overlapping_times = []
-    for overlapping in (overlapping_exoplanet + overlapping_expert):
+    for overlapping in overlapping_exoplanet + overlapping_expert:
         overlapping_times.append(
             {
                 "start_observation": overlapping.start_observation,
@@ -104,6 +103,7 @@ def verify_field_integrity(name, value, observation_type):
         case "frames_per_filter":
             return _assert_number_in_range(name, value, 1, 1000)
         case "required_amount":
+            print("required_amount")
             return _assert_number_in_range(name, value, 1, 1000)
         case "ra":
             return _assert_matches_regex(
@@ -175,7 +175,7 @@ def verify_filter_selection(filters, observatory):
     return errors
 
 
-def validate_time_range(start_time, end_time, observatory):
+def validate_observation_time(start_time, end_time, observatory):
     """
     Validate that the start time is before the end time and that the observation does not overlap with existing observations for the selected Observatory.
     Also checks that the start time is in the future.
@@ -193,10 +193,35 @@ def validate_time_range(start_time, end_time, observatory):
         errors = {**errors, "start_time": "Start time must be in the future."}
 
     if start_time.year >= timezone.now().year + 10:
-        errors = {**errors, "year_range": "Start time must be within the next 10 years."}
+        errors = {
+            **errors,
+            "year_range": "Start time must be within the next 10 years.",
+        }
 
     overlapping = _check_overlapping_observation(start_time, end_time, observatory)
     if len(overlapping) != 0:
         errors = {**errors, "overlapping_observations": overlapping}
+
+    return errors
+
+
+def validate_schedule_time(start_scheduling, end_scheduling):
+    """
+    Validate that the start time is before the end time. Also checks that the start time is in the future.
+    :param start_scheduling: Start time
+    :param end_scheduling: End time
+    :return: Error if the time range is invalid or None if the time range is valid
+    """
+    errors = {}
+    if start_scheduling >= end_scheduling:
+        errors = {
+            **errors,
+            "scheduling_range": "Start scheduling must be before end scheduling.",
+        }
+    if start_scheduling <= timezone.now():
+        errors = {
+            **errors,
+            "start_scheduling": "Start scheduling must be in the future.",
+        }
 
     return errors
