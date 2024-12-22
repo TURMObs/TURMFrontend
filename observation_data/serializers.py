@@ -205,7 +205,6 @@ def _validate_fields(attrs, validate_times=False, validate_scheduling=False):
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
-        print(name, value)
         error = verify_field_integrity(name, value, observation_type)
         if error:
             errors = {**errors, **error}

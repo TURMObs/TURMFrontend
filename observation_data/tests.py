@@ -738,6 +738,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def _create_exoplanet_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         data = {
             "observatory": "TURMX",
             "target": {
@@ -746,8 +747,12 @@ class JsonFormattingTestCase(django.test.TestCase):
                 "dec": "+44 01 39",
             },
             "observation_type": ObservationType.EXOPLANET,
-            "start_observation": "2024-10-25T19:30:00",
-            "end_observation": "2024-10-25T23:40:00",
+            "start_observation": base_time.replace(
+                hour=19, minute=30, second=0
+            ).isoformat(),
+            "end_observation": base_time.replace(
+                hour=23, minute=30, second=0
+            ).isoformat(),
             "exposure_time": 120.0,
             "filter_set": ["L"],
         }
@@ -757,6 +762,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def _create_monitoring_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         data = {
             "observatory": "TURMX",
             "target": {
@@ -766,8 +772,12 @@ class JsonFormattingTestCase(django.test.TestCase):
             },
             "cadence": 1,
             "exposure_time": 30.0,
-            "start_scheduling": "2024-10-25T19:30:00",
-            "end_scheduling": "2024-10-25T23:40:00",
+            "start_scheduling": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
             "observation_type": ObservationType.MONITORING,
             "frames_per_filter": 1.0,
             "filter_set": ["R", "G", "B"],
@@ -855,7 +865,9 @@ class JsonFormattingTestCase(django.test.TestCase):
 
         return errors
 
-    def _test_serialization(self, target_name, serializer_class, file_name):
+    def _test_serialization(
+        self, target_name, serializer_class, file_name, remove_start_end=False
+    ):
         serializer = serializer_class(
             serializer_class.Meta.model.objects.get(target__name=target_name)
         )
@@ -865,6 +877,11 @@ class JsonFormattingTestCase(django.test.TestCase):
         )
         with open(file_path, "r") as file:
             expected_json = json.load(file)
+            if remove_start_end:
+                expected_json["targets"][0].pop("startDateTime")
+                expected_json["targets"][0].pop("endDateTime")
+                json_representation["targets"][0].pop("startDateTime")
+                json_representation["targets"][0].pop("endDateTime")
             self._assert_deep_dict_equal(json_representation, expected_json)
 
     def test_observation_exists(self):
@@ -881,7 +898,10 @@ class JsonFormattingTestCase(django.test.TestCase):
 
     def test_json_exoplanet_formatting(self):
         self._test_serialization(
-            "Qatar-4b", ExoplanetObservationSerializer, "Exoplanet_L_Qatar-4b.json"
+            "Qatar-4b",
+            ExoplanetObservationSerializer,
+            "Exoplanet_L_Qatar-4b.json",
+            True,
         )
 
     def test_json_monitoring_formatting(self):

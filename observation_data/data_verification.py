@@ -103,7 +103,6 @@ def verify_field_integrity(name, value, observation_type):
         case "frames_per_filter":
             return _assert_number_in_range(name, value, 1, 1000)
         case "required_amount":
-            print("required_amount")
             return _assert_number_in_range(name, value, 1, 1000)
         case "ra":
             return _assert_matches_regex(
