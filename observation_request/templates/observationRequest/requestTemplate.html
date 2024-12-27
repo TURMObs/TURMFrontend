@@ -1,374 +1,40 @@
 {% extends "base_template.html" %}
 {% block title %}Create Observation{% endblock %}
 {% block style %}
+    {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
           rel="stylesheet">
+    <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
     <style>
-    .form_body {
-        background-color: #313131;
-
-        width: 1140px;
-        min-width: 256px;
-        max-width: 1140px;
-
-        margin: 0.75em auto;
-
-        border-radius: 5px;
-
-        padding: 1em 30px;
-
-        color: white;
-        font-family: var(--tom-base-font), sans-serif;
-    }
-
-    label {
-        font-size: 1.15em;
-    }
-
-    label:disabled {
-        font-size: 1.15em;
-        color: var(--tom-disabled-grey);
-    }
-    label[disabled] {
-        font-size: 1.15em;
-        color: var(--tom-disabled-grey);
-    }
-
-
-    .input_text {
-        display: block;
-
-        margin-top: 0.25em;
-        margin-bottom: 0.75em;
-
-        border: .1em solid transparent;
-        border-radius: 5px;
-
-        padding: 0.5em;
-
-        width: 100%;
-
-
-        background-color: #242424;
-
-        color: white;
-        font-family: var(--tom-base-font), sans-serif;
-        font-size: 1.15em;
-    }
-
-    .input_text:focus {
-        outline: none;
-
-        border: .1em solid white;
-    }
-
-    .base_button {
-        background-color: var(--tom-primary-color);
-
-        border-radius: var(--tom-corner-radius);
-        border: .125em solid transparent;
-
-        font-family: var(--tom-base-font), sans-serif;
-        font-size: 1.15em;
-        padding: 0.5em;
-
-    }
-    .base_button:hover {
-
-        border: .125em solid white;
-    }
-    .base_button:active {
-        background-color: var(--tom-primary-color-dark);
-    }
-
-    .sub_form_heading {
-        margin-bottom: .5em;
-    }
-    .switch_button_container {
-        display: flex;
-        width: 1080px;
-
-        gap: 3px;
-    }
-    .observation_type_radio {
-        display: none;
-    }
-    .turm_radio_label {
-        background-color: var(--tom-disabled-grey);
-        padding: .5em;
-
-        flex: 1;
-        text-align: center;
-        font-weight: bold;
-
-
-    }
-    .turm_radio_label:hover {
-        background-color: var(--tom-accent-color);
-    }
-    .turm_radio_label:first-child {
-        -moz-border-radius-topleft: var(--tom-corner-radius);
-        -webkit-border-top-left-radius: var(--tom-corner-radius);
-        -moz-border-radius-bottomleft: var(--tom-corner-radius);
-        -webkit-border-bottom-left-radius: var(--tom-corner-radius);
-    }
-    .turm_radio_label:nth-last-child(2) {
-        border-left: transparent;
-
-
-        -moz-border-radius-topright: var(--tom-corner-radius);
-        -webkit-border-top-right-radius: var(--tom-corner-radius);
-        -moz-border-radius-bottomright: var(--tom-corner-radius);
-        -webkit-border-bottom-right-radius: var(--tom-corner-radius);
-    }
-
-    .turm_radio_label_active {
-        background-color: var(--tom-primary-color);
-    }
-
-    .turm_radio_label_active:hover {
-        background-color: var(--tom-primary-color-dark);
-    }
-
-    fieldset {
-        border: 0;
-        margin: 0;
-        padding: 0;
-    }
-    legend {
-        font-size: 1.15em;
-    }
-
-    .multiple_choice {
-        display: flex;
-        justify-content: space-between;
-        background-color: var(--tom-dark-grey);
-
-        margin-top: 0.25em;
-        margin-bottom: 0.75em;
-
-        border: .1em solid transparent;
-        border-radius: 5px;
-
-        padding: 0.5em;
-        color: white;
-        font-family: var(--tom-base-font), sans-serif;
-        font-size: 1.15em;
-
-    }
-    .multiple_choice_div {
-        display: flex;
-        gap: .5em;
-
-        margin: 0 1em;
-    }
-
-    .tooltip_div {
-        position: relative;
-        display: inline-block;
-    }
-
-    .tooltip_div .tooltiptext {
-        visibility: hidden;
-        width: 120px;
-        background-color: var(--tom-info-warning);
-        text-align: center;
-        padding: 5px 0;
-        border-radius: var(--tom-corner-radius);
-
-        position: absolute;
-        z-index: 1;
-        bottom: 100%;
-        left: 50%;
-        margin-left: -60px;
-    }
-
-    .tooltip_div:hover .tooltiptext {
-      visibility: visible;
-    }
     </style>
 {% endblock %}
+{% block scripts %}
+    <script src="{% static '/js/turminputs.js' %}"></script>
+    <script> onload = _ => {
+        check_radio_if_none_selected()
+    };</script>
+{% endblock %}
 {% block content %}
-    <div class="container_center">
-        <div class="container_column">
-            <header class="form_body">
-                <div class="container_center">
-                    <h1>create new Observation</h1>
-                </div>
-            </header>
-            <script>
-            window.onload = function() {
-                only_apply('Imaging', document.getElementById('Imaging'), 'observation_type_radio_label', true,
-                    'observation_type_dependent');
-                only_apply('turmx', document.getElementById('TURMX'), 'observatory_radio_label', false,
-                    'observatory_dependent');
-                apply_regex_filters();
-                //addEventListener('input', apply_regex);
-            };
-
-            function set_element_visibility(element, hidden) {
-                if (hidden) {
-                    element.style.display = 'none';
-                    element.setAttribute("disabled", "disabled");
-                } else {
-                    element.removeAttribute("style");
-                    element.removeAttribute("disabled");
-                }
-            }
-
-            function set_element_disable(element, disabled) {
-                if (disabled) {
-                    element.setAttribute("disabled", "disabled");
-                    if (element.tagName === "INPUT") {
-                        element.checked = false;
-                    }
-                } else {
-                    element.removeAttribute("disabled");
-                }
-            }
-
-            function only_apply(attribute, obj, input_selector, hide, effect_selector) {
-                const observation_labels = document.getElementsByClassName(input_selector)
-                for (let label of observation_labels) {
-
-                    if (obj === undefined) break
-                    obj.checked = true;
-                    if (label.htmlFor === obj.id) {
-                        label.classList.add('turm_radio_label_active')
-                    } else {
-                        label.classList.remove('turm_radio_label_active')
-                    }
-                }
-
-                const all_elements = Array.from(document.getElementsByClassName(effect_selector));
-
-                for (let el of all_elements) {
-                    const show = !!el.getAttribute("data-" + attribute);
-
-                    const labels = document.getElementsByTagName('label');
-                    let label = null;
-                    for (let l of labels) {
-                        if (l.htmlFor === el.id) {
-                            label = l;
-                        }
-                    }
-                    const tooltips = document.getElementsByClassName('tooltiptext');
-                    let tooltip = null;
-                    for (let t of tooltips) {
-                        if (t.getAttribute("data-tip_for") === el.id) {
-                            tooltip = t;
-                        }
-                    }
-
-                    if (hide) {
-                        set_element_visibility(label, !show);
-                        set_element_visibility(el, !show);
-                    } else {
-                        set_element_disable(label, !show);
-                        set_element_disable(el, !show);
-                        if (!!tooltip) set_element_visibility(tooltip, show);
-                    }
-                }
-            }
-
-            function apply_regex(e) {
-                if (e.target.getAttribute("data-input") == null) return;
-                console.log(e);
-                if (e.inputType === "insertText") {
-
-                }
-            }
-
-            function coordinate_formatter(e, ra) {
-                if (e.inputType !== "insertText") {
-                    return;
-                }
-                e.target
-            }
-
-            function apply_regex_filters() {
-                let inputs = Array.from(document.getElementsByTagName('INPUT'));
-                inputs = inputs.filter(el => !!el.getAttribute("data-suppressed"))
-                for (let input of inputs) {
-                    input.addEventListener('beforeinput', _ => {
-                        let before_value = input.value;
-                        input.addEventListener(
-                            "input",
-                            _ => {
-                                if (invalid_format(input))
-                                {
-                                    input.value = before_value
-                                }
-                            },
-                            { once: true }
-                        );
-                    });
-                }
-            }
-
-            function invalid_format(input) {
-                const suppressed = input.getAttribute("data-suppressed");
-                console.log("input")
-                if (suppressed != null) {
-                    console.log(input.value, input.value.replace(RegExp(suppressed), ''));
-                    input.value = input.value.replace(RegExp(suppressed), '');
-                } // limit input to allowed characters
-
-                let txt_value = input.value.replace(/\s+/g, '') // remove whitespaces for processing
-
-                if (txt_value === '') return false; // allow empty inputs
-
-                const fval = parseFloat(input.value);
-                const max = input.getAttribute("max");
-                const min = input.getAttribute("min");
-
-                if (isNaN(fval) && !(txt_value === '.')) {
-                    console.log("val")
-                    return true;
-                }
-
-                console.log(fval)
-                /*if (!max || val > max) {
-                    console.log("max")
-                    return true;
-                }
-                if (!min || val < min) {
-                    console.log("min")
-                    return true;
-                }*/
-                return false
-            }
-
-            </script>
-            <form action="{{ create_form_url }}" method="post" class="input_form">
-                {% for name, form, radio in forms %}
-                    <article class="form_body">
-                        <h2 class="sub_form_heading">{{ name }}</h2>
-                        {% if radio is not None %}
-                            <div class="switch_button_container">
-                                {% for option, require_super_user in radio.options %}
-                                    {% if not require_super_user or user.is_superuser %}
-                                        <label class="turm_radio_label {{ radio.input_selector }}"
-                                               for="{{ option }}">{{ option }}</label>
-                                        <input class="observation_type_radio"
-                                               type="radio"
-                                               id="{{ option }}"
-                                               name="{{ radio.name }}"
-                                               value="{{ option }}"
-                                               onclick="only_apply('{{ option }}', this, '{{ radio.input_selector }}', {{ radio.hide }}, '{{ radio.effect_selector }}')">
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <br>
-                        {% endif %}
-                        <div class="form_center">{{ form }}</div>
-                    </article>
-                {% endfor %}
-                {% csrf_token %}
-                <input type="submit" class="base_button">
-            </form>
+<div class="middle">
+<div class="content_wrapper">
+    <header class="form_body">
+        <div class="container_center">
+            <h1>create new Observation</h1>
         </div>
-    </div>
+    </header>
+    <form action="{{ create_form_url }}" method="post" class="input_form">
+        {% for name, form in forms %}
+            <article class="form_body">
+                <h2 class="sub_form_heading">{{ name }}</h2>
+                <div class="form_center">{{ form }}</div>
+            </article>
+        {% endfor %}
+        {% csrf_token %}
+        <br>
+        <input type="submit" class="base_button">
+    </form>
+</div>
+</div>
 {% endblock %}

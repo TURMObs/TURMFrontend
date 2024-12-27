@@ -1,10 +1,8 @@
-from django.db.models import ForeignKey
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 
-from observation_data.models import ObservationType, Observatory, AbstractObservation, ExpertObservation
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureSettingsForm, TRUMProjectForm
@@ -20,7 +18,7 @@ def simple_request(request):
     ]
     context["forms"] = forms
     context['create_form_url'] = '/observation-request/test/'
-    return render(request, "observationRequest/requestTemplateV2.html", context)
+    return render(request, "observationRequest/requestTemplate.html", context)
 
 
 @require_POST
