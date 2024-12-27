@@ -25,7 +25,7 @@ input[type=text], input[type=date], input[type=datetime-local] {
 
 .radio_input_div label {
     display: inline-block;
-    background-color: var(--tom-disabled-grey);
+    /*background-color: var(--tom-disabled-grey);*/
 
     flex: 1;
     text-align: center;
@@ -37,12 +37,16 @@ input[type=text], input[type=date], input[type=datetime-local] {
     padding: .5em;
     font-size: 16px;
     color: #fff;
+
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-right: 0;
 }
 
 .radio_input_div label:hover {
-    background-color: var(--tom-accent-color);
+    background-color: var(--tom-light-grey);
 }
 .radio_input_div label:nth-child(2) {
+    /* label all the way on the left */
     padding: .5em .5em .5em .75em;
     -moz-border-radius-topleft: var(--tom-corner-radius-input);
     -webkit-border-top-left-radius: var(--tom-corner-radius-input);
@@ -50,7 +54,8 @@ input[type=text], input[type=date], input[type=datetime-local] {
     -webkit-border-bottom-left-radius: var(--tom-corner-radius-input);
 }
 .radio_input_div label:last-child {
-    border-left: transparent;
+    /* label all the way on the right */
+    border: 2px solid rgba(255, 255, 255, 0.2);
 
     padding: .5em .75em .5em .5em;
 
@@ -60,8 +65,14 @@ input[type=text], input[type=date], input[type=datetime-local] {
     -webkit-border-bottom-right-radius: var(--tom-corner-radius-input);
 }
 
-.radio_input_div input[type=radio]:checked + label {
+.radio_input_div input[type=radio]:checked + label{
     background-color: var(--tom-primary-color);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+
+.radio_input_div input[type=radio]:checked + label + input + label{
+    border-left: 0;
 }
 
 .radio_input_div input:checked + label:hover {
@@ -74,4 +85,5 @@ input[type=text], input[type=date], input[type=datetime-local] {
 
 .grid_input_div {
     display: grid;
+    grid-gap: 1em;
 }
