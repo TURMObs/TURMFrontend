@@ -42,23 +42,24 @@ def filter_set_dependency_generator(filter):
     return dependency
 
 class ExposureSettingsForm(forms.Form):
-    observation_type = (TURMSelectField("observation_type", [o_type[0] for o_type in ObservationType.choices])
+    observation_type = (TURMSelectField("observation_type", [o_type[0] for o_type in ObservationType.choices],
+                                        label_name='Observation Type')
                         .add_on_click(lambda o_type : f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"))
     # combined
     filter_set = (TURMModelField(ExpertObservation._meta.get_field("filter_set"))
                   .add_dependency_generator(filter_set_dependency_generator))
 
     #
-    exposure_time = TURMField(TURMRadioInput(name="exposure_time", choices=['15s', '30s', '60s', '120s','300s']),
-                              label_name="exposure_time").add_dependencies(
-        {Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET,
-                                             ObservationType.VARIABLE, ObservationType.MONITORING]})
-    exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time")).add_dependencies(
-        {Dependency.observation_type.value: [ObservationType.EXPERT]})
+    exposure_time = (TURMField(TURMRadioInput(name="exposure_time", choices=['15s', '30s', '60s', '120s','300s']),
+                               label_name="Exposure Time")
+        .add_dependencies({Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET,
+                                             ObservationType.VARIABLE, ObservationType.MONITORING]}))
+    #exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time")).add_dependencies(
+    #    {Dependency.observation_type.value: [ObservationType.EXPERT]})
 
     # exposure
     exposure_settings = [
-        #(ExpertObservation._meta.get_field("frames_per_filter"), "Frames per filter"),
+        (ExpertObservation._meta.get_field("frames_per_filter"), "Frames per filter"),
         (ExpertObservation._meta.get_field("dither_every"), "dither every"),
          (ExposureSettings._meta.get_field("binning"), "binning"),
           (ExposureSettings._meta.get_field("subFrame"), "sub frame"),
@@ -71,7 +72,7 @@ class ExposureSettingsForm(forms.Form):
     # imaging
     frames_per_filter = TURMModelField(ExpertObservation._meta.get_field("frames_per_filter")).add_dependencies({
         Dependency.observation_type.value:
-            [ObservationType.IMAGING, ObservationType.MONITORING, ObservationType.EXPERT]})
+            [ObservationType.IMAGING, ObservationType.MONITORING]})
 
     # exoplanet
     star_end_observation = (TURMGridField([(ExpertObservation._meta.get_field("start_observation"), "start observation"),

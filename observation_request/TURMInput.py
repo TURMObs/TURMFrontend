@@ -127,7 +127,7 @@ class _TURMChoiceInput(_TURMInput):
         super().__init__(name=name, *args, **kwargs)
         self.choices = choices
 
-    def render(self, name, value, attrs=None, renderer=None):
+    def render(self, name, value, attrs=None, renderer=None, individual_divs=False):
         label_attrs = self.attrs | attrs
         name = label_attrs["name"]
         label_attrs.pop("type", None)
@@ -137,10 +137,16 @@ class _TURMChoiceInput(_TURMInput):
 
         html_render = ""
         for i in range(len(self.choices)):
+            if individual_divs:
+                html_render += '<div>'
+
             dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i])) if self.dependency_generator else ""
             on_click_attr = f'onclick="{self.on_click(self.choices[i])}"' if self.on_click else ""
             html_render += f'<input id="id_{name}_{i}" {self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
             html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i]}</label>'
+
+            if individual_divs:
+                html_render += '</div>'
         return mark_safe(html_render)
 
     def add_dependency_generator(self,  dependency_generator):
@@ -159,9 +165,9 @@ class TURMRadioInput(_TURMChoiceInput):
         super().__init__(name=name, choices=choices, *args, **kwargs)
         self.attrs["type"] = "radio"
 
-    def render(self, name, value, attrs=None, renderer=None):
+    def render(self, name, value, attrs=None, renderer=None, individual_divs=False):
         html_render = f'<div class="radio_input_div">'
-        html_render += super().render(name, value, attrs, renderer)
+        html_render += super().render(name, value, attrs, renderer, individual_divs)
         html_render += '</div>'
         return mark_safe(html_render)
 
@@ -170,9 +176,9 @@ class TURMCheckboxInput(_TURMChoiceInput):
         super().__init__(name=name, choices=choices, *args, **kwargs)
         self.attrs["type"] = "checkbox"
 
-    def render(self, name, value, attrs=None, renderer=None):
+    def render(self, name, value, attrs=None, renderer=None, individual_divs=True):
         html_render = f'<div class="checkbox_input_div">'
-        html_render += super().render(name, value, attrs, renderer)
+        html_render += super().render(name, value, attrs, renderer, individual_divs)
         html_render += '</div>'
         return mark_safe(html_render)
 

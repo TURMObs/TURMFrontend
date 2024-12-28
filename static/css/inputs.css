@@ -1,3 +1,7 @@
+div:has(> input) {
+    margin-bottom: 1em;
+}
+
 input[type=text], input[type=date], input[type=datetime-local] {
     width: 100%;
     background: transparent;
@@ -7,7 +11,6 @@ input[type=text], input[type=date], input[type=datetime-local] {
     font-size: 16px;
     color: #fff;
     padding: .75em 1.5em;
-    margin-bottom: 1em;
 }
 
 .radio_input_div {
@@ -15,8 +18,6 @@ input[type=text], input[type=date], input[type=datetime-local] {
     align-items: center;
     justify-content: center;
     align-content: center;
-
-    padding-bottom: 1em;
 }
 
 .radio_input_div input[type=radio] {
@@ -25,7 +26,6 @@ input[type=text], input[type=date], input[type=datetime-local] {
 
 .radio_input_div label {
     display: inline-block;
-    /*background-color: var(--tom-disabled-grey);*/
 
     flex: 1;
     text-align: center;
@@ -85,5 +85,26 @@ input[type=text], input[type=date], input[type=datetime-local] {
 
 .grid_input_div {
     display: grid;
-    grid-gap: 1em;
+    column-gap: 2em;
+}
+
+.checkbox_input_div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: .75em 1.5em;
+
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--tom-corner-radius-input);
+
+    margin-bottom: 1em;
+}
+
+.checkbox_input_div div {
+    display: flex;
+    gap: 0.5em;
+
+    font-weight: bold;
+    margin-bottom: 0;
 }

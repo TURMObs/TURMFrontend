@@ -7,6 +7,7 @@ from observation_request.TURMInput import (_TURMInput, TURMIntegerInput, TURMFlo
 class TURMField(Field):
     def __init__(self, widget: _TURMInput, label_name: str= None, *args, **kwargs):
         super().__init__(widget=widget,label=label_name)
+        print(f'label name: {label_name}')
 
     def model_field_to_input(self, model_field, measurement_unit = None, *args, **kwargs):
         match type(model_field):
@@ -45,7 +46,7 @@ class TURMField(Field):
 class TURMModelField(TURMField):
     def __init__(self, model_field: models.Field, label_name: str= None, measurement_unit= None, *args, **kwargs):
         if label_name is None:
-            label_name = model_field.name
+            label_name = str(model_field.name).title()
         widget = self.model_field_to_input(model_field, measurement_unit, *args, **kwargs)
         super().__init__(widget=widget,label=label_name,*args, **kwargs)
 
@@ -56,6 +57,8 @@ class TURMSelectField(TURMField):
 
 class TURMModelSelectField(TURMField):
     def __init__(self, model_field: models.Field, label_name: str = None, *args, **kwargs):
+        if label_name is None:
+            label_name = str(model_field.name).title()
         widget = TURMRadioInput(name=model_field.name, choices=model_field.remote_field.model.objects.all())
         super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 

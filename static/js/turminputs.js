@@ -25,6 +25,26 @@ function check_radio_if_none_selected() {
 
 function disable_inputs(el) {
     console.log("Disabled Inputs", el);
+    /*
+    const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
+        .filter(el => !!el.getAttribute(dependency_type));
+
+    for (let input of dependent_inputs) {
+        if (input.getAttribute(dependency_type).includes(dependency)) {
+            input.parentElement.removeAttribute("style");
+            //for (let label of input.labels) {
+            //    label.removeAttribute("style")
+            //}
+            //input.removeAttribute("style")
+        } else {
+            //for (let label of input.labels) {
+            //    label.style.display = 'none';
+            //}
+            //input.style.display = 'none';
+            //console.log(input.parentElement)
+            input.parentElement.style.display = 'none';
+        }
+    } */
 }
 
 function hide_inputs(dependency_type, dependency) {
@@ -33,15 +53,17 @@ function hide_inputs(dependency_type, dependency) {
 
     for (let input of dependent_inputs) {
         if (input.getAttribute(dependency_type).includes(dependency)) {
-            for (let label of input.labels) {
-                label.removeAttribute("style")
+            let parent = input.parentElement;
+            if (parent.classList.contains("radio_input_div")) {
+                parent = input.parentElement.parentElement;
             }
-            input.removeAttribute("style")
+            parent.removeAttribute("style");
         } else {
-            for (let label of input.labels) {
-                label.style.display = 'none';
+            let parent = input.parentElement;
+            if (parent.classList.contains("radio_input_div")) {
+                parent = input.parentElement.parentElement;
             }
-            input.style.display = 'none';
+            parent.style.display = 'none';
         }
     }
 }
