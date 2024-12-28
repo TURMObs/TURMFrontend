@@ -46,9 +46,9 @@ class TURMField(Field):
 class TURMModelField(TURMField):
     def __init__(self, model_field: models.Field, label_name: str= None, measurement_unit= None, *args, **kwargs):
         if label_name is None:
-            label_name = str(model_field.name).title()
+            label_name = str(model_field.name).replace('_', ' ').title()
         widget = self.model_field_to_input(model_field, measurement_unit, *args, **kwargs)
-        super().__init__(widget=widget,label=label_name,*args, **kwargs)
+        super().__init__(widget=widget,label_name=label_name,*args, **kwargs)
 
 class TURMSelectField(TURMField):
     def __init__(self, name, choices: list[tuple[str, str]], label_name: str = None, *args, **kwargs):

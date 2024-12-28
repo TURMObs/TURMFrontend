@@ -54,8 +54,8 @@ class ExposureSettingsForm(forms.Form):
                                label_name="Exposure Time")
         .add_dependencies({Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET,
                                              ObservationType.VARIABLE, ObservationType.MONITORING]}))
-    #exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time")).add_dependencies(
-    #    {Dependency.observation_type.value: [ObservationType.EXPERT]})
+    exposure_time_expert = TURMModelField(AbstractObservation._meta.get_field("exposure_time"), label_name="Exposure Time").add_dependencies(
+        {Dependency.observation_type.value: [ObservationType.EXPERT]})
 
     # exposure
     exposure_settings = [
