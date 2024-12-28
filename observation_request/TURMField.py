@@ -7,7 +7,6 @@ from observation_request.TURMInput import (_TURMInput, TURMIntegerInput, TURMFlo
 class TURMField(Field):
     def __init__(self, widget: _TURMInput, label_name: str= None, *args, **kwargs):
         super().__init__(widget=widget,label=label_name)
-        print(f'label name: {label_name}')
 
     def model_field_to_input(self, model_field, measurement_unit = None, *args, **kwargs):
         match type(model_field):
@@ -18,10 +17,11 @@ class TURMField(Field):
                 return TURMIntegerInput(name=model_field.name, measurement_unit=measurement_unit,
                                         *args, **kwargs)
             case models.ManyToManyField:
-                return TURMCheckboxInput(name=model_field.name, choices=model_field.remote_field.model.objects.all(),
+                self.required = False
+                return TURMCheckboxInput(name=model_field.name, choices=[(str(name).title(),str(name)) for name in model_field.remote_field.model.objects.all()],
                                          *args, **kwargs)
             case models.ForeignKey:
-                return TURMRadioInput(name=model_field.name, choices=model_field.remote_field.model.objects.all(),
+                return TURMRadioInput(name=model_field.name, choices=[(str(name).title(),str(name)) for name in model_field.remote_field.model.objects.all()],
                                       *args, **kwargs)
             case models.DateTimeField:
                 return TURMDateTimeInput(name=model_field.name, *args, **kwargs)
@@ -51,15 +51,17 @@ class TURMModelField(TURMField):
         super().__init__(widget=widget,label=label_name,*args, **kwargs)
 
 class TURMSelectField(TURMField):
-    def __init__(self, name, choices: list, label_name: str = None, *args, **kwargs):
+    def __init__(self, name, choices: list[tuple[str, str]], label_name: str = None, *args, **kwargs):
         widget = TURMRadioInput(name=name, choices=choices)
+        self.required = False
         super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 
 class TURMModelSelectField(TURMField):
     def __init__(self, model_field: models.Field, label_name: str = None, *args, **kwargs):
         if label_name is None:
             label_name = str(model_field.name).title()
-        widget = TURMRadioInput(name=model_field.name, choices=model_field.remote_field.model.objects.all())
+        self.required = False
+        widget = TURMRadioInput(name=model_field.name, choices=[(str(name).title(),str(name)) for name in model_field.remote_field.model.objects.all()])
         super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 
 

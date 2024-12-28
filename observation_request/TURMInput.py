@@ -119,7 +119,7 @@ class _TURMChoiceInput(_TURMInput):
 
         provides subclasses with a generic render function
     """
-    choices = []
+    choices: list[tuple[str, str]] = []
     dependency_generator = None
     on_click = None
 
@@ -136,14 +136,15 @@ class _TURMChoiceInput(_TURMInput):
         label_attrs.pop("onclick", None)
 
         html_render = ""
+        print(self.choices)
         for i in range(len(self.choices)):
             if individual_divs:
                 html_render += '<div>'
 
             dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i])) if self.dependency_generator else ""
-            on_click_attr = f'onclick="{self.on_click(self.choices[i])}"' if self.on_click else ""
-            html_render += f'<input id="id_{name}_{i}" {self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
-            html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i]}</label>'
+            on_click_attr = f'onclick="{self.on_click(self.choices[i][1])}"' if self.on_click else ""
+            html_render += f'<input id="id_{name}_{i}" value="{self.choices[i][1]}"{self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
+            html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
 
             if individual_divs:
                 html_render += '</div>'
@@ -177,6 +178,7 @@ class TURMCheckboxInput(_TURMChoiceInput):
         self.attrs["type"] = "checkbox"
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=True):
+        attrs.pop("required", None)
         html_render = f'<div class="checkbox_input_div">'
         html_render += super().render(name, value, attrs, renderer, individual_divs)
         html_render += '</div>'
@@ -230,4 +232,5 @@ class TURMGridInput(_TURMInput):
         for widget in self.widgets:
             if isinstance(widget, _TURMChoiceInput):
                 widget.add_on_click(func_call_generator)
+        x = [i for i in range(len(self.widgets))]
         return self

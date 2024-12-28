@@ -42,7 +42,7 @@ def filter_set_dependency_generator(filter):
     return dependency
 
 class ExposureSettingsForm(forms.Form):
-    observation_type = (TURMSelectField("observation_type", [o_type[0] for o_type in ObservationType.choices],
+    observation_type = (TURMSelectField("observation_type", [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
                                         label_name='Observation Type')
                         .add_on_click(lambda o_type : f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"))
     # combined
@@ -50,7 +50,7 @@ class ExposureSettingsForm(forms.Form):
                   .add_dependency_generator(filter_set_dependency_generator))
 
     #
-    exposure_time = (TURMField(TURMRadioInput(name="exposure_time", choices=['15s', '30s', '60s', '120s','300s']),
+    exposure_time = (TURMField(TURMRadioInput(name="exposure_time", choices=[('15s', '15'), ('30s', '30'), ('60s', '60'), ('120s', '120'),('300s', '300')]),
                                label_name="Exposure Time")
         .add_dependencies({Dependency.observation_type.value: [ObservationType.IMAGING, ObservationType.EXOPLANET,
                                              ObservationType.VARIABLE, ObservationType.MONITORING]}))

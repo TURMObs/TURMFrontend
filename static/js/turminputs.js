@@ -48,22 +48,29 @@ function disable_inputs(el) {
 }
 
 function hide_inputs(dependency_type, dependency) {
+    console.log("Disabled Inputs", dependency_type, dependency);
     const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
         .filter(el => !!el.getAttribute(dependency_type));
 
     for (let input of dependent_inputs) {
-        if (input.getAttribute(dependency_type).includes(dependency)) {
-            let parent = input.parentElement;
-            if (parent.classList.contains("radio_input_div")) {
-                parent = input.parentElement.parentElement;
-            }
-            parent.removeAttribute("style");
-        } else {
-            let parent = input.parentElement;
-            if (parent.classList.contains("radio_input_div")) {
-                parent = input.parentElement.parentElement;
-            }
+        const hide_el = !input.getAttribute(dependency_type).includes(dependency)
+        let parent = input.parentElement;
+        if (parent.classList.contains("radio_input_div")) {
+            parent = input.parentElement.parentElement;
+        }
+        const local_inputs = Array.from(parent.children).filter(el => el.tagName === 'INPUT');
+        if (hide_el) {
             parent.style.display = 'none';
+            for (let l_input of local_inputs) {
+                l_input.disabled = true;
+                console.log("disabled:", l_input);
+            }
+        }
+        else {
+            parent.removeAttribute("style");
+            for (let l_input of local_inputs) {
+                l_input.disabled = false;
+            }
         }
     }
 }
