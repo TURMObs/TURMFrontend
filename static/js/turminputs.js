@@ -48,7 +48,6 @@ function disable_inputs(el) {
 }
 
 function hide_inputs(dependency_type, dependency) {
-    console.log("Disabled Inputs", dependency_type, dependency);
     const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
         .filter(el => !!el.getAttribute(dependency_type));
 
@@ -63,7 +62,6 @@ function hide_inputs(dependency_type, dependency) {
             parent.style.display = 'none';
             for (let l_input of local_inputs) {
                 l_input.disabled = true;
-                console.log("disabled:", l_input);
             }
         }
         else {
@@ -72,5 +70,14 @@ function hide_inputs(dependency_type, dependency) {
                 l_input.disabled = false;
             }
         }
+    }
+}
+
+function update_date_dependency(el) {
+    const end = document.getElementById(el.id.replace(RegExp('start'), 'end'));
+    if (end === null) return;
+    end.min = el.value;
+    if (Date.parse(end.min) > Date.parse(end.value)) {
+        end.value = end.min;
     }
 }

@@ -98,6 +98,10 @@ class _TURMDateTimeInput(_TURMInput):
     def render(self, name, value, attrs=None, renderer=None):
         return mark_safe(f'<input {self._render_attrs(attrs)}></input>')
 
+    def add_on_value_changed(self, on_value_changed):
+        self.attrs["oninput"] = on_value_changed
+        return self
+
 class TURMDateTimeInput(_TURMDateTimeInput):
     def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
         super().__init__(name, minimum, maximum, *args, **kwargs)
@@ -105,7 +109,7 @@ class TURMDateTimeInput(_TURMDateTimeInput):
 
 class TURMDateInput(_TURMDateTimeInput):
     def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
-        super().__init__(name, minimum, maximum*args, **kwargs)
+        super().__init__(name, minimum, maximum,*args, **kwargs)
         self.attrs["type"] = "date"
 
 
@@ -136,7 +140,6 @@ class _TURMChoiceInput(_TURMInput):
         label_attrs.pop("onclick", None)
 
         html_render = ""
-        print(self.choices)
         for i in range(len(self.choices)):
             if individual_divs:
                 html_render += '<div>'

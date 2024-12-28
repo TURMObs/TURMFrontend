@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.forms.fields import Field
 from django.db import models
 from observation_request.TURMInput import (_TURMInput, TURMIntegerInput, TURMFloatInput, TURMRadioInput,
@@ -69,4 +71,18 @@ class TURMGridField(TURMField):
     def __init__(self, model_fields: list[tuple[models.Field, str]], grid_dim = None, *args, **kwargs):
         sub_widgets = [(self.model_field_to_input(field[0]), field[1]) for field in model_fields]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim = grid_dim, *args, **kwargs)
+        super().__init__(widget=widget, label_name="", *args, **kwargs)
+
+class TURMDateDuration(TURMField):
+    def __init__(self, start: tuple[models.Field, str], end: tuple[models.Field, str] , *args, **kwargs):
+        sub_widgets = [(TURMDateInput(start[0].name, minimum=datetime.date(datetime.now()),*args, **kwargs).add_on_value_changed(f'update_date_dependency(this)'), start[1]),
+                       (TURMDateInput(end[0].name,*args, **kwargs), end[1])]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim = (2,1), *args, **kwargs)
+        super().__init__(widget=widget, label_name="", *args, **kwargs)
+
+class TURMDateTimeDuration(TURMField):
+    def __init__(self, start: tuple[models.Field, str], end: tuple[models.Field, str] , *args, **kwargs):
+        sub_widgets = [(TURMDateTimeInput(start[0].name, minimum=datetime.now().strftime("%Y-%m-%dT%X"),*args, **kwargs).add_on_value_changed(f'update_date_dependency(this)'), start[1]),
+                       (TURMDateTimeInput(end[0].name,*args, **kwargs), end[1])]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim = (2,1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
