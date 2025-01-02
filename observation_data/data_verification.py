@@ -2,7 +2,7 @@ import decimal
 import logging
 import re
 
-from rest_framework import serializers
+from django.utils import timezone
 
 from observation_data.models import (
     ExoplanetObservation,
@@ -61,7 +61,7 @@ def _check_overlapping_observation(
     :param start_observation: Start time of the observation
     :param end_observation: End time of the observation
     :param observatory: Observatory name
-    :return: List of overlapping observations
+    :return: List of overlapping observation times
     """
     overlapping_exoplanet = list(
         ExoplanetObservation.objects.filter(
@@ -77,7 +77,15 @@ def _check_overlapping_observation(
             end_observation__gt=start_observation,
         )
     )
-    return overlapping_exoplanet + overlapping_expert
+    overlapping_times = []
+    for overlapping in overlapping_exoplanet + overlapping_expert:
+        overlapping_times.append(
+            {
+                "start_observation": overlapping.start_observation,
+                "end_observation": overlapping.end_observation,
+            }
+        )
+    return overlapping_times
 
 
 def verify_field_integrity(name, value, observation_type):
@@ -166,23 +174,53 @@ def verify_filter_selection(filters, observatory):
     return errors
 
 
-def validate_time_range(start_time, end_time, observatory):
+def validate_observation_time(start_time, end_time, observatory):
     """
     Validate that the start time is before the end time and that the observation does not overlap with existing observations for the selected Observatory.
+    Also checks that the start time is in the future.
     :param start_time: Start time
     :param end_time: End time
     :param observatory: Observatory name
-    :return: None
+    :return: Error if the time range is invalid or None if the time range is valid
     """
-    from observation_data.serializers import ExoplanetObservationSerializer
 
-    if start_time and end_time and start_time >= end_time:
-        raise serializers.ValidationError("Start time must be before end time.")
+    errors = {}
+    if start_time >= end_time:
+        errors = {**errors, "time_range": "Start time must be before end time."}
+
+    if start_time <= timezone.now():
+        errors = {**errors, "start_time": "Start time must be in the future."}
+
+    if start_time.year >= timezone.now().year + 10:
+        errors = {
+            **errors,
+            "year_range": "Start time must be within the next 10 years.",
+        }
 
     overlapping = _check_overlapping_observation(start_time, end_time, observatory)
     if len(overlapping) != 0:
-        # note: this is a compromise, as ExoplanetObservation and ExpertObservation have different serializers but ExoplanetObservationSerializer works for both (but looses some data)
-        overlapping_data = ExoplanetObservationSerializer(overlapping, many=True).data
-        raise serializers.ValidationError(
-            {"overlapping_observations": overlapping_data}
-        )
+        errors = {**errors, "overlapping_observations": overlapping}
+
+    return errors
+
+
+def validate_schedule_time(start_scheduling, end_scheduling):
+    """
+    Validate that the start time is before the end time. Also checks that the start time is in the future.
+    :param start_scheduling: Start time
+    :param end_scheduling: End time
+    :return: Error if the time range is invalid or None if the time range is valid
+    """
+    errors = {}
+    if start_scheduling >= end_scheduling:
+        errors = {
+            **errors,
+            "scheduling_range": "Start scheduling must be before end scheduling.",
+        }
+    if start_scheduling <= timezone.now():
+        errors = {
+            **errors,
+            "start_scheduling": "Start scheduling must be in the future.",
+        }
+
+    return errors
