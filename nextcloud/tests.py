@@ -16,7 +16,7 @@ from numpy.ma.testutils import assert_equal
 
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_manager import file_exists, generate_observation_path
-from nextcloud.nextcloud_sync import upload_observations, calc_progress
+from nextcloud.nextcloud_sync import upload_observations, calc_progress, download_observations
 from observation_data.models import (
     AbstractObservation,
     ObservationType,
@@ -120,6 +120,7 @@ def _create_exoplanet_observation(
     )
 
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+
 
 
 def _create_variable_observation(
@@ -303,7 +304,7 @@ def _day(d: int):
     return timezone.now() + timedelta(days=d)
 
 
-@unittest.skip("Skip in CI until solution for nc-container in found")
+#@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
     def test_access_nc_without_init(self):
         self.client = django.test.Client()
@@ -312,7 +313,7 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
 
 
 # noinspection DuplicatedCode
-@unittest.skip("Skip in CI until solution for nc-container in found")
+#@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -382,7 +383,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete("Test")
 
 
-@unittest.skip("Skip in CI until solution for nc-container in found")
+#@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudSyncTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -565,4 +566,90 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         nm.mkdir("TURMX")
         nm.mkdir("TURMX2")
+        # fmt: on
+
+    def test_download_non_scheduled(self):
+        # fmt: off
+        nm.initialize_connection()
+        nm.mkdir("TURMX/Projects")
+        nm.mkdir("TURMX2/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx, required_amount=10)
+        _create_exoplanet_observation(self, obs_id=1, target_name="E1", observatory=turmx)
+        _get_obs_by_id(1).filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.HYDROGEN)) # add second filter to test multi filter handling
+
+        _create_variable_observation(self, obs_id=2, target_name="V1", observatory=turmx)
+
+        upload_observations()
+
+        # alter obs 0 to make it completed
+        o0 = _get_obs_by_id(0)
+        o0_path = generate_observation_path(o0)
+        o0_dict = nm.download_dict(o0_path)
+        o0_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 10
+        nm.upload_dict(o0_path, o0_dict)
+        # alter obs 1 to complete by half
+        o1 = _get_obs_by_id(1)
+        o1_path = generate_observation_path(o1)
+        o1_dict = nm.download_dict(o1_path)
+        o1_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 1000
+        nm.upload_dict(o1_path, o1_dict)
+        # no changes to obs 2
+
+        download_observations()
+
+        o0 = _get_obs_by_id(0)
+        self.assertFalse(_obs_exists_in_nextcloud(o0))
+        self.assertEqual(o0.project_status, ObservationStatus.COMPLETED)
+        self.assertEqual(o0.project_completion, 100.0)
+        o1 = _get_obs_by_id(1)
+        self.assertTrue(_obs_exists_in_nextcloud(o1))
+        self.assertEqual(o1.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(o1.project_completion, 50.0)
+        o2 = _get_obs_by_id(2)
+        self.assertTrue(_obs_exists_in_nextcloud(o2))
+        self.assertEqual(o2.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(o2.project_completion, 0.0)
+
+        # alter obs 1 to make it complete
+        o1 = _get_obs_by_id(1)
+        o1_path = generate_observation_path(o1)
+        o1_dict = nm.download_dict(o1_path)
+        o1_dict["targets"][0]["exposures"][1]["acceptedAmount"] = 1000
+        nm.upload_dict(o1_path, o1_dict)
+        # alter obs 2 to make it complete by 99%
+        o2 = _get_obs_by_id(2)
+        o2_path = generate_observation_path(o2)
+        o2_dict = nm.download_dict(o2_path)
+        o2_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 99
+        nm.upload_dict(o2_path, o2_dict)
+
+        download_observations()
+
+        o1 = _get_obs_by_id(1)
+        self.assertFalse(_obs_exists_in_nextcloud(o1))
+        self.assertEqual(o1.project_status, ObservationStatus.COMPLETED)
+        self.assertEqual(o1.project_completion, 100.0)
+        o2 = _get_obs_by_id(2)
+        self.assertTrue(_obs_exists_in_nextcloud(o2))
+        self.assertEqual(o2.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(o2.project_completion, 99)
+
+        # alter obs 2 to make it complete
+        o2 = _get_obs_by_id(2)
+        o2_path = generate_observation_path(o2)
+        o2_dict = nm.download_dict(o2_path)
+        o2_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
+        nm.upload_dict(o2_path, o2_dict)
+
+        download_observations()
+
+        o2 = _get_obs_by_id(2)
+        self.assertFalse(_obs_exists_in_nextcloud(o2))
+        self.assertEqual(o2.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(o2.project_completion, 100)
+
+        nm.delete("TURMX")
+        nm.delete("TURM2")
         # fmt: on
