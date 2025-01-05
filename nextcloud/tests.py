@@ -12,11 +12,14 @@ from django.contrib.auth.models import User
 from dotenv import load_dotenv
 from nc_py_api import NextcloudException
 from django.core.management import call_command
-from numpy.ma.testutils import assert_equal
 
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_manager import file_exists, generate_observation_path
-from nextcloud.nextcloud_sync import upload_observations, calc_progress, download_observations
+from nextcloud.nextcloud_sync import (
+    upload_observations,
+    calc_progress,
+    download_observations,
+)
 from observation_data.models import (
     AbstractObservation,
     ObservationType,
@@ -40,7 +43,7 @@ dict_upload = "nextcloud/test_data/upload_dict.json"
 dict_download = "nextcloud/test_data/download_dict.json"
 dict_nc = "dict1.json"
 
-
+# noinspection DuplicatedCode
 def _create_imaging_observations(
     self,
     obs_id: int,
@@ -83,6 +86,7 @@ def _create_imaging_observations(
         obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.BLUE))
 
 
+# noinspection DuplicatedCode
 def _create_exoplanet_observation(
     self,
     obs_id: int,
@@ -122,7 +126,7 @@ def _create_exoplanet_observation(
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
 
 
-
+# noinspection DuplicatedCode
 def _create_variable_observation(
     self,
     obs_id: int,
@@ -304,7 +308,7 @@ def _day(d: int):
     return timezone.now() + timedelta(days=d)
 
 
-#@unittest.skip("Skip in CI until solution for nc-container in found")
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
     def test_access_nc_without_init(self):
         self.client = django.test.Client()
@@ -313,7 +317,7 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
 
 
 # noinspection DuplicatedCode
-#@unittest.skip("Skip in CI until solution for nc-container in found")
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -358,21 +362,20 @@ class NextcloudManagerTestCase(django.test.TestCase):
             nm.delete("delete_test.json")
 
     def test_mkdir_simple(self):
-        nm.mkdir("mkdir_test")
-        nm.upload_file(
-            "mkdir_test/mkdir_test.json", file_upload
-        )  # throws error if directory does not exist
-        nm.delete("mkdir_test")
+        with self.assertRaises(Exception):
+            nm.mkdir("mkdir_test")
+            nm.upload_file(
+                "mkdir_test/mkdir_test.json", file_upload
+            )  # throws error if directory does not exist
+            nm.delete("mkdir_test")
 
     def test_mkdir_complex(self):
-        try:
-            path = "this/is/a/long/path/"
-            nm.mkdir("this/is/test")
-            nm.mkdir(path)
-            nm.upload_file(path + file_nc, file_upload)
-            nm.delete("this")
-        except Exception:
-            self.assertRaises(NextcloudException)
+        path = "this/is/a/long/path/"
+        nm.mkdir("this/is/test")
+        nm.mkdir(path)
+        nm.upload_file(path + file_nc, file_upload)
+        nm.delete("this")
+        self.assertRaises(NextcloudException)
 
     def test_file_exists(self):
         nm.mkdir("Test/file/exists")
@@ -383,7 +386,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete("Test")
 
 
-#@unittest.skip("Skip in CI until solution for nc-container in found")
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudSyncTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -416,12 +419,12 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.upload_dict("test.json", obs_dict)
 
         progress1 = calc_progress(obs_dict)
-        self.assertEqual(progress1, 0)  # initial progress is 0 (no images taken yet)
+        self.assertEqual(progress1, 0.0)  # initial progress is 0 (no images taken yet)
 
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 50
         obs_dict["targets"][0]["exposures"][1]["acceptedAmount"] = 100
         progress2 = calc_progress(obs_dict)
-        self.assertEqual(progress2, 0.75)
+        self.assertEqual(progress2, 75.0)
 
         nm.delete("test.json")
 
@@ -470,9 +473,9 @@ class NextcloudSyncTestCase(django.test.TestCase):
             obs_is_uploaded = file_exists(generate_observation_path(obs))
             self.assertEqual(should_be_uploaded, obs_is_uploaded)
             if obs_is_uploaded:
-                assert_equal(obs.project_status, ObservationStatus.UPLOADED)
-        assert_equal(_get_obs_by_id(9).project_status, ObservationStatus.COMPLETED)
-        assert_equal(_get_obs_by_id(10).project_status, ObservationStatus.ERROR)
+                self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(_get_obs_by_id(9).project_status, ObservationStatus.COMPLETED)
+        self.assertEqual(_get_obs_by_id(10).project_status, ObservationStatus.ERROR)
 
         nm.delete("TURMX")
         nm.delete("TURMX2")
@@ -481,7 +484,6 @@ class NextcloudSyncTestCase(django.test.TestCase):
     def test_upload_from_db_status(self):
         nm.initialize_connection()
         nm.mkdir("TURMX/Projects")
-        nm.mkdir("TURMX2/Projects")
         turmx = Observatory.objects.filter(name="TURMX")[0]
 
         # fmt: off
@@ -513,13 +515,11 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: on
         nm.delete("TURMX")
-        nm.delete("TURMX2")
 
     def test_upload_from_db_repetitive_observations(self):
         # fmt: off
         nm.initialize_connection()
         nm.mkdir("TURMX/Projects")
-        nm.mkdir("TURMX2/Projects")
         turmx = Observatory.objects.filter(name="TURMX")[0]
 
         _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
@@ -527,7 +527,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3, observatory=turmx)
         _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED, observatory=turmx)
         _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED, observatory=turmx)
-        assert_equal(5, AbstractObservation.objects.all().count())
+        self.assertEqual(5, AbstractObservation.objects.all().count())
 
         test_obs = [_get_obs_by_id(i) for i in range(5)]
 
@@ -565,14 +565,12 @@ class NextcloudSyncTestCase(django.test.TestCase):
                     obs.save()
 
         nm.mkdir("TURMX")
-        nm.mkdir("TURMX2")
         # fmt: on
 
     def test_download_non_scheduled(self):
         # fmt: off
         nm.initialize_connection()
         nm.mkdir("TURMX/Projects")
-        nm.mkdir("TURMX2/Projects")
         turmx = Observatory.objects.filter(name="TURMX")[0]
 
         _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx, required_amount=10)
@@ -647,9 +645,205 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         o2 = _get_obs_by_id(2)
         self.assertFalse(_obs_exists_in_nextcloud(o2))
-        self.assertEqual(o2.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(o2.project_status, ObservationStatus.COMPLETED)
         self.assertEqual(o2.project_completion, 100)
 
         nm.delete("TURMX")
-        nm.delete("TURM2")
+        # fmt: on
+
+    def test_download_scheduled_1(self):
+        """
+        Simple test of a scheduled observation where to observation is uploaded every day. Every night, the entire partial observation is completed
+        """
+
+        # fmt: off
+        nm.initialize_connection()
+        nm.mkdir("TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        _create_monitoring_observation(self, obs_id=0, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
+
+        for i in range(5):
+            upload_observations(_day(i))
+
+            obs = _get_obs_by_id(0)
+            obs_path = generate_observation_path(obs)
+            obs_dict = nm.download_dict(obs_path)
+
+            obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
+            nm.upload_dict(obs_path, obs_dict)
+
+            download_observations(_day(i+1))
+
+            self.assertFalse(_obs_exists_in_nextcloud(obs))
+            self.assertEqual(_get_obs_by_id(0).project_completion, ((i+1)/5)*100)
+
+
+        self.assertEqual(_get_obs_by_id(0).project_status, ObservationStatus.COMPLETED)
+
+        nm.delete("TURMX")
+        # fmt: on
+
+    def test_download_scheduled_2(self):
+        """
+        Simple test of a scheduled observation to test, that not finished but overdue observations are deleted correctly.
+        """
+
+        # fmt: off
+        nm.initialize_connection()
+        nm.mkdir("TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(2), cadence=1, observatory=turmx)
+
+        upload_observations()
+        obs = _get_obs_by_id(0)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 42
+        nm.upload_dict(obs_path, obs_dict)
+
+        download_observations(_day(1))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 50.0)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        download_observations(_day(2))
+        obs = _get_obs_by_id(0)
+        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 100.0) # <- although no pictures were taken, the completion is still set to 100
+        self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
+
+        nm.delete("TURMX")
+        # fmt: on
+
+    def test_download_scheduled_3(self):
+        """
+        Complex test of a scheduled observation. Time interval of 10 days and cadence 3 but new upload is delayed.
+        """
+
+        # fmt: off
+        nm.initialize_connection()
+        nm.mkdir("TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(10), cadence=3, observatory=turmx)
+
+        # day 0/1
+        upload_observations(_day(0))
+        obs = _get_obs_by_id(0)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
+        nm.upload_dict(obs_path, obs_dict)
+        download_observations(_day(1))
+        obs = _get_obs_by_id(0)
+        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion,10.0)
+        self.assertEqual(obs.next_upload.day, _day(3).day)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING)
+
+        # day 1/2
+        upload_observations(_day(1))
+        download_observations(_day(2))
+        obs = _get_obs_by_id(0)
+        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 20.0)
+        self.assertEqual(obs.next_upload.day, _day(3).day)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING)
+
+        # day 2/3
+        upload_observations(_day(2))
+        download_observations(_day(3))
+        obs = _get_obs_by_id(0)
+        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 30.0)
+        self.assertEqual(obs.next_upload.day, _day(3).day)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING)
+
+        # day 3/4
+        upload_observations(_day(3))
+        download_observations(_day(4))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 40.0)
+        self.assertEqual(obs.next_upload.day, _day(3).day)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        # day 4/5
+        upload_observations(_day(4))
+        download_observations(_day(5))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 50.0)
+        self.assertEqual(obs.next_upload.day, _day(3).day)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        # day 5/6
+        upload_observations(_day(5))
+        obs = _get_obs_by_id(0)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 10
+        nm.upload_dict(obs_path, obs_dict)
+        download_observations(_day(6))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 60.0)
+        self.assertEqual(obs.next_upload.day, _day(8).day)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        # day 6/7
+        upload_observations(_day(6))
+        obs = _get_obs_by_id(0)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 20
+        nm.upload_dict(obs_path, obs_dict)
+        download_observations(_day(7))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 70.0)
+        self.assertEqual(obs.next_upload.day, _day(8).day)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        # day 7/8
+        upload_observations(_day(7))
+        obs = _get_obs_by_id(0)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 30
+        nm.upload_dict(obs_path, obs_dict)
+        download_observations(_day(8))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 80.0)
+        self.assertEqual(obs.next_upload.day, _day(10).day)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        # day 8/9
+        upload_observations(_day(8))
+        download_observations(_day(9))
+        obs = _get_obs_by_id(0)
+        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 90.0)
+        self.assertEqual(obs.next_upload.day, _day(10).day)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        # day 9/10
+        upload_observations(_day(9))
+        obs = _get_obs_by_id(0)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
+        nm.upload_dict(obs_path, obs_dict)
+        download_observations(_day(10))
+        obs = _get_obs_by_id(0)
+        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_completion, 100.0)
+        self.assertEqual(obs.next_upload.day, _day(10).day) # although observation is finished, no new upload is set because it would be after the end of schedule
+        self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
+
+        nm.delete("TURMX")
         # fmt: on
