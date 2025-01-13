@@ -1,6 +1,7 @@
 import filecmp
 import json
 import os
+import unittest
 from datetime import datetime, timedelta
 from django.utils import timezone
 
@@ -308,7 +309,7 @@ def _day(d: int):
     return timezone.now() + timedelta(days=d)
 
 
-# @unittest.skip("Skip in CI until solution for nc-container in found")
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
     def test_access_nc_without_init(self):
         self.client = django.test.Client()
@@ -317,7 +318,7 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
 
 
 # noinspection DuplicatedCode
-# @unittest.skip("Skip in CI until solution for nc-container in found")
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -385,7 +386,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete("Test")
 
 
-# @unittest.skip("Skip in CI until solution for nc-container in found")
+@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudSyncTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
