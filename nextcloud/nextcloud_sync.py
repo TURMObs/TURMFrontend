@@ -1,6 +1,8 @@
 import datetime
 from datetime import timedelta
 from itertools import chain
+
+from django.db.models import Q
 from django.utils import timezone
 from nc_py_api import NextcloudException
 
@@ -19,6 +21,7 @@ This module retrieves the observation requests for a night and uses the nextclou
 """
 
 logger = logging.getLogger(__name__)
+
 
 def calc_progress(observation: dict) -> float:
     """
@@ -40,28 +43,46 @@ def calc_progress(observation: dict) -> float:
     return round((accepted_amount / required_amount) * 100, 2)
 
 
-def download_non_scheduled_observations():
+def get_data_from_nc(obs: AbstractObservation):
+    """
+    Downloads the dict of the observation from the nextcloud.
+    If an error occurs, it will be logged and the status set to error.
+
+    :param obs: Observation to retrieve the dict from.
+    :return: the dictionary of the observation and the nc_path. The progress is None if an error occurs.
+    """
+    try:
+        nc_path = nm.get_observation_file(obs)
+        nc_dict = nm.download_dict(nc_path)
+    except NextcloudException as e:
+        logger.error(
+            f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got: {e}"
+        )
+        obs.project_status = ObservationStatus.ERROR
+        obs.save()
+        return None, None
+
+    return calc_progress(nc_dict), nc_path
+
+
+def update_non_scheduled_observations():
     """
     Downloads all non-scheduled observations from the nextcloud, checks for progress and updates database accordingly.
     """
     observations = AbstractObservation.objects.filter(
         project_status=ObservationStatus.UPLOADED
     ).not_instance_of(ScheduledObservation)
-    nm.initialize_connection()
-    for obs in observations:
-        try:
-            nc_path = nm.get_observation_file(obs)
-            nc_dict = nm.download_dict(nc_path)
-        except NextcloudException as e:
-            logger.error(
-                f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got: {e}"
-            )
-            obs.project_status = ObservationStatus.ERROR
-            obs.save()
-            continue
 
-        progress = calc_progress(nc_dict)
-        if progress > obs.project_completion:
+    try:
+        nm.initialize_connection()
+    except NextcloudException as e:
+        logger.error(f"Failed to initialize connection: {e}")
+
+    for obs in observations:
+        progress, nc_path = get_data_from_nc(obs)
+        if progress is None:
+            continue
+        if progress != obs.project_completion:
             obs.project_completion = progress
         if progress == 100.0:
             obs.project_status = ObservationStatus.COMPLETED
@@ -75,25 +96,32 @@ def download_non_scheduled_observations():
         obs.save()
 
 
-def download_scheduled_observations(today: datetime = timezone.now()):
+def update_scheduled_observations(today: datetime = timezone.now()):
     """
     Downloads all scheduled observations from the nextcloud, checks for progress and updates database accordingly.
 
     :params today: datetime; default=timezone.now(). Can be changed for debugging purposes.
     """
-    observations = (
-        AbstractObservation.objects.instance_of(ScheduledObservation)
-        .exclude(project_status=ObservationStatus.COMPLETED)
-        .exclude(project_status=ObservationStatus.ERROR)
+    observations = AbstractObservation.objects.instance_of(ScheduledObservation).filter(
+        Q(project_status=ObservationStatus.PENDING)
+        | Q(project_status=ObservationStatus.UPLOADED)
     )
 
+    try:
+        nm.initialize_connection()
+    except NextcloudException as e:
+        logger.error(f"Failed to initialize connection: {e}")
+
     for obs in observations:
-        # Calculates the progress of a scheduled observation. Only considers the continence of the days, not whether pictures were actual taken.
+        # Calculates the progress of a scheduled observation. Only considers the continuance of the days, not whether pictures were actually taken.
         duration = (obs.end_scheduling - obs.start_scheduling).days
-        elapsed_time = (today - obs.start_scheduling).days
-        obs.project_completion = round(
-            max(0.0, min((elapsed_time / duration) * 100, 100.0)), 2
-        )
+        if duration <= 0:
+            obs.project_completion = 100.0
+        else:
+            elapsed_time = (today - obs.start_scheduling).days
+            obs.project_completion = round(
+                max(0.0, min((elapsed_time / duration) * 100, 100.0)), 2
+            )
 
         if obs.project_status == ObservationStatus.PENDING:
             # If the status is pending, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
@@ -101,23 +129,11 @@ def download_scheduled_observations(today: datetime = timezone.now()):
             obs.save()
             continue
 
-        try:
-            nc_path = nm.get_observation_file(obs)
-            nc_dict = nm.download_dict(nc_path)
-        except NextcloudException as e:
-            logger.error(
-                f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got: {e}"
-            )
-            obs.project_status = ObservationStatus.ERROR
-            obs.save()
+        partial_progress, nc_path = get_data_from_nc(obs)
+        if partial_progress is None:
             continue
 
-        # Updating scheduled observation in db
-        partial_progress = calc_progress(nc_dict)
-        new_upload = (
-            today.replace(hour=0, minute=0, second=0, microsecond=0)
-            + timedelta(days=obs.cadence - 1)
-        )  # Using the replace function eliminates the timezone warning without altering the functionality sine only the date is of interest in the first place.
+        new_upload = today + timedelta(days=obs.cadence - 1)
 
         if (
             partial_progress != 0.0
@@ -131,7 +147,7 @@ def download_scheduled_observations(today: datetime = timezone.now()):
             obs.next_upload = new_upload
 
         if obs.project_completion == 100.0:
-            # If an observation has reached 100.0% project_completion, it is considered done regardless the actual pictures taken.
+            # If an observation has reached 100.0% project_completion (i.e. the time windows has passed), it is considered done regardless the actual pictures taken.
             obs.project_status = ObservationStatus.COMPLETED
             try:
                 nm.delete(nc_path)
@@ -154,14 +170,14 @@ def download_scheduled_observations(today: datetime = timezone.now()):
         obs.save()
 
 
-def download_observations(today: datetime = timezone.now()):
+def update_observations(today: datetime = timezone.now()):
     """
     Wrapper method for calling 'download_non_scheduled_observations' and 'download_scheduled_observations'.
 
     :params today: datetime; default=timezone.now(). Can be changed for debugging purposes.
     """
-    download_non_scheduled_observations()
-    download_scheduled_observations(today)
+    update_non_scheduled_observations()
+    update_scheduled_observations(today)
 
 
 def upload_observations(today=timezone.now()):
@@ -177,12 +193,11 @@ def upload_observations(today=timezone.now()):
     ).not_instance_of(ScheduledObservation)
 
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
-    scheduled_observations = (
-        AbstractObservation.objects.instance_of(ScheduledObservation)
-        .exclude(
-            project_status=ObservationStatus.COMPLETED,
-        )
-        .exclude(project_status=ObservationStatus.ERROR)
+    scheduled_observations = AbstractObservation.objects.instance_of(
+        ScheduledObservation
+    ).filter(
+        Q(project_status=ObservationStatus.PENDING)
+        | Q(project_status=ObservationStatus.UPLOADED)
     )
     local_day = timezone.localdate(today)
     for obs in scheduled_observations:
@@ -197,6 +212,7 @@ def upload_observations(today=timezone.now()):
     # Upload all pending_observation to Nextcloud.
     list_to_upload = list(pending_observations)
     logger.info(f"Uploading {len(list_to_upload)} observations ...")
+
     try:
         nm.initialize_connection()
     except NextcloudException as e:
