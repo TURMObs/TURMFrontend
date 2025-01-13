@@ -76,10 +76,6 @@ class ExposureSettingsForm(forms.Form):
             [ObservationType.IMAGING, ObservationType.MONITORING]})
 
     # exoplanet
-    """star_end_observation = (TURMGridField([(ExpertObservation._meta.get_field("start_observation"), "Start Observation"),
-                                (ExpertObservation._meta.get_field("end_observation"), "end observation")], (2, 1))
-                  .add_dependencies({Dependency.observation_type.value: [ObservationType.EXOPLANET, ObservationType.EXPERT]}))
-                  """
     start_end_observation = (TURMDateTimeDuration((ExpertObservation._meta.get_field("start_observation"), "Start Observation"),
                                 (ExpertObservation._meta.get_field("end_observation"), "end observation"))
                              .add_dependencies({Dependency.observation_type.value: [ObservationType.EXOPLANET, ObservationType.EXPERT]}))
@@ -89,11 +85,6 @@ class ExposureSettingsForm(forms.Form):
     })
 
     # monitoring
-    """
-    scheduling = (TURMGridField([(ExpertObservation._meta.get_field("start_scheduling"), "start scheduling"),
-                                (ExpertObservation._meta.get_field("end_scheduling"), "end scheduling")], (2, 1))
-                  .add_dependencies({Dependency.observation_type.value: [ObservationType.MONITORING, ObservationType.EXPERT]}))
-    """
     scheduling = (TURMDateDuration((ExpertObservation._meta.get_field("start_scheduling"), "start scheduling"),
                                 (ExpertObservation._meta.get_field("end_scheduling"), "end scheduling"))
                   .add_dependencies({Dependency.observation_type.value: [ObservationType.MONITORING, ObservationType.EXPERT]}))

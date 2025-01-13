@@ -32,6 +32,10 @@ class TURMField(Field):
             case _:
                 raise NotImplementedError(f"{type(model_field)} is not supported yet.")
 
+    def add_attrs(self, attr):
+        self.widget.add_attrs(attr)
+        return self
+
     def add_dependencies(self, add_dependencies):
         self.widget.add_dependencies(add_dependencies)
         return self
