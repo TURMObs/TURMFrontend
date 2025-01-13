@@ -129,6 +129,7 @@ class _TURMChoiceInput(_TURMInput):
     choices: list[tuple[str, str]] = []
     dependency_generator = None
     on_click = None
+    tooltip = None
 
     def __init__(self, name, choices, *args, **kwargs):
         super().__init__(name=name, *args, **kwargs)
@@ -144,14 +145,22 @@ class _TURMChoiceInput(_TURMInput):
 
         html_render = ""
         for i in range(len(self.choices)):
+            dependency_attr = _render_attrs_static(
+                self.dependency_generator(self.choices[i][1])) if self.dependency_generator else ""
+            on_click_attr = f'onclick="{self.on_click(self.choices[i][1])}"' if self.on_click else ""
+
             if individual_divs:
                 html_render += '<div>'
+            if self.tooltip:
+                html_render += f'<div class="tooltip">'
 
-            dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i][1])) if self.dependency_generator else ""
-            on_click_attr = f'onclick="{self.on_click(self.choices[i][1])}"' if self.on_click else ""
             html_render += f'<input id="id_{name}_{i}" value="{self.choices[i][1]}"{self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
             html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
 
+
+            if self.tooltip:
+                html_render += f'<span class="tooltiptext">{self.tooltip}</span>'
+                html_render += f'</div>'
             if individual_divs:
                 html_render += '</div>'
         return mark_safe(html_render)
@@ -159,6 +168,9 @@ class _TURMChoiceInput(_TURMInput):
     def add_dependency_generator(self,  dependency_generator):
         self.dependency_generator = dependency_generator
         return self
+
+    def add_tooltip(self, tooltip: str):
+        self.tooltip = tooltip
 
     def add_on_click(self, func_call_generator):
         """
@@ -179,6 +191,7 @@ class TURMRadioInput(_TURMChoiceInput):
         return mark_safe(html_render)
 
 class TURMCheckboxInput(_TURMChoiceInput):
+    tooltip = None
     def __init__(self, name, choices, *args, **kwargs):
         super().__init__(name=name, choices=choices, *args, **kwargs)
         self.attrs["type"] = "checkbox"

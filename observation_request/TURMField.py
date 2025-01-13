@@ -3,7 +3,8 @@ from datetime import datetime
 from django.forms.fields import Field
 from django.db import models
 from observation_request.TURMInput import (_TURMInput, TURMIntegerInput, TURMFloatInput, TURMRadioInput,
-                                           TURMCheckboxInput, TURMGridInput, TURMDateTimeInput, TURMDateInput)
+                                           TURMCheckboxInput, TURMGridInput, TURMDateTimeInput, TURMDateInput,
+                                           _TURMChoiceInput)
 
 
 class TURMField(Field):
@@ -42,6 +43,11 @@ class TURMField(Field):
 
     def add_dependency_generator(self, dependency_generator):
         self.widget.add_dependency_generator(dependency_generator)
+        return self
+
+    def add_tooltip(self, tooltip):
+        if isinstance(self.widget, _TURMChoiceInput):
+            self.widget.add_tooltip(tooltip)
         return self
 
     def add_on_click(self, func_call_generator):

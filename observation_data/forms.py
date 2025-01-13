@@ -48,7 +48,7 @@ class ExposureSettingsForm(forms.Form):
                         .add_on_click(lambda o_type : f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"))
     # combined
     filter_set = (TURMModelField(ExpertObservation._meta.get_field("filter_set"))
-                  .add_dependency_generator(filter_set_dependency_generator))
+                  .add_dependency_generator(filter_set_dependency_generator)).add_tooltip("This filter is not supported by selected observatory")
 
     #
     exposure_time = (TURMField(TURMRadioInput(name="exposure_time", choices=[('15s', '15'), ('30s', '30'), ('60s', '60'), ('120s', '120'),('300s', '300')]),

@@ -108,3 +108,33 @@ input[type=text], input[type=date], input[type=datetime-local] {
     font-weight: bold;
     margin-bottom: 0;
 }
+
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 140px;
+    background-color: var(--tom-light-grey);
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    position: absolute;
+    z-index: 1;
+
+    bottom: 100%;
+    left: 50%;
+    margin-left: -70px;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover input:disabled~.tooltiptext {
+  visibility: visible;
+}
+/*--- --- */
