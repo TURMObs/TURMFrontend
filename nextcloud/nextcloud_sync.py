@@ -20,29 +20,6 @@ This module retrieves the observation requests for a night and uses the nextclou
 
 logger = logging.getLogger(__name__)
 
-
-def check_for_progress(obs: AbstractObservation, nc_dict: dict) -> bool:
-    """
-    Checks whether pictures of the corresponding observation have been taken compared to the current status in the database.
-
-    :param obs: the observation from the database
-    :param nc_dict: the dict of the observation in the nextcloud.
-    :return True if the progress of the both params do NOT match. False otherwise.
-    """
-
-    serializer_class = get_serializer(obs.observation_type)
-    serializer = serializer_class(obs)
-    obs_dict = serializer.data
-
-    nc_progress = nc_dict["targets"][0]["exposures"]
-    db_progress = obs_dict["targets"][0]["exposures"]
-
-    for e_nc, db_progression in zip(nc_progress, db_progress):
-        if e_nc["acceptedAmount"] != db_progression["acceptedAmount"]:
-            return True
-    return False
-
-
 def calc_progress(observation: dict) -> float:
     """
     Calculates the progress of the observation.
