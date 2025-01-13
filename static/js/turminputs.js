@@ -23,28 +23,21 @@ function check_radio_if_none_selected() {
     }
 }
 
-function disable_inputs(el) {
-    console.log("Disabled Inputs", el);
-    /*
+function disable_inputs(dependency_type, dependency) {
+    console.log("Disabled Inputs", dependency_type, dependency);
+
     const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
         .filter(el => !!el.getAttribute(dependency_type));
 
     for (let input of dependent_inputs) {
-        if (input.getAttribute(dependency_type).includes(dependency)) {
-            input.parentElement.removeAttribute("style");
-            //for (let label of input.labels) {
-            //    label.removeAttribute("style")
-            //}
-            //input.removeAttribute("style")
+        if (input.getAttribute(dependency_type).split(' ').includes(dependency)) {
+            input.disabled = false;
         } else {
-            //for (let label of input.labels) {
-            //    label.style.display = 'none';
-            //}
-            //input.style.display = 'none';
-            //console.log(input.parentElement)
-            input.parentElement.style.display = 'none';
+            input.disabled = true;
+            input.checked = false;
+            // add hover notice
         }
-    } */
+    }
 }
 
 function hide_inputs(dependency_type, dependency) {

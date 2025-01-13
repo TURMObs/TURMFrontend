@@ -34,7 +34,7 @@ class CelestialTargetForm(forms.ModelForm):
         self.fields["dec"].widget.attrs.update({"placeholder": "dd mm ss"})
 
 class TRUMProjectForm(forms.Form):
-    observatory = TURMModelField(AbstractObservation._meta.get_field("observatory"))
+    observatory = TURMModelField(AbstractObservation._meta.get_field("observatory")).add_on_click(lambda o_type : f"disable_inputs('{Dependency.observatory.value}','{o_type}')")
 
 def filter_set_dependency_generator(filter):
     dependency = {Dependency.observatory.value: []}

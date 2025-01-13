@@ -147,7 +147,7 @@ class _TURMChoiceInput(_TURMInput):
             if individual_divs:
                 html_render += '<div>'
 
-            dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i])) if self.dependency_generator else ""
+            dependency_attr = _render_attrs_static(self.dependency_generator(self.choices[i][1])) if self.dependency_generator else ""
             on_click_attr = f'onclick="{self.on_click(self.choices[i][1])}"' if self.on_click else ""
             html_render += f'<input id="id_{name}_{i}" value="{self.choices[i][1]}"{self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
             html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
