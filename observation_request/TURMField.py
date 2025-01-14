@@ -2,30 +2,60 @@ from datetime import datetime
 
 from django.forms.fields import Field
 from django.db import models
-from observation_request.TURMInput import (_TURMInput, TURMIntegerInput, TURMFloatInput, TURMRadioInput,
-                                           TURMCheckboxInput, TURMGridInput, TURMDateTimeInput, TURMDateInput,
-                                           _TURMChoiceInput)
+from observation_request.TURMInput import (
+    _TURMInput,
+    TURMIntegerInput,
+    TURMFloatInput,
+    TURMRadioInput,
+    TURMCheckboxInput,
+    TURMGridInput,
+    TURMDateTimeInput,
+    TURMDateInput,
+    _TURMChoiceInput,
+)
 
 
 class TURMField(Field):
-    def __init__(self, widget: _TURMInput, label_name: str= None, *args, **kwargs):
-        super().__init__(widget=widget,label=label_name)
+    def __init__(self, widget: _TURMInput, label_name: str = None, *args, **kwargs):
+        super().__init__(widget=widget, label=label_name)
 
-    def model_field_to_input(self, model_field, measurement_unit = None, *args, **kwargs):
+    def model_field_to_input(self, model_field, measurement_unit=None, *args, **kwargs):
         match type(model_field):
             case models.DecimalField:
-                return TURMFloatInput(name=model_field.name, measurement_unit=measurement_unit,
-                                      *args, **kwargs)
+                return TURMFloatInput(
+                    name=model_field.name,
+                    measurement_unit=measurement_unit,
+                    *args,
+                    **kwargs,
+                )
             case models.IntegerField:
-                return TURMIntegerInput(name=model_field.name, measurement_unit=measurement_unit,
-                                        *args, **kwargs)
+                return TURMIntegerInput(
+                    name=model_field.name,
+                    measurement_unit=measurement_unit,
+                    *args,
+                    **kwargs,
+                )
             case models.ManyToManyField:
                 self.required = False
-                return TURMCheckboxInput(name=model_field.name, choices=[(str(name).title(),str(name)) for name in model_field.remote_field.model.objects.all()],
-                                         *args, **kwargs)
+                return TURMCheckboxInput(
+                    name=model_field.name,
+                    choices=[
+                        (str(name).title(), str(name))
+                        for name in model_field.remote_field.model.objects.all()
+                    ],
+                    *args,
+                    **kwargs,
+                )
             case models.ForeignKey:
-                return TURMRadioInput(name=model_field.name, choices=[(str(name).title(),str(name)) for name in model_field.remote_field.model.objects.all()],
-                                      *args, **kwargs)
+                return TURMRadioInput(
+                    name=model_field.name,
+                    choices=[
+                        (str(name).title(), str(name))
+                        for name in model_field.remote_field.model.objects.all()
+                    ],
+                    *args,
+                    **kwargs,
+                )
             case models.DateTimeField:
                 return TURMDateTimeInput(name=model_field.name, *args, **kwargs)
             case models.DateField:
@@ -56,43 +86,111 @@ class TURMField(Field):
 
 
 class TURMModelField(TURMField):
-    def __init__(self, model_field: models.Field, label_name: str= None, measurement_unit= None, *args, **kwargs):
+    def __init__(
+        self,
+        model_field: models.Field,
+        label_name: str = None,
+        measurement_unit=None,
+        *args,
+        **kwargs,
+    ):
         if label_name is None:
-            label_name = str(model_field.name).replace('_', ' ').title()
-        widget = self.model_field_to_input(model_field, measurement_unit, *args, **kwargs)
-        super().__init__(widget=widget,label_name=label_name,*args, **kwargs)
+            label_name = str(model_field.name).replace("_", " ").title()
+        widget = self.model_field_to_input(
+            model_field, measurement_unit, *args, **kwargs
+        )
+        super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
+
 
 class TURMSelectField(TURMField):
-    def __init__(self, name, choices: list[tuple[str, str]], label_name: str = None, *args, **kwargs):
+    def __init__(
+        self,
+        name,
+        choices: list[tuple[str, str]],
+        label_name: str = None,
+        *args,
+        **kwargs,
+    ):
         widget = TURMRadioInput(name=name, choices=choices)
         self.required = False
         super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 
+
 class TURMModelSelectField(TURMField):
-    def __init__(self, model_field: models.Field, label_name: str = None, *args, **kwargs):
+    def __init__(
+        self, model_field: models.Field, label_name: str = None, *args, **kwargs
+    ):
         if label_name is None:
             label_name = str(model_field.name).title()
         self.required = False
-        widget = TURMRadioInput(name=model_field.name, choices=[(str(name).title(),str(name)) for name in model_field.remote_field.model.objects.all()])
+        widget = TURMRadioInput(
+            name=model_field.name,
+            choices=[
+                (str(name).title(), str(name))
+                for name in model_field.remote_field.model.objects.all()
+            ],
+        )
         super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 
 
 class TURMGridField(TURMField):
-    def __init__(self, model_fields: list[tuple[models.Field, str]], grid_dim = None, *args, **kwargs):
-        sub_widgets = [(self.model_field_to_input(field[0]), field[1]) for field in model_fields]
-        widget = TURMGridInput(widgets=sub_widgets, grid_dim = grid_dim, *args, **kwargs)
+    def __init__(
+        self,
+        model_fields: list[tuple[models.Field, str]],
+        grid_dim=None,
+        *args,
+        **kwargs,
+    ):
+        sub_widgets = [
+            (self.model_field_to_input(field[0]), field[1]) for field in model_fields
+        ]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim=grid_dim, *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
+
 
 class TURMDateDuration(TURMField):
-    def __init__(self, start: tuple[models.Field, str], end: tuple[models.Field, str] , *args, **kwargs):
-        sub_widgets = [(TURMDateInput(start[0].name, minimum=datetime.date(datetime.now()),*args, **kwargs).add_on_value_changed(f'update_date_dependency(this)'), start[1]),
-                       (TURMDateInput(end[0].name,*args, **kwargs), end[1])]
-        widget = TURMGridInput(widgets=sub_widgets, grid_dim = (2,1), *args, **kwargs)
+    def __init__(
+        self,
+        start: tuple[models.Field, str],
+        end: tuple[models.Field, str],
+        *args,
+        **kwargs,
+    ):
+        sub_widgets = [
+            (
+                TURMDateInput(
+                    start[0].name,
+                    minimum=datetime.date(datetime.now()),
+                    *args,
+                    **kwargs,
+                ).add_on_value_changed("update_date_dependency(this)"),
+                start[1],
+            ),
+            (TURMDateInput(end[0].name, *args, **kwargs), end[1]),
+        ]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
 
+
 class TURMDateTimeDuration(TURMField):
-    def __init__(self, start: tuple[models.Field, str], end: tuple[models.Field, str] , *args, **kwargs):
-        sub_widgets = [(TURMDateTimeInput(start[0].name, minimum=datetime.now().strftime("%Y-%m-%dT23:59"),*args, **kwargs).add_on_value_changed(f'update_date_dependency(this)'), start[1]), #"%Y-%m-%dT%X"
-                       (TURMDateTimeInput(end[0].name,*args, **kwargs), end[1])]
-        widget = TURMGridInput(widgets=sub_widgets, grid_dim = (2,1), *args, **kwargs)
+    def __init__(
+        self,
+        start: tuple[models.Field, str],
+        end: tuple[models.Field, str],
+        *args,
+        **kwargs,
+    ):
+        sub_widgets = [
+            (
+                TURMDateTimeInput(
+                    start[0].name,
+                    minimum=datetime.now().strftime("%Y-%m-%dT23:59"),
+                    *args,
+                    **kwargs,
+                ).add_on_value_changed("update_date_dependency(this)"),
+                start[1],
+            ),  # "%Y-%m-%dT%X"
+            (TURMDateTimeInput(end[0].name, *args, **kwargs), end[1]),
+        ]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)

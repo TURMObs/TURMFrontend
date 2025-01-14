@@ -5,8 +5,10 @@ from rest_framework.decorators import api_view
 
 from observation_data.forms import (
     CelestialTargetForm,
-    ExposureSettingsForm, TRUMProjectForm
+    ExposureSettingsForm,
+    TRUMProjectForm,
 )
+
 
 def simple_request(request):
     context = {}
@@ -17,7 +19,7 @@ def simple_request(request):
         ("Exposure", ExposureSettingsForm()),
     ]
     context["forms"] = forms
-    context['create_form_url'] = '/observation-data/create/'
+    context["create_form_url"] = "/observation-data/create/"
     return render(request, "observationRequest/requestTemplate.html", context)
 
 
