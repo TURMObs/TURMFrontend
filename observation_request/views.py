@@ -17,7 +17,7 @@ def simple_request(request):
         ("Exposure", ExposureSettingsForm()),
     ]
     context["forms"] = forms
-    context['create_form_url'] = '/observation-request/test/'
+    context['create_form_url'] = '/observation-data/create/'
     return render(request, "observationRequest/requestTemplate.html", context)
 
 

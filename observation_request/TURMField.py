@@ -92,7 +92,7 @@ class TURMDateDuration(TURMField):
 
 class TURMDateTimeDuration(TURMField):
     def __init__(self, start: tuple[models.Field, str], end: tuple[models.Field, str] , *args, **kwargs):
-        sub_widgets = [(TURMDateTimeInput(start[0].name, minimum=datetime.now().strftime("%Y-%m-%dT%X"),*args, **kwargs).add_on_value_changed(f'update_date_dependency(this)'), start[1]),
+        sub_widgets = [(TURMDateTimeInput(start[0].name, minimum=datetime.now().strftime("%Y-%m-%dT23:59"),*args, **kwargs).add_on_value_changed(f'update_date_dependency(this)'), start[1]), #"%Y-%m-%dT%X"
                        (TURMDateTimeInput(end[0].name,*args, **kwargs), end[1])]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim = (2,1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
