@@ -4,15 +4,16 @@ For a usage example, see the create_observation view in the views.py file.
 """
 
 from collections import OrderedDict
-from datetime import datetime, timezone
 from decimal import Decimal
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from .data_verification import (
     verify_field_integrity,
-    validate_time_range,
+    validate_observation_time,
     verify_filter_selection,
+    validate_schedule_time,
 )
 from .models import (
     CelestialTarget,
@@ -24,6 +25,8 @@ from .models import (
     Observatory,
     Filter,
     ObservationType,
+    ObservationStatus,
+    ScheduledObservation,
 )
 
 priorities = {
@@ -59,12 +62,15 @@ def _create_observation(validated_data, observation_type, model):
         dec=target_data.get("dec"),
     )
 
-    validated_data["project_status"] = "Pending Upload"
+    validated_data["project_status"] = ObservationStatus.PENDING
     validated_data["project_completion"] = 0.0
-    validated_data["created_at"] = datetime.now(timezone.utc)
+    validated_data["created_at"] = timezone.now()
 
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
+
+    if issubclass(model, ScheduledObservation):
+        validated_data["next_upload"] = validated_data["start_scheduling"]
 
     filter_set = validated_data.pop("filter_set")
     observation = model.objects.create(target=created_target, **validated_data)
@@ -195,7 +201,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     return rep
 
 
-def _validate_fields(attrs):
+def _validate_fields(attrs, validate_times=False, validate_scheduling=False):
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
@@ -209,6 +215,23 @@ def _validate_fields(attrs):
         filter_errors = verify_filter_selection(filters, observatory)
         if filter_errors:
             errors = {**errors, **filter_errors}
+
+    if validate_times:
+        time_errors = validate_observation_time(
+            attrs.get("start_observation"),
+            attrs.get("end_observation"),
+            attrs.get("observatory"),
+        )
+        if time_errors:
+            errors = {**errors, **time_errors}
+
+    if validate_scheduling:
+        time_errors = validate_schedule_time(
+            attrs.get("start_scheduling"),
+            attrs.get("end_scheduling"),
+        )
+        if time_errors:
+            errors = {**errors, **time_errors}
 
     if errors:
         raise serializers.ValidationError(errors)
@@ -277,12 +300,7 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        validate_time_range(
-            attrs.get("start_observation"),
-            attrs.get("end_observation"),
-            attrs.get("observatory"),
-        )
-        _validate_fields(attrs)
+        _validate_fields(attrs, validate_times=True)
         return attrs
 
     def create(self, validated_data):
@@ -408,12 +426,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        validate_time_range(
-            attrs.get("start_observation"),
-            attrs.get("end_observation"),
-            attrs.get("observatory"),
-        )
-        _validate_fields(attrs)
+        _validate_fields(attrs, validate_times=True)
         return attrs
 
     def create(self, validated_data):

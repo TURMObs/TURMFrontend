@@ -15,6 +15,13 @@ class ObservationType(models.TextChoices):
     EXPERT = "Expert"
 
 
+class ObservationStatus(models.TextChoices):
+    PENDING = "Pending Upload"
+    UPLOADED = "Uploaded"
+    ERROR = "Error"
+    COMPLETED = "Completed"
+
+
 class CelestialTarget(models.Model):
     """
     Model for the celestial targets that can be observed.
@@ -105,12 +112,6 @@ class AbstractObservation(PolymorphicModel):
     Note that this means that each observation will have a corresponding row in the AbstractObservation table.
     """
 
-    class ObservationStatus(models.TextChoices):
-        PENDING = "Pending Upload"
-        UPLOADED = "Uploaded"
-        ERROR = "Error"
-        COMPLETED = "Completed"
-
     observatory = models.ForeignKey(
         Observatory,
         on_delete=models.PROTECT,
@@ -149,15 +150,22 @@ class VariableObservation(AbstractObservation):
     required_amount = models.IntegerField()
 
 
-class MonitoringObservation(AbstractObservation):
-    frames_per_filter = models.IntegerField()
+class ScheduledObservation(AbstractObservation):
+    class Meta:
+        abstract = True
+
     start_scheduling = models.DateTimeField()
     end_scheduling = models.DateTimeField()
+    next_upload = models.DateTimeField()
     cadence = models.IntegerField()
+
+
+class MonitoringObservation(ScheduledObservation):
+    frames_per_filter = models.IntegerField()
     required_amount = models.IntegerField()
 
 
-class ExpertObservation(AbstractObservation):
+class ExpertObservation(ScheduledObservation):
     frames_per_filter = models.IntegerField()
     dither_every = models.IntegerField()
     binning = models.IntegerField()
@@ -165,9 +173,6 @@ class ExpertObservation(AbstractObservation):
     offset = models.IntegerField()
     start_observation = models.DateTimeField()
     end_observation = models.DateTimeField()
-    start_scheduling = models.DateTimeField()
-    end_scheduling = models.DateTimeField()
-    cadence = models.IntegerField()
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
