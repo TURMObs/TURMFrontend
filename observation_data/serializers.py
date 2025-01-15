@@ -261,7 +261,7 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImagingObservation
-        fields = base_fields + ["frames_per_filter", "required_amount"]
+        fields = base_fields + ["frames_per_filter"]
 
     def validate(self, attrs):
         _validate_fields(attrs)
@@ -277,7 +277,7 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
             "ditherEvery": 1,
         }
         exposure_fields = {
-            "requiredAmount": instance.required_amount,
+            "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
             instance=instance,
@@ -339,7 +339,7 @@ class VariableObservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VariableObservation
-        fields = base_fields + ["minimum_altitude", "required_amount"]
+        fields = base_fields + ["minimum_altitude", "frames_per_filter"]
 
     def validate(self, attrs):
         _validate_fields(attrs)
@@ -355,7 +355,7 @@ class VariableObservationSerializer(serializers.ModelSerializer):
             "minimumAltitude": instance.minimum_altitude,
         }
         exposure_fields = {
-            "requiredAmount": instance.required_amount,
+            "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
             instance=instance,
@@ -377,7 +377,6 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
             "start_scheduling",
             "end_scheduling",
             "cadence",
-            "required_amount",
         ]
 
     def validate(self, attrs):
@@ -391,7 +390,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         exposure_fields = {
-            "requiredAmount": instance.required_amount,
+            "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
             instance=instance,
@@ -422,7 +421,6 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "moon_separation_width",
             "minimum_altitude",
             "priority",
-            "required_amount",
         ]
 
     def validate(self, attrs):
@@ -464,7 +462,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "offset": instance.offset,
             "moonSeparationAngle": instance.moon_separation_angle,
             "moonSeparationWidth": instance.moon_separation_width,
-            "requiredAmount": instance.required_amount,
+            "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
             instance=instance,
