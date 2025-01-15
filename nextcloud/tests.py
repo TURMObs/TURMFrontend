@@ -37,11 +37,11 @@ from observation_data.serializers import get_serializer
 
 file_upload = "nextcloud/test_data/upload_file.json"
 file_download = "nextcloud/test_data/download_file.json"
-file_nc = "file1.json"
+file_nc = "file1_test.json"
 
 dict_upload = "nextcloud/test_data/upload_dict.json"
 dict_download = "nextcloud/test_data/download_dict.json"
-dict_nc = "dict1.json"
+dict_nc = "dict1_test.json"
 
 
 # noinspection DuplicatedCode
@@ -401,7 +401,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def test_calc_progress(self):
         # insert a specific Observation into the db and retrieve it as dict
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        turmx = Observatory.objects.filter(name="TURMX_Test")[0]
         _create_imaging_observations(
             self,
             obs_id=1,
@@ -429,38 +429,39 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.delete("test.json")
 
     def test_get_nextcloud_path(self):
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
         _create_imaging_observations(
-            self, obs_id=42, target_name="I1", required_amount=100, observatory=turmx
+            self,
+            obs_id=42,
+            target_name="I1",
+            required_amount=100,
+            observatory=turmx_test,
         )
         observation = AbstractObservation.objects.all()[0]
         self.assertEqual(
             generate_observation_path(observation),
-            "TURMX/Projects/00042_Imaging_L_I1.json",
+            "TURMX_TEST/Projects/00042_Imaging_L_I1.json",
         )
 
     def test_upload_from_db_simple(self):
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        nm.mkdir("TURMX2/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
-        turmx2 = Observatory.objects.filter(name="TURMX2")[0]
-
-
+        nm.mkdir("TURMX_TEST/Projects")
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
         # insert test data
-        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx)
-        _create_imaging_observations(self, obs_id=1, target_name="I2", observatory=turmx2)
-        _create_exoplanet_observation(self, obs_id=2, target_name="E1", observatory=turmx)
-        _create_exoplanet_observation(self, obs_id=3, target_name="E2", observatory=turmx2)
-        _create_variable_observation(self, obs_id=4, target_name="V1", observatory=turmx)
-        _create_variable_observation(self, obs_id=5, target_name="V2", observatory=turmx2)
-        _create_monitoring_observation(self, obs_id=6, target_name="M1", observatory=turmx)
-        _create_monitoring_observation(self, obs_id=7, target_name="M2", observatory=turmx2)
-        _create_expert_observation(self, obs_id=8, target_name="X1", observatory=turmx)
-        _create_expert_observation(self, obs_id=9, target_name="X2", observatory=turmx2, project_status=ObservationStatus.COMPLETED)
-        _create_variable_observation(self, obs_id=10, target_name="V3", observatory=turmx2, project_status=ObservationStatus.ERROR)
+        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx_test)
+        _create_imaging_observations(self, obs_id=1, target_name="I2", observatory=turmx_test)
+        _create_exoplanet_observation(self, obs_id=2, target_name="E1", observatory=turmx_test)
+        _create_exoplanet_observation(self, obs_id=3, target_name="E2", observatory=turmx_test)
+        _create_variable_observation(self, obs_id=4, target_name="V1", observatory=turmx_test)
+        _create_variable_observation(self, obs_id=5, target_name="V2", observatory=turmx_test)
+        _create_monitoring_observation(self, obs_id=6, target_name="M1", observatory=turmx_test)
+        _create_monitoring_observation(self, obs_id=7, target_name="M2", observatory=turmx_test)
+        _create_expert_observation(self, obs_id=8, target_name="X1", observatory=turmx_test)
+        _create_expert_observation(self, obs_id=9, target_name="X2", observatory=turmx_test, project_status=ObservationStatus.COMPLETED)
+        _create_variable_observation(self, obs_id=10, target_name="V3", observatory=turmx_test, project_status=ObservationStatus.ERROR)
         self.assertEqual(11, AbstractObservation.objects.all().count())
 
         expected_uploads = [True, True, True, True, True, True, True, True, True, False, False]
@@ -477,23 +478,22 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.assertEqual(_get_obs_by_id(9).project_status, ObservationStatus.COMPLETED)
         self.assertEqual(_get_obs_by_id(10).project_status, ObservationStatus.ERROR)
 
-        nm.delete("TURMX")
-        nm.delete("TURMX2")
+        nm.delete("TURMX_TEST")
         # fmt: on
 
     def test_upload_from_db_status(self):
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
         # fmt: off
         # since the tested properties are inherited by ScheduledObservation, MonitoringObservation does not need to be tested manually
-        _create_expert_observation(self, obs_id=0, target_name="E0", observatory=turmx)
-        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(1), end_scheduling=_day(2), observatory=turmx)
-        _create_expert_observation(self, obs_id=2, target_name="E2", start_scheduling=_day(-2), end_scheduling=_day(-3), observatory=turmx)
-        _create_imaging_observations(self, obs_id=3, target_name="I0", observatory=turmx)
-        _create_imaging_observations(self, obs_id=4, target_name="I1", project_status=ObservationStatus.COMPLETED, observatory=turmx)
-        _create_imaging_observations(self, obs_id=5, target_name="I2", project_status=ObservationStatus.ERROR, observatory=turmx)
+        _create_expert_observation(self, obs_id=0, target_name="E0", observatory=turmx_test)
+        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(1), end_scheduling=_day(2), observatory=turmx_test)
+        _create_expert_observation(self, obs_id=2, target_name="E2", start_scheduling=_day(-2), end_scheduling=_day(-3), observatory=turmx_test)
+        _create_imaging_observations(self, obs_id=3, target_name="I0", observatory=turmx_test)
+        _create_imaging_observations(self, obs_id=4, target_name="I1", project_status=ObservationStatus.COMPLETED, observatory=turmx_test)
+        _create_imaging_observations(self, obs_id=5, target_name="I2", project_status=ObservationStatus.ERROR, observatory=turmx_test)
         self.assertEqual(6, AbstractObservation.objects.all().count())
 
         # Expected values for day -1 to 4 (both included)
@@ -514,19 +514,19 @@ class NextcloudSyncTestCase(django.test.TestCase):
                 self.assertEqual(expected_s, actual_s, f"Day: {i-1} – Expected status: {expected_s}, actual: {actual_s} for obs {obs.id}",)
 
         # fmt: on
-        nm.delete("TURMX")
+        nm.delete("TURMX_TEST")
 
     def test_upload_from_db_repetitive_observations(self):
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
-        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(0), end_scheduling=_day(7), cadence=2, observatory=turmx)
-        _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3, observatory=turmx)
-        _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED, observatory=turmx)
-        _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED, observatory=turmx)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx_test)
+        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(0), end_scheduling=_day(7), cadence=2, observatory=turmx_test)
+        _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3, observatory=turmx_test)
+        _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED, observatory=turmx_test)
+        _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED, observatory=turmx_test)
         self.assertEqual(5, AbstractObservation.objects.all().count())
 
         test_obs = [_get_obs_by_id(i) for i in range(5)]
@@ -564,20 +564,20 @@ class NextcloudSyncTestCase(django.test.TestCase):
                     obs.next_upload += timedelta(days=obs.cadence)
                     obs.save()
 
-        nm.mkdir("TURMX")
+        nm.mkdir("TURMX_TEST")
         # fmt: on
 
     def test_download_non_scheduled(self):
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
-        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx, required_amount=10)
-        _create_exoplanet_observation(self, obs_id=1, target_name="E1", observatory=turmx)
+        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx_test, required_amount=10)
+        _create_exoplanet_observation(self, obs_id=1, target_name="E1", observatory=turmx_test)
         _get_obs_by_id(1).filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.HYDROGEN)) # add second filter to test multi filter handling
 
-        _create_variable_observation(self, obs_id=2, target_name="V1", observatory=turmx)
+        _create_variable_observation(self, obs_id=2, target_name="V1", observatory=turmx_test)
 
         upload_observations()
 
@@ -648,7 +648,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.assertEqual(o2.project_status, ObservationStatus.COMPLETED)
         self.assertEqual(o2.project_completion, 100)
 
-        nm.delete("TURMX")
+        nm.delete("TURMX_TEST")
         # fmt: on
 
     def test_update_scheduled_1(self):
@@ -658,10 +658,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
-        _create_monitoring_observation(self, obs_id=0, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=0, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx_test)
 
         for i in range(5):
             upload_observations(_day(i))
@@ -681,7 +681,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         self.assertEqual(_get_obs_by_id(0).project_status, ObservationStatus.COMPLETED)
 
-        nm.delete("TURMX")
+        nm.delete("TURMX_TEST")
         # fmt: on
 
     def test_update_scheduled_2(self):
@@ -691,10 +691,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(2), cadence=1, observatory=turmx)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(2), cadence=1, observatory=turmx_test)
 
         upload_observations()
         obs = _get_obs_by_id(0)
@@ -715,7 +715,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.assertEqual(obs.project_completion, 100.0) # <- although no pictures were taken, the completion is still set to 100
         self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
 
-        nm.delete("TURMX")
+        nm.delete("TURMX_TEST")
         # fmt: on
 
     def test_update_scheduled_3(self):
@@ -725,10 +725,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX/Projects")
-        turmx = Observatory.objects.filter(name="TURMX")[0]
+        nm.mkdir("TURMX_TEST/Projects")
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(10), cadence=3, observatory=turmx)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(10), cadence=3, observatory=turmx_test)
 
         # day 0/1
         upload_observations(_day(0))
@@ -845,5 +845,5 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.assertEqual(obs.next_upload.day, _day(10).day) # although observation is finished, no new upload is set because it would be after the end of schedule
         self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
 
-        nm.delete("TURMX")
+        nm.delete("TURMX_TEST")
         # fmt: on

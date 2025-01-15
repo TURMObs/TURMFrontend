@@ -41,6 +41,16 @@ class Command(BaseCommand):
             },
         )
 
+        Observatory.objects.get_or_create(
+            name="TURMX_Test",
+            defaults={
+                "horizon_offset": 0.0,
+                "min_stars": -1,
+                "max_HFR": 6.0,
+                "max_guide_error": 1000.0,
+            },
+        )
+
     @staticmethod
     def populate_exposure_settings():
         ExposureSettings.objects.get_or_create(
@@ -74,6 +84,13 @@ class Command(BaseCommand):
             ),
             observation_type=ObservationType.IMAGING,
         )
+        ObservatoryExposureSettings.objects.get_or_create(
+            observatory=Observatory.objects.get(name="TURMX_Test"),
+            exposure_settings=ExposureSettings.objects.get(
+                gain=2750, offset=0, binning=1, subFrame=1.0
+            ),
+            observation_type=ObservationType.IMAGING,
+        )
 
         for observation_type in [
             ObservationType.EXOPLANET,
@@ -89,6 +106,13 @@ class Command(BaseCommand):
             )
             ObservatoryExposureSettings.objects.get_or_create(
                 observatory=Observatory.objects.get(name="TURMX2"),
+                exposure_settings=ExposureSettings.objects.get(
+                    gain=0, offset=0, binning=1, subFrame=0.5
+                ),
+                observation_type=observation_type,
+            )
+            ObservatoryExposureSettings.objects.get_or_create(
+                observatory=Observatory.objects.get(name="TURMX_Test"),
                 exposure_settings=ExposureSettings.objects.get(
                     gain=0, offset=0, binning=1, subFrame=0.5
                 ),
@@ -134,6 +158,7 @@ class Command(BaseCommand):
         # link filters to observatories
         turmx = Observatory.objects.get(name="TURMX")
         turmx2 = Observatory.objects.get(name="TURMX2")
+        turmx_test = Observatory.objects.get(name="TURMX_Test")
         for filter_type in [
             Filter.FilterType.LUMINANCE,
             Filter.FilterType.RED,
@@ -145,9 +170,11 @@ class Command(BaseCommand):
         ]:
             turmx.filter_set.add(Filter.objects.get(filter_type=filter_type))
             turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
+            turmx_test.filter_set.add(Filter.objects.get(filter_type=filter_type))
         for filter_type in [
             Filter.FilterType.SLOAN_R,
             Filter.FilterType.SLOAN_G,
             Filter.FilterType.SLOAN_I,
         ]:
             turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
+            turmx_test.filter_set.add(Filter.objects.get(filter_type=filter_type))
