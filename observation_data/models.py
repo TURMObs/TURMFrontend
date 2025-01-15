@@ -137,7 +137,6 @@ class AbstractObservation(PolymorphicModel):
 
 class ImagingObservation(AbstractObservation):
     frames_per_filter = models.IntegerField()
-    required_amount = models.IntegerField()
 
 
 class ExoplanetObservation(AbstractObservation):
@@ -147,7 +146,7 @@ class ExoplanetObservation(AbstractObservation):
 
 class VariableObservation(AbstractObservation):
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
-    required_amount = models.IntegerField()
+    frames_per_filter = models.IntegerField()
 
 
 class ScheduledObservation(AbstractObservation):
@@ -162,7 +161,6 @@ class ScheduledObservation(AbstractObservation):
 
 class MonitoringObservation(ScheduledObservation):
     frames_per_filter = models.IntegerField()
-    required_amount = models.IntegerField()
 
 
 class ExpertObservation(ScheduledObservation):
@@ -176,4 +174,3 @@ class ExpertObservation(ScheduledObservation):
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
-    required_amount = models.IntegerField()

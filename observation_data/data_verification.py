@@ -102,8 +102,6 @@ def verify_field_integrity(name, value, observation_type):
     match name:
         case "frames_per_filter":
             return _assert_number_in_range(name, value, 1, 1000)
-        case "required_amount":
-            return _assert_number_in_range(name, value, 1, 1000)
         case "ra":
             return _assert_matches_regex(
                 name, value, r"\d{2} \d{2} \d{2}(?:\.\d{1,7})?"
