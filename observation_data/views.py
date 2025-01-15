@@ -109,7 +109,7 @@ def convert_query_dict(qdict, model: AbstractObservation):
         if len(val) > 1:
             converted_dict[key] = val
             continue
-        if type(meta.get_field(key)) == ManyToManyField:
+        if isinstance(meta.get_field(key), ManyToManyField):
             converted_dict[key] = val
             continue
         converted_dict[key] = val[0]

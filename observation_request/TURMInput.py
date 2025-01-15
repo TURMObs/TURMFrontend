@@ -333,5 +333,4 @@ class TURMGridInput(_TURMInput):
         for widget in self.widgets:
             if isinstance(widget, _TURMChoiceInput):
                 widget.add_on_click(func_call_generator)
-        x = [i for i in range(len(self.widgets))]
         return self
