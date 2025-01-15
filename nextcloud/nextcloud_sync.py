@@ -58,7 +58,6 @@ def get_data_from_nc(obs: AbstractObservation):
         logger.error(
             f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got: {e}"
         )
-        obs.project_status = ObservationStatus.ERROR
         obs.save()
         return None, None
 
@@ -89,7 +88,6 @@ def update_non_scheduled_observations():
             try:
                 nm.delete(nc_path)
             except NextcloudException as e:
-                obs.project_status = ObservationStatus.ERROR
                 logger.error(
                     f"Tried to delete observation {obs.id} because progress is 100, but got: {e}"
                 )
@@ -148,11 +146,10 @@ def update_scheduled_observations(today: datetime = timezone.now()):
 
         if obs.project_completion == 100.0:
             # If an observation has reached 100.0% project_completion (i.e. the time windows has passed), it is considered done regardless the actual pictures taken.
-            obs.project_status = ObservationStatus.COMPLETED
             try:
+                obs.project_status = ObservationStatus.COMPLETED
                 nm.delete(nc_path)
             except NextcloudException as e:
-                obs.project_status = ObservationStatus.ERROR
                 logger.error(
                     f"Tried to delete observation {obs.id} because it has reached its scheduled end, but got: {e}"
                 )
@@ -162,7 +159,6 @@ def update_scheduled_observations(today: datetime = timezone.now()):
                 obs.project_status = ObservationStatus.PENDING  # set status to pending to indicate observation currently does NOT exist in the nextcloud.
                 nm.delete(nc_path)
             except NextcloudException as e:
-                obs.project_status = ObservationStatus.ERROR
                 logger.error(
                     f"Tried to delete observation {obs.id} because partial progress is 100, but got: {e}"
                 )
@@ -226,14 +222,13 @@ def upload_observations(today=timezone.now()):
         nc_path = nm.generate_observation_path(obs)
         try:
             nm.upload_dict(nc_path, obs_dict)
-            obs.project_status = ObservationStatus.UPLOADED
             logger.info(
                 f"Uploaded observation {obs_dict['name']} with id {obs.id} to {nc_path}"
             )
+            obs.project_status = ObservationStatus.UPLOADED
 
         except NextcloudException as e:
             logger.error(
                 f"Failed to upload observation {obs_dict['name']} with id {obs.id}: {e}"
             )
-            obs.project_status = ObservationStatus.ERROR
         obs.save()
