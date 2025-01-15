@@ -136,21 +136,20 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_imaging_insert(self):
         self._test_observation_insert(
-            ObservationType.IMAGING, {"frames_per_filter": 1, "required_amount": 100}
+            ObservationType.IMAGING, {"frames_per_filter": 100}
         )
 
     def test_imaging_insert_flat(self):
         self._test_observation_insert(
             ObservationType.IMAGING,
-            {"frames_per_filter": 1, "required_amount": 100},
+            {"frames_per_filter": 100},
             flat=True,
         )
 
     def test_imaging_insert_no_catalog_id(self):
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.IMAGING
-        data["frames_per_filter"] = 1
-        data["required_amount"] = 100
+        data["frames_per_filter"] = 100
         data["target"].pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
@@ -158,8 +157,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_imaging_insert_no_catalog_id_flat(self):
         data = self._get_flat_base_request()
         data["observation_type"] = ObservationType.IMAGING
-        data["frames_per_filter"] = 1
-        data["required_amount"] = 100
+        data["frames_per_filter"] = 100
         data.pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
@@ -193,23 +191,22 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_variable_insert(self):
         self._test_observation_insert(
-            "Variable", {"minimum_altitude": 30.0, "required_amount": 100}
+            "Variable", {"minimum_altitude": 30.0, "frames_per_filter": 100}
         )
 
     def test_variable_insert_flat(self):
         self._test_observation_insert(
-            "Variable", {"minimum_altitude": 30.0, "required_amount": 100}, flat=True
+            "Variable", {"minimum_altitude": 30.0, "frames_per_filter": 100}, flat=True
         )
 
     def test_monitoring_insert(self):
         self._test_observation_insert(
             ObservationType.MONITORING,
             {
-                "frames_per_filter": 1,
+                "frames_per_filter": 100,
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
-                "required_amount": 100,
             },
         )
 
@@ -217,11 +214,10 @@ class ObservationCreationTestCase(django.test.TestCase):
         self._test_observation_insert(
             ObservationType.MONITORING,
             {
-                "frames_per_filter": 1,
+                "frames_per_filter": 100,
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
-                "required_amount": 100,
             },
             flat=True,
         )
@@ -236,7 +232,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self._test_observation_insert(
             ObservationType.EXPERT,
             {
-                "frames_per_filter": 1,
+                "frames_per_filter": 100,
                 "dither_every": 1.0,
                 "binning": 1,
                 "subframe": "Full",
@@ -251,7 +247,6 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "moon_separation_width": 7.0,
                 "minimum_altitude": 35,
                 "priority": 100,
-                "required_amount": 100,
             },
         )
 
@@ -265,7 +260,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self._test_observation_insert(
             ObservationType.EXPERT,
             {
-                "frames_per_filter": 1,
+                "frames_per_filter": 100,
                 "dither_every": 1.0,
                 "binning": 1,
                 "subframe": "Full",
@@ -280,7 +275,6 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "moon_separation_width": 7.0,
                 "minimum_altitude": 35,
                 "priority": 100,
-                "required_amount": 100,
             },
             flat=True,
         )
@@ -310,8 +304,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_target_exists(self):
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.IMAGING
-        data["frames_per_filter"] = 1
-        data["required_amount"] = 100
+        data["frames_per_filter"] = 100
         data["user"] = self.user.id
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
@@ -390,7 +383,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user.save()
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.EXPERT
-        data["frames_per_filter"] = 1
+        data["frames_per_filter"] = 100
         data["dither_every"] = 1.0
         data["binning"] = 1
         data["subframe"] = "Full"
@@ -412,7 +405,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["moon_separation_width"] = 7.0
         data["minimum_altitude"] = 35
         data["priority"] = 100
-        data["required_amount"] = 100
         data["offset"] = 1
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
@@ -528,7 +520,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
         data = self._get_flat_base_request()
         data["observation_type"] = ObservationType.EXPERT
-        data["frames_per_filter"] = 1
+        data["frames_per_filter"] = 100
         data["dither_every"] = 1.0
         data["binning"] = 1
         data["subframe"] = "Full"
@@ -551,7 +543,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["moon_separation_width"] = 7.0
         data["minimum_altitude"] = 35
         data["priority"] = 100
-        data["required_amount"] = 100
         data["offset"] = 1
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
@@ -589,26 +580,14 @@ class ObservationCreationTestCase(django.test.TestCase):
         data = self._get_flat_base_request()
         data["observation_type"] = ObservationType.IMAGING
         data["frames_per_filter"] = 10001  # Out of valid range
-        data["required_amount"] = 100
         response = self._send_post_request(data)
         self._assert_error_response(
             response, 400, {"frames_per_filter": ["Must be between 1 and 1000."]}
         )
 
-    def test_invalid_required_amount(self):
-        data = self._get_flat_base_request()
-        data["observation_type"] = ObservationType.IMAGING
-        data["required_amount"] = 100001  # Out of valid range
-        data["frames_per_filter"] = 1
-        response = self._send_post_request(data)
-        self._assert_error_response(
-            response, 400, {"required_amount": ["Must be between 1 and 1000."]}
-        )
-
-    def test_missing_required_amount_and_invalid_dec(self):
+    def test_missing_frames_per_filter_and_invalid_dec(self):
         data = self._get_base_request()
         data["observation_type"] = ObservationType.IMAGING
-        data["frames_per_filter"] = 1
         data["target"]["dec"] = "-29 00 XX.1699"
         response = self._send_post_request(data)
 
@@ -617,7 +596,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             400,
             {
                 "target": {"dec": ["Invalid format."]},
-                "required_amount": ["This field is required."],
+                "frames_per_filter": ["This field is required."],
             },
         )
 
@@ -711,8 +690,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "observation_type": ObservationType.IMAGING,
             "exposure_time": 300.0,
             "filter_set": ["H"],
-            "frames_per_filter": 1,
-            "required_amount": 100,
+            "frames_per_filter": 100,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
@@ -729,8 +707,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "observation_type": ObservationType.IMAGING,
             "exposure_time": 300.0,
             "filter_set": ["H", "O", "S"],
-            "frames_per_filter": 1.0,
-            "required_amount": 100,
+            "frames_per_filter": 100,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
@@ -779,9 +756,8 @@ class JsonFormattingTestCase(django.test.TestCase):
             .replace(hour=23, minute=0, second=0)
             .isoformat(),
             "observation_type": ObservationType.MONITORING,
-            "frames_per_filter": 1.0,
             "filter_set": ["R", "G", "B"],
-            "required_amount": 10,
+            "frames_per_filter": 10,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
@@ -801,7 +777,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "exposure_time": 60.0,
             "filter_set": ["L"],
             "minimum_altitude": 30.0,
-            "required_amount": 450,
+            "frames_per_filter": 450,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
