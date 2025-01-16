@@ -8,12 +8,12 @@ from django.utils import timezone
 
 import django
 import django.test
-from django.contrib.auth.models import User
 from dotenv import load_dotenv
 from nc_py_api import NextcloudException
 from django.core.management import call_command
 from numpy.ma.testutils import assert_equal
 
+from authentication.models import ObservatoryUser
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_manager import file_exists, generate_observation_path
 from nextcloud.nextcloud_sync import upload_observations, calc_progress
@@ -295,7 +295,7 @@ def _create_user_and_login(test_instance):
     admin_username = os.getenv("ADMIN_EMAIL")
     if not admin_username:
         test_instance.fail("ADMIN_EMAIL environment variable not set")
-    test_instance.user = User.objects.get(username=admin_username)
+    test_instance.user = ObservatoryUser.objects.get(username=admin_username)
     test_instance.client.force_login(test_instance.user)
 
 

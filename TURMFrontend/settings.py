@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     "nextcloud",
 ]
 
+AUTH_USER_MODEL = "authentication.ObservatoryUser"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

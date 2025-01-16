@@ -1,15 +1,17 @@
 import logging
+from datetime import datetime, timedelta
+
 import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
 
-from .models import InvitationToken, generate_invitation_link
+from .models import InvitationToken, generate_invitation_link, ObservatoryUser
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,38 @@ class LoginForm(forms.Form):
 
 class GenerateInvitationForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    quota = forms.IntegerField(
+        widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
+        min_value=1,
+        max_value=10000,
+        initial=100,
+        required=False,
+    )
+    lifetime = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "min": datetime.now().date()}),
+        initial=(datetime.now() + timedelta(days=90)),
+        required=False,
+    )
+    role = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[],
+        initial="user",
+        required=True,
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        choices = [("user", "user")]
+
+        if user:
+            if user.has_perm('authentication.can_invite_admins'):
+                choices.append(("admin", "admin"))
+            if user.has_perm('authentication.can_invite_group_leaders'):
+                choices.append(("group_leader", "group_leader"))
+
+        self.fields['role'].choices = choices
 
 
 class SetPasswordForm(forms.Form):
@@ -46,7 +80,7 @@ class SetPasswordForm(forms.Form):
 @login_not_required
 def login(request):
     if request.user.is_authenticated:
-        return redirect("index")
+        return redirect(settings.LOGIN_REDIRECT_URL)
     else:
         # If this is a DEBUG build we want to pre-populate the form with a default user
         if settings.DEBUG:
@@ -79,26 +113,40 @@ def login_user(request):
 
 
 @require_GET
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.has_perm("authentication.can_generate_invitation"))
 def generate_invitation(request):
-    return generate_invitation_template(request, form=GenerateInvitationForm())
+    return generate_invitation_template(request, form=GenerateInvitationForm(user=request.user))
 
 
 @require_POST
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.has_perm("authentication.can_generate_invitation"))
 def generate_user_invitation(request):
-    form = GenerateInvitationForm(request.POST)
+    form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
         return generate_invitation_template(
-            request, form=GenerateInvitationForm(), error="Invalid email"
+            request, form=GenerateInvitationForm(user=request.user), error="Invalid email"
         )
 
     email = form.cleaned_data["email"]
-    base_url = f"{request.scheme}://{request.get_host()}/authentication/register"
-    link = generate_invitation_link(base_url, email)
+    quota = form.cleaned_data["quota"]
+    lifetime = form.cleaned_data["lifetime"]
+    role = form.cleaned_data["role"]
+
+    if role == "admin" and not request.user.has_perm("authentication.can_invite_admins"):
+        return generate_invitation_template(
+            request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite admins"
+        )
+
+    if role == "group_leader" and not request.user.has_perm("authentication.can_invite_group_leaders"):
+        return generate_invitation_template(
+            request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite group leaders"
+        )
+
+    base_url = f"{request.scheme}://{request.get_host()}/authentication/register"  # this seems convoluted
+    link = generate_invitation_link(base_url, email, quota, lifetime, role)
     if link is None:
         return generate_invitation_template(
-            request, form=GenerateInvitationForm(), error="Email already registered"
+            request, form=GenerateInvitationForm(request.user), error="Email already registered"
         )
     logger.info(f"Invitation generated for email {email} by {request.user.username}")
     return generate_invitation_template(request, link=link)
@@ -140,8 +188,14 @@ def register_user(request, token):
         )
 
     invitation.delete()
-    user = User.objects.create_user(username=invitation.email, email=invitation.email)
+    user = ObservatoryUser.objects.create_user(
+        username=invitation.email,
+        email=invitation.email,
+        quota=invitation.quota,
+        lifetime=invitation.lifetime,
+    )
     user.set_password(form.cleaned_data["new_password1"])
+    user.groups.add(Group.objects.get(name=invitation.role))
     user.save()
     invitation.save()
     auth.login(request, user)

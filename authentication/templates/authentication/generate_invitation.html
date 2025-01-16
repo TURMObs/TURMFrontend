@@ -9,22 +9,57 @@
           href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
 {% endblock %}
 {% block content %}
-    <div class= "outer">
-        <div class= "wrapper">
+    <div class="outer">
+        <div class="wrapper">
             <h1>Generate Invitation Link</h1>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             {% if link is None %}
-                <form method="post" action="{% url 'generate-user-invitation' %}">
+                <form method="post" action="{% url 'generate-user-invitation' %}" id="invitationForm">
                     {% csrf_token %}
-                    <div class= "input-field">
+                    <div class="input-field">
                         {{ form.email }}
                         <i class="bx bx-envelope"></i>
                     </div>
-                    <button class= "generatebutton" type="submit">Generate</button>
+                    <div class="input-field">
+                        {{ form.role }}
+                        <i class="bx bx-user"></i>
+                    </div>
+                    <div class="checkbox-field">
+                        <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
+                        <label for="enableQuota">Nutzungsquote</label>
+                    </div>
+                    <div class="input-field" id="quotaField" style="display: none;">
+                        {{ form.quota }}
+                    </div>
+                    <div class="checkbox-field">
+                        <input type="checkbox" id="enableLifetime" onclick="toggleInput('lifetimeField')">
+                        <label for="enableLifetime">Begrenzte Nutzungszeit</label>
+                    </div>
+                    <div class="input-field" id="lifetimeField" style="display: none;">
+                        {{ form.lifetime }}
+                    </div>
+                    <button class="generatebutton" type="submit">Generate</button>
                 </form>
+
+                <script>
+                    function toggleInput(fieldId) {
+                        const field = document.getElementById(fieldId);
+                        field.style.display = field.style.display === 'none' ? 'block' : 'none';
+                    }
+
+                    document.getElementById('invitationForm').addEventListener('submit', function () {
+                        if (document.getElementById('quotaField').style.display === 'none') {
+                            document.getElementById('id_quota').remove();
+                        }
+                        if (document.getElementById('lifetimeField').style.display === 'none') {
+                            document.getElementById('id_lifetime').remove();
+                        }
+                    });
+                </script>
+
             {% else %}
                 <p id="invitationLink">{{ link }}</p>
-                <button class= "copybutton" onclick="copyLink()">Copy Link</button>
+                <button class="copybutton" onclick="copyLink()">Copy Link</button>
                 <script>
                     function copyLink() {
                         var linkText =

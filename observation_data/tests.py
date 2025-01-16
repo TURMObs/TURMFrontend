@@ -5,9 +5,9 @@ from datetime import datetime, timezone, timedelta
 import django.test
 from django.core.management import call_command
 from django.conf import settings
-from django.contrib.auth.models import User
 from dotenv import load_dotenv
 
+from authentication.models import ObservatoryUser
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
@@ -27,7 +27,7 @@ def _create_user_and_login(test_instance):
     if not admin_username:
         test_instance.fail("ADMIN_EMAIL environment variable not set")
     call_command("generate_admin_user")
-    test_instance.user = User.objects.get(username=admin_username)
+    test_instance.user = ObservatoryUser.objects.get(username=admin_username)
     test_instance.client.force_login(test_instance.user)
 
 

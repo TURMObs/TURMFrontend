@@ -2,9 +2,10 @@
 All database models for the observation requests, targets and observatories.
 """
 
-from django.contrib.auth.models import User
 from django.db import models
 from polymorphic.models import PolymorphicModel
+
+from TURMFrontend import settings
 
 
 class ObservationType(models.TextChoices):
@@ -62,7 +63,7 @@ class Filter(models.Model):
         SLOAN_I = "SI"
 
     filter_type = models.CharField(
-        choices=FilterType.choices, db_column="type", max_length=2, primary_key=True
+        choices=FilterType, db_column="type", max_length=2, primary_key=True
     )
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
@@ -101,9 +102,7 @@ class ObservatoryExposureSettings(models.Model):
         Observatory, on_delete=models.DO_NOTHING, db_column="observatory"
     )
     exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
-    observation_type = models.CharField(
-        choices=ObservationType.choices, db_column="type"
-    )
+    observation_type = models.CharField(choices=ObservationType, db_column="type")
 
 
 class AbstractObservation(PolymorphicModel):
@@ -123,12 +122,10 @@ class AbstractObservation(PolymorphicModel):
         on_delete=models.PROTECT,
         related_name="+",  # prevents backward relation
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField()
-    observation_type = models.CharField(
-        choices=ObservationType.choices, db_column="type"
-    )
-    project_status = models.CharField(choices=ObservationStatus.choices)
+    observation_type = models.CharField(choices=ObservationType, db_column="type")
+    project_status = models.CharField(choices=ObservationStatus)
     project_completion = models.DecimalField(max_digits=5, decimal_places=2)
     priority = models.IntegerField()
     exposure_time = models.DecimalField(max_digits=10, decimal_places=2)

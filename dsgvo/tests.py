@@ -1,10 +1,10 @@
 import unittest
 
 import django.test
-from django.contrib.auth.models import User
 from django.core.management import call_command
 from nc_py_api import NextcloudException
 
+from authentication.models import ObservatoryUser
 from nextcloud.nextcloud_manager import (
     file_exists,
     get_observation_file,
@@ -21,7 +21,7 @@ from observation_data.models import (
 )
 
 
-def _create_observation(test_instance, data: dict, user: User = None):
+def _create_observation(test_instance, data: dict, user: ObservatoryUser = None):
     prev_user = test_instance.user
     if user is not None:
         test_instance.client.logout()
@@ -35,7 +35,9 @@ def _create_observation(test_instance, data: dict, user: User = None):
         test_instance.client.force_login(prev_user)
 
 
-def _create_imaging_observation(test_instance, target_name: str, user: User = None):
+def _create_imaging_observation(
+    test_instance, target_name: str, user: ObservatoryUser = None
+):
     data = {
         "observatory": "TURMX",
         "target": {
@@ -53,7 +55,7 @@ def _create_imaging_observation(test_instance, target_name: str, user: User = No
     return ImagingObservation.objects.get(target__name=target_name)
 
 
-def _create_variable_observation(test_instance, target_name: str, user: User = None):
+def _create_variable_observation(test_instance, target_name: str, user: ObservatoryUser = None):
     data = {
         "observatory": "TURMX",
         "target": {
@@ -85,7 +87,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
     def setUp(self):
         initialize_connection()
         _clear_data()
-        self.user = User.objects.create_user(
+        self.user = ObservatoryUser.objects.create_user(
             username="testuser", password="testpassword", is_superuser=True
         )
         self.client = django.test.Client()
@@ -118,11 +120,11 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         _create_imaging_observation(
             self,
             "M52",
-            User.objects.create_user(username="testuser2", password="testpassword"),
+            ObservatoryUser.objects.create_user(username="testuser2", password="testpassword"),
         )
         response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(User.objects.filter(username="testuser").exists())
+        self.assertFalse(ObservatoryUser.objects.filter(username="testuser").exists())
         self.assertFalse(VariableObservation.objects.exists())
         self.assertEqual(ImagingObservation.objects.count(), 1)
         remaining_observation = ImagingObservation.objects.first()
@@ -134,7 +136,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         im2 = _create_imaging_observation(
             self,
             "M52",
-            User.objects.create_user(username="testuser2", password="testpassword"),
+            ObservatoryUser.objects.create_user(
+                username="testuser2", password="testpassword"
+            ),
         )
         initialize_connection()
         mkdir("TURMX/Projects")
