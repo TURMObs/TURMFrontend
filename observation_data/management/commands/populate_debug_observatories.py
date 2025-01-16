@@ -9,7 +9,7 @@ from observation_data.models import (
 
 
 class Command(BaseCommand):
-    help = "Populate the observatories, exposure settings and filters in the database."
+    help = "Populate the observatories, exposure settings and filters in the database for DEBUGGING Purposes. "
 
     def handle(self, *args, **options):
         """
@@ -22,17 +22,7 @@ class Command(BaseCommand):
     @staticmethod
     def populate_observatories():
         Observatory.objects.get_or_create(
-            name="TURMX",
-            defaults={
-                "horizon_offset": 0.0,
-                "min_stars": -1,
-                "max_HFR": 4.0,
-                "max_guide_error": 1000.0,
-            },
-        )
-
-        Observatory.objects.get_or_create(
-            name="TURMX2",
+            name="TURMX_Test",
             defaults={
                 "horizon_offset": 0.0,
                 "min_stars": -1,
@@ -60,15 +50,7 @@ class Command(BaseCommand):
         )
 
         ObservatoryExposureSettings.objects.get_or_create(
-            observatory=Observatory.objects.get(name="TURMX"),
-            exposure_settings=ExposureSettings.objects.get(
-                gain=100, offset=50, binning=1, subFrame=1.0
-            ),
-            observation_type=ObservationType.IMAGING,
-        )
-
-        ObservatoryExposureSettings.objects.get_or_create(
-            observatory=Observatory.objects.get(name="TURMX2"),
+            observatory=Observatory.objects.get(name="TURMX_Test"),
             exposure_settings=ExposureSettings.objects.get(
                 gain=2750, offset=0, binning=1, subFrame=1.0
             ),
@@ -81,14 +63,7 @@ class Command(BaseCommand):
             ObservationType.MONITORING,
         ]:
             ObservatoryExposureSettings.objects.get_or_create(
-                observatory=Observatory.objects.get(name="TURMX"),
-                exposure_settings=ExposureSettings.objects.get(
-                    gain=0, offset=50, binning=1, subFrame=0.25
-                ),
-                observation_type=observation_type,
-            )
-            ObservatoryExposureSettings.objects.get_or_create(
-                observatory=Observatory.objects.get(name="TURMX2"),
+                observatory=Observatory.objects.get(name="TURMX_Test"),
                 exposure_settings=ExposureSettings.objects.get(
                     gain=0, offset=0, binning=1, subFrame=0.5
                 ),
@@ -132,8 +107,7 @@ class Command(BaseCommand):
             )
 
         # link filters to observatories
-        turmx = Observatory.objects.get(name="TURMX")
-        turmx2 = Observatory.objects.get(name="TURMX2")
+        turmx_test = Observatory.objects.get(name="TURMX_Test")
         for filter_type in [
             Filter.FilterType.LUMINANCE,
             Filter.FilterType.RED,
@@ -143,11 +117,10 @@ class Command(BaseCommand):
             Filter.FilterType.OXYGEN,
             Filter.FilterType.SULFUR,
         ]:
-            turmx.filter_set.add(Filter.objects.get(filter_type=filter_type))
-            turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
+            turmx_test.filter_set.add(Filter.objects.get(filter_type=filter_type))
         for filter_type in [
             Filter.FilterType.SLOAN_R,
             Filter.FilterType.SLOAN_G,
             Filter.FilterType.SLOAN_I,
         ]:
-            turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
+            turmx_test.filter_set.add(Filter.objects.get(filter_type=filter_type))

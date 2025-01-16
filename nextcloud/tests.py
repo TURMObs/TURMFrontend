@@ -1,7 +1,6 @@
 import filecmp
 import json
 import os
-import unittest
 from datetime import datetime, timedelta
 from django.utils import timezone
 
@@ -20,6 +19,8 @@ from nextcloud.nextcloud_sync import (
     calc_progress,
     update_observations,
 )
+import unittest
+
 from observation_data.models import (
     AbstractObservation,
     ObservationType,
@@ -390,7 +391,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
 class NextcloudSyncTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
-        call_command("populate_observatories")
+        call_command("populate_debug_observatories")
 
         self.LOCAL_PATH = "test_data"
 
@@ -401,14 +402,14 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def test_calc_progress(self):
         # insert a specific Observation into the db and retrieve it as dict
-        turmx = Observatory.objects.filter(name="TURMX_Test")[0]
+        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
         _create_imaging_observations(
             self,
             obs_id=1,
             target_name="I1",
             required_amount=100,
             second_filter=True,
-            observatory=turmx,
+            observatory=turmx_test,
         )
         observation = AbstractObservation.objects.all()[0]
         serializer_class = get_serializer(observation.observation_type)

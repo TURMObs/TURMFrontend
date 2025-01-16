@@ -47,6 +47,7 @@ def get_data_from_nc(obs: AbstractObservation):
     """
     Downloads the dict of the observation from the nextcloud.
     If an error occurs, it will be logged and the status set to error.
+    Requires nextcloud connection to be initialized.
 
     :param obs: Observation to retrieve the dict from.
     :return: the dictionary of the observation and the nc_path. The progress is None if an error occurs.
