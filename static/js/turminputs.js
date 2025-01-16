@@ -1,3 +1,10 @@
+/**
+ * event hook that prevents the specified characters from being typed into a textfield
+ * @param event html event that was triggered
+ * @param el the HTML element that triggered the event
+ * @param suppressed RegExp of what should be suppressed
+ */
+
 function discard_input(event, el, suppressed) {
     console.log(el.value, el.value.replace(RegExp(suppressed), ''), RegExp(suppressed));
     el.value = el.value.replace(RegExp(suppressed), '');
@@ -5,6 +12,10 @@ function discard_input(event, el, suppressed) {
     event.preventDefault();
 }
 
+/**
+ * Checks the first radio button of a group of radio buttons, if none are selected
+ * Is supposed to be called on page load
+ */
 function check_radio_if_none_selected() {
     const divs = document.getElementsByClassName('radio_input_div');
     for (let div of divs) {
@@ -23,6 +34,12 @@ function check_radio_if_none_selected() {
     }
 }
 
+/**
+ * disables all inputs that are part of the dependency_type, but not of the given dependency
+ * enables all inputs that are part of the dependency_type and of the given dependency
+ * @param dependency_type
+ * @param dependency
+ */
 function disable_inputs(dependency_type, dependency) {
     console.log("Disabled Inputs", dependency_type, dependency);
 
@@ -35,11 +52,16 @@ function disable_inputs(dependency_type, dependency) {
         } else {
             input.disabled = true;
             input.checked = false;
-            // add hover notice
         }
     }
 }
 
+/**
+ * hides all inputs and corresponding labels that are part of the dependency_type, but not of the given dependency
+ * un-hides all inputs and corresponding labels that are part of the dependency_type and of the given dependency
+ * @param dependency_type
+ * @param dependency
+ */
 function hide_inputs(dependency_type, dependency) {
     const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
         .filter(el => !!el.getAttribute(dependency_type));

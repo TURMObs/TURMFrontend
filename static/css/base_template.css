@@ -6,23 +6,17 @@
     --tom-dark-grey: #242424;
     --tom-white: white;
     --tom-white-dark: #eee;
-
     --tom-primary-color: #1078c1;
     --tom-primary-color-dark: #2550aa;
-
     --tom-accent-color: #f5b11dff;
-
     --tom-disabled-grey: #777777;
     --tom-info-ok: #66913a;
     --tom-info-warning: var(--tom-accent-color);
     --tom-info-error: #5a090d;
-
     /* values */
     --tom-base-width: 1140px;
     --tom-corner-radius-container: 5px;
     --tom-corner-radius-input: 2em;
-;
-
     /* fonts */
     --tom-base-font: 'Source Sans 3';
 }
@@ -45,7 +39,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-
     flex-direction: row;
 
 }
@@ -54,7 +47,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-
     flex-direction: row;
 }
 
@@ -76,9 +68,7 @@ button, input[type='submit'] {
     height: 45px;
     background: #fff;
     border: 2px transparent;
-
     padding: 5px 20px;
-
     outline: none;
     border-radius: 40px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -91,6 +81,5 @@ button, input[type='submit'] {
 button:hover, input[type='submit']:hover {
     background: var(--tom-dark-grey);
     color: white;
-
     border: 2px solid rgba(255, 255, 255, 0.2);
 }

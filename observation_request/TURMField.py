@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.admin.utils import label_for_field
 from django.forms.fields import Field
 from django.db import models
 from observation_request.TURMInput import (
@@ -16,10 +17,16 @@ from observation_request.TURMInput import (
 
 
 class TURMField(Field):
+    """
+        base class for all TURMWidgets
+
+        implements base functionality in common with all TURMFieldTypes
+        """
     def __init__(self, widget: _TURMInput, label_name: str = None, *args, **kwargs):
         super().__init__(widget=widget, label=label_name)
 
-    def model_field_to_input(self, model_field, measurement_unit=None, *args, **kwargs):
+    @classmethod
+    def model_field_to_input(cls, model_field, measurement_unit=None, *args, **kwargs):
         match type(model_field):
             case models.DecimalField:
                 return TURMFloatInput(
@@ -36,7 +43,6 @@ class TURMField(Field):
                     **kwargs,
                 )
             case models.ManyToManyField:
-                self.required = False
                 return TURMCheckboxInput(
                     name=model_field.name,
                     choices=[
@@ -63,6 +69,15 @@ class TURMField(Field):
             case _:
                 raise NotImplementedError(f"{type(model_field)} is not supported yet.")
 
+    @classmethod
+    def init_from_model(cls, model_field, label_name: str = None, measurement_unit=None, *args, **kwargs):
+        if label_name is None:
+            label_name = str(model_field.name).replace("_", " ").title()
+        widget = TURMField.model_field_to_input(
+            model_field, measurement_unit, *args, **kwargs
+        )
+        return TURMField(label=label_name, widget=widget)
+
     def add_attrs(self, attr):
         self.widget.add_attrs(attr)
         return self
@@ -84,25 +99,10 @@ class TURMField(Field):
         self.widget.add_on_click(func_call_generator)
         return self
 
-
-class TURMModelField(TURMField):
-    def __init__(
-        self,
-        model_field: models.Field,
-        label_name: str = None,
-        measurement_unit=None,
-        *args,
-        **kwargs,
-    ):
-        if label_name is None:
-            label_name = str(model_field.name).replace("_", " ").title()
-        widget = self.model_field_to_input(
-            model_field, measurement_unit, *args, **kwargs
-        )
-        super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
-
-
 class TURMSelectField(TURMField):
+    """
+        Provides functionality for a row of checkboxes
+    """
     def __init__(
         self,
         name,
@@ -115,25 +115,19 @@ class TURMSelectField(TURMField):
         self.required = False
         super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 
-
-class TURMModelSelectField(TURMField):
-    def __init__(
-        self, model_field: models.Field, label_name: str = None, *args, **kwargs
-    ):
+    @classmethod
+    def init_from_model(cls, model_field: models.Field, label_name: str = None, *args, **kwargs):
+        name = model_field.name
+        choices = [(str(name).title(), str(name)) for name in model_field.remote_field.model.objects.all()]
         if label_name is None:
             label_name = str(model_field.name).title()
-        self.required = False
-        widget = TURMRadioInput(
-            name=model_field.name,
-            choices=[
-                (str(name).title(), str(name))
-                for name in model_field.remote_field.model.objects.all()
-            ],
-        )
-        super().__init__(widget=widget, label_name=label_name, *args, **kwargs)
 
+        return TURMSelectField(name=name, choices=choices, label_name=label_name, *args, **kwargs)
 
 class TURMGridField(TURMField):
+    """
+        Provides functionality for nested inputs
+    """
     def __init__(
         self,
         model_fields: list[tuple[models.Field, str]],
@@ -149,6 +143,9 @@ class TURMGridField(TURMField):
 
 
 class TURMDateDuration(TURMField):
+    """
+        provides two Date inputs for a duration
+    """
     def __init__(
         self,
         start: tuple[models.Field, str],
@@ -173,6 +170,9 @@ class TURMDateDuration(TURMField):
 
 
 class TURMDateTimeDuration(TURMField):
+    """
+        provides two DateTime inputs for a duration
+    """
     def __init__(
         self,
         start: tuple[models.Field, str],

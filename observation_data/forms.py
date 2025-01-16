@@ -3,7 +3,6 @@ from enum import Enum
 from django import forms
 
 from observation_request.TURMField import (
-    TURMModelField,
     TURMGridField,
     TURMField,
     TURMRadioInput,
@@ -41,12 +40,15 @@ class CelestialTargetForm(forms.ModelForm):
         self.fields["dec"].widget.attrs.update({"placeholder": "dd mm ss"})
 
 
-class TRUMProjectForm(forms.Form):
-    observatory = TURMModelField(
-        AbstractObservation._meta.get_field("observatory")
-    ).add_on_click(
-        lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')"
-    )
+class TURMProjectForm(forms.Form):
+    try:
+        observatory = TURMField.init_from_model(model_field=
+            AbstractObservation._meta.get_field("observatory")
+        ).add_on_click(
+            lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')")
+    except RuntimeError as e: #todo: Specify the Error
+        pass
+
 
 
 def filter_set_dependency_generator(filter):
@@ -68,7 +70,7 @@ class ExposureSettingsForm(forms.Form):
     )
     # combined
     filter_set = (
-        TURMModelField(
+        TURMField.init_from_model(
             ExpertObservation._meta.get_field("filter_set")
         ).add_dependency_generator(filter_set_dependency_generator)
     ).add_tooltip("This filter is not supported by the selected observatory")
@@ -96,7 +98,7 @@ class ExposureSettingsForm(forms.Form):
             ]
         }
     )
-    exposure_time_expert = TURMModelField(
+    exposure_time_expert = TURMField.init_from_model(
         AbstractObservation._meta.get_field("exposure_time"), label_name="Exposure Time"
     ).add_dependencies({Dependency.observation_type.value: [ObservationType.EXPERT]})
 
@@ -114,7 +116,7 @@ class ExposureSettingsForm(forms.Form):
         {Dependency.observation_type.value: [ObservationType.EXPERT]}
     )
     # imaging
-    frames_per_filter = TURMModelField(
+    frames_per_filter = TURMField.init_from_model(
         ExpertObservation._meta.get_field("frames_per_filter")
     ).add_dependencies(
         {
@@ -138,7 +140,7 @@ class ExposureSettingsForm(forms.Form):
         }
     )
     # variable
-    minimum_altitude = TURMModelField(
+    minimum_altitude = TURMField.init_from_model(
         ExpertObservation._meta.get_field("minimum_altitude")
     ).add_dependencies(
         {
@@ -162,7 +164,7 @@ class ExposureSettingsForm(forms.Form):
         }
     )
 
-    cadence = TURMModelField(
+    cadence = TURMField.init_from_model(
         ExpertObservation._meta.get_field("cadence")
     ).add_dependencies(
         {

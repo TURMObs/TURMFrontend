@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureSettingsForm,
-    TRUMProjectForm,
+    TURMProjectForm,
 )
 
 
@@ -14,7 +14,7 @@ def simple_request(request):
     context = {}
     # Forms
     forms = [
-        ("Project", TRUMProjectForm()),
+        ("Project", TURMProjectForm()),
         ("Target", CelestialTargetForm()),
         ("Exposure", ExposureSettingsForm()),
     ]
