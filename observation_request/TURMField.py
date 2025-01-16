@@ -1,6 +1,4 @@
 from datetime import datetime
-
-from django.contrib.admin.utils import label_for_field
 from django.forms.fields import Field
 from django.db import models
 from observation_request.TURMInput import (

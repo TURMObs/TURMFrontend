@@ -26,6 +26,9 @@ class Dependency(Enum):
 
 
 class CelestialTargetForm(forms.ModelForm):
+    """
+        Form for specifying a celestial target.
+    """
     class Meta:
         model = CelestialTarget
         fields = ["name", "catalog_id", "ra", "dec"]
@@ -41,6 +44,10 @@ class CelestialTargetForm(forms.ModelForm):
 
 
 class TURMProjectForm(forms.Form):
+    """
+        Form for selecting the Project data
+        rn the Observatory
+    """
     try:
         observatory = TURMField.init_from_model(model_field=
             AbstractObservation._meta.get_field("observatory")
@@ -61,6 +68,9 @@ def filter_set_dependency_generator(filter):
 
 
 class ExposureSettingsForm(forms.Form):
+    """
+        Form for selecting the Exposure settings
+    """
     observation_type = TURMSelectField(
         "observation_type",
         [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
@@ -130,7 +140,7 @@ class ExposureSettingsForm(forms.Form):
     # exoplanet
     start_end_observation = TURMDateTimeDuration(
         (ExpertObservation._meta.get_field("start_observation"), "Start Observation"),
-        (ExpertObservation._meta.get_field("end_observation"), "end observation"),
+        (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
     ).add_dependencies(
         {
             Dependency.observation_type.value: [
@@ -153,8 +163,8 @@ class ExposureSettingsForm(forms.Form):
 
     # monitoring
     scheduling = TURMDateDuration(
-        (ExpertObservation._meta.get_field("start_scheduling"), "start scheduling"),
-        (ExpertObservation._meta.get_field("end_scheduling"), "end scheduling"),
+        (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
+        (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
     ).add_dependencies(
         {
             Dependency.observation_type.value: [
