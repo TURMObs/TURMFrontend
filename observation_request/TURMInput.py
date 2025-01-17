@@ -298,7 +298,7 @@ class TURMGridInput(_TURMInput):
             html_render += widget.render(
                 widget.attrs["name"],
                 value,
-                {"id": f'id_{widget.attrs["name"]}'},
+                {"id": f"id_{widget.attrs['name']}"},
                 renderer,
             )
             html_render += "</div>"
