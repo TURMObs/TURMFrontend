@@ -87,7 +87,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_missing_type(self):
         response = self._send_post_request({})
         self._assert_error_response(
-            response, 400, {"error": 'Invalid observation type: "None"'}
+            response, 400, {"error": "Invalid observation type: None"}
         )
 
     def test_invalid_type(self):
