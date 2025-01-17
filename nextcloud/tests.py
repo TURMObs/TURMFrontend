@@ -1,18 +1,9 @@
-import filecmp
-import json
-import os
-from datetime import datetime, timedelta
-
-from django.utils import timezone
-
-
 import django
-import django.test
-from django.contrib.auth.models import User
-from dotenv import load_dotenv
-from nc_py_api import NextcloudException
+from django.utils import timezone
 from django.core.management import call_command
+import django.test
 
+from nc_py_api import NextcloudException
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_manager import file_exists, generate_observation_path
 from nextcloud.nextcloud_sync import (
@@ -20,21 +11,15 @@ from nextcloud.nextcloud_sync import (
     calc_progress,
     update_observations,
 )
+
+import filecmp
+import json
+import os
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 import unittest
 
-from observation_data.models import (
-    AbstractObservation,
-    ObservationType,
-    ExoplanetObservation,
-    MonitoringObservation,
-    ImagingObservation,
-    VariableObservation,
-    CelestialTarget,
-    Filter,
-    Observatory,
-    ExpertObservation,
-    ObservationStatus,
-)
+from observation_data.models import *
 from observation_data.serializers import get_serializer
 
 file_upload = "nextcloud/test_data/upload_file.json"
@@ -46,6 +31,7 @@ dict_download = "nextcloud/test_data/download_dict.json"
 dict_nc = "dict1_test.json"
 
 test_prefix = "test"
+
 
 # noinspection DuplicatedCode
 def _create_imaging_observations(
@@ -274,7 +260,7 @@ def _create_expert_observation(
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
 
 
-def _obs_exists_in_nextcloud(obs: AbstractObservation, prefix:str="") -> bool:
+def _obs_exists_in_nextcloud(obs: AbstractObservation, prefix: str = "") -> bool:
     """
     Checks if observation exists in nextcloud. Works by trying to download the observation.
 
@@ -314,13 +300,14 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
         with self.assertRaises(Exception):
             nm.delete("/does/not/matter")
 
+
 # noinspection DuplicatedCode
 @unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
 
-        #self.LOCAL_PATH = "test_data"
+        # self.LOCAL_PATH = "test_data"
 
         self.maxDiff = None
         self.client = django.test.Client()
@@ -383,7 +370,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete(test_prefix + "/file")
 
 
-#@unittest.skip("Skip in CI until solution for nc-container in found")
+# @unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudSyncTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
@@ -410,7 +397,6 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         nm.initialize_connection()
 
-
         observation = AbstractObservation.objects.all()[0]
         serializer_class = get_serializer(observation.observation_type)
         serializer = serializer_class(observation)
@@ -423,7 +409,6 @@ class NextcloudSyncTestCase(django.test.TestCase):
         obs_dict["targets"][0]["exposures"][1]["acceptedAmount"] = 100
         progress2 = calc_progress(obs_dict)
         self.assertEqual(progress2, 75.0)
-
 
     def test_get_nextcloud_path(self):
         turmx = Observatory.objects.filter(name="TURMX")[0]
