@@ -1,6 +1,7 @@
 from enum import Enum
 
 from django import forms
+from django.db import ProgrammingError
 
 from observation_request.TURMField import (
     TURMGridField,
@@ -27,8 +28,9 @@ class Dependency(Enum):
 
 class CelestialTargetForm(forms.ModelForm):
     """
-        Form for specifying a celestial target.
+    Form for specifying a celestial target.
     """
+
     class Meta:
         model = CelestialTarget
         fields = ["name", "catalog_id", "ra", "dec"]
@@ -45,17 +47,18 @@ class CelestialTargetForm(forms.ModelForm):
 
 class TURMProjectForm(forms.Form):
     """
-        Form for selecting the Project data
-        rn the Observatory
+    Form for selecting the Project data
+    rn the Observatory
     """
-    try:
-        observatory = TURMField.init_from_model(model_field=
-            AbstractObservation._meta.get_field("observatory")
-        ).add_on_click(
-            lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')")
-    except RuntimeError as e: #todo: Specify the Error
-        pass
 
+    try:
+        observatory = TURMField.init_from_model(
+            model_field=AbstractObservation._meta.get_field("observatory")
+        ).add_on_click(
+            lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')"
+        )
+    except ProgrammingError:
+        pass
 
 
 def filter_set_dependency_generator(filter):
@@ -69,8 +72,9 @@ def filter_set_dependency_generator(filter):
 
 class ExposureSettingsForm(forms.Form):
     """
-        Form for selecting the Exposure settings
+    Form for selecting the Exposure settings
     """
+
     observation_type = TURMSelectField(
         "observation_type",
         [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
