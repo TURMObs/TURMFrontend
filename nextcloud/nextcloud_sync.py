@@ -17,7 +17,7 @@ import nextcloud.nextcloud_manager as nm
 
 """
 This module retrieves the observation requests for a night and uses the nextcloud_manager to upload them to the nextcloud.
-´upload_observation()`and `download_observation() are supposed to be triggered using a cron-Job
+`upload_observation()` and `download_observation()` are supposed to be triggered via a cron-Job
 """
 
 logger = logging.getLogger(__name__)
