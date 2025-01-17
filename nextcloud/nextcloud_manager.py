@@ -194,7 +194,7 @@ def download_file(nc_path: str, local_path: PathLike[bytes] | str) -> None:
 @_check_initialized
 def download_dict(nc_path: str) -> dict:
     """
-    Downloads a dict from the Nextcloud server and returns it without storing it. Overwrites any existing local file with same path.
+    Downloads a dict from the Nextcloud server and returns it without storing it.
 
     :param nc_path: File path on the Nextcloud server
     :raises NextcloudException: If the file does not exist on the server
