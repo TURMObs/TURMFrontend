@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 
 from django import forms
@@ -19,6 +20,8 @@ from .models import (
     AbstractObservation,
     ExposureSettings,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Dependency(Enum):
@@ -57,8 +60,9 @@ class TURMProjectForm(forms.Form):
         ).add_on_click(
             lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')"
         )
-    except ProgrammingError:
-        pass
+    except ProgrammingError as error:
+        error_message = str(error).split("\n")[0]
+        logger.warning(f"DB seems to be badly configured. \n{error_message}")
 
 
 def filter_set_dependency_generator(filter):
@@ -75,116 +79,129 @@ class ExposureSettingsForm(forms.Form):
     Form for selecting the Exposure settings
     """
 
-    observation_type = TURMSelectField(
-        "observation_type",
-        [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
-        label_name="Observation Type",
-    ).add_on_click(
-        lambda o_type: f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"
-    )
-    # combined
-    filter_set = (
-        TURMField.init_from_model(
-            ExpertObservation._meta.get_field("filter_set")
-        ).add_dependency_generator(filter_set_dependency_generator)
-    ).add_tooltip("This filter is not supported by the selected observatory")
+    try:
+        observation_type = TURMSelectField(
+            "observation_type",
+            [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
+            label_name="Observation Type",
+        ).add_on_click(
+            lambda o_type: f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"
+        )
+        # combined
+        filter_set = (
+            TURMField.init_from_model(
+                ExpertObservation._meta.get_field("filter_set")
+            ).add_dependency_generator(filter_set_dependency_generator)
+        ).add_tooltip("This filter is not supported by the selected observatory")
 
-    #
-    exposure_time = TURMField(
-        TURMRadioInput(
-            name="exposure_time",
-            choices=[
-                ("15s", "15"),
-                ("30s", "30"),
-                ("60s", "60"),
-                ("120s", "120"),
-                ("300s", "300"),
-            ],
-        ),
-        label_name="Exposure Time",
-    ).add_dependencies(
-        {
-            Dependency.observation_type.value: [
-                ObservationType.IMAGING,
-                ObservationType.EXOPLANET,
-                ObservationType.VARIABLE,
-                ObservationType.MONITORING,
-            ]
-        }
-    )
-    exposure_time_expert = TURMField.init_from_model(
-        AbstractObservation._meta.get_field("exposure_time"), label_name="Exposure Time"
-    ).add_dependencies({Dependency.observation_type.value: [ObservationType.EXPERT]})
+        #
+        exposure_time = TURMField(
+            TURMRadioInput(
+                name="exposure_time",
+                choices=[
+                    ("15s", "15"),
+                    ("30s", "30"),
+                    ("60s", "60"),
+                    ("120s", "120"),
+                    ("300s", "300"),
+                ],
+            ),
+            label_name="Exposure Time",
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [
+                    ObservationType.IMAGING,
+                    ObservationType.EXOPLANET,
+                    ObservationType.VARIABLE,
+                    ObservationType.MONITORING,
+                ]
+            }
+        )
+        exposure_time_expert = TURMField.init_from_model(
+            AbstractObservation._meta.get_field("exposure_time"),
+            label_name="Exposure Time",
+        ).add_dependencies(
+            {Dependency.observation_type.value: [ObservationType.EXPERT]}
+        )
 
-    # exposure
-    exposure_settings = [
-        (ExpertObservation._meta.get_field("frames_per_filter"), "Frames per filter"),
-        (ExpertObservation._meta.get_field("dither_every"), "dither every"),
-        (ExposureSettings._meta.get_field("binning"), "binning"),
-        (ExposureSettings._meta.get_field("subFrame"), "sub frame"),
-        (ExposureSettings._meta.get_field("gain"), "gain"),
-        (ExposureSettings._meta.get_field("offset"), "offset"),
-    ]
+        # exposure
+        exposure_settings = [
+            (
+                ExpertObservation._meta.get_field("frames_per_filter"),
+                "Frames per filter",
+            ),
+            (ExpertObservation._meta.get_field("dither_every"), "dither every"),
+            (ExposureSettings._meta.get_field("binning"), "binning"),
+            (ExposureSettings._meta.get_field("subFrame"), "sub frame"),
+            (ExposureSettings._meta.get_field("gain"), "gain"),
+            (ExposureSettings._meta.get_field("offset"), "offset"),
+        ]
 
-    exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
-        {Dependency.observation_type.value: [ObservationType.EXPERT]}
-    )
-    # imaging
-    frames_per_filter = TURMField.init_from_model(
-        ExpertObservation._meta.get_field("frames_per_filter")
-    ).add_dependencies(
-        {
-            Dependency.observation_type.value: [
-                ObservationType.IMAGING,
-                ObservationType.MONITORING,
-            ]
-        }
-    )
+        exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
+            {Dependency.observation_type.value: [ObservationType.EXPERT]}
+        )
+        # imaging
+        frames_per_filter = TURMField.init_from_model(
+            ExpertObservation._meta.get_field("frames_per_filter")
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [
+                    ObservationType.IMAGING,
+                    ObservationType.MONITORING,
+                ]
+            }
+        )
 
-    # exoplanet
-    start_end_observation = TURMDateTimeDuration(
-        (ExpertObservation._meta.get_field("start_observation"), "Start Observation"),
-        (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
-    ).add_dependencies(
-        {
-            Dependency.observation_type.value: [
-                ObservationType.EXOPLANET,
-                ObservationType.EXPERT,
-            ]
-        }
-    )
-    # variable
-    minimum_altitude = TURMField.init_from_model(
-        ExpertObservation._meta.get_field("minimum_altitude")
-    ).add_dependencies(
-        {
-            Dependency.observation_type.value: [
-                ObservationType.VARIABLE,
-                ObservationType.EXPERT,
-            ]
-        }
-    )
+        # exoplanet
+        start_end_observation = TURMDateTimeDuration(
+            (
+                ExpertObservation._meta.get_field("start_observation"),
+                "Start Observation",
+            ),
+            (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [
+                    ObservationType.EXOPLANET,
+                    ObservationType.EXPERT,
+                ]
+            }
+        )
+        # variable
+        minimum_altitude = TURMField.init_from_model(
+            ExpertObservation._meta.get_field("minimum_altitude")
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [
+                    ObservationType.VARIABLE,
+                    ObservationType.EXPERT,
+                ]
+            }
+        )
 
-    # monitoring
-    scheduling = TURMDateDuration(
-        (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
-        (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
-    ).add_dependencies(
-        {
-            Dependency.observation_type.value: [
-                ObservationType.MONITORING,
-                ObservationType.EXPERT,
-            ]
-        }
-    )
+        # monitoring
+        scheduling = TURMDateDuration(
+            (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
+            (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [
+                    ObservationType.MONITORING,
+                    ObservationType.EXPERT,
+                ]
+            }
+        )
 
-    cadence = TURMField.init_from_model(
-        ExpertObservation._meta.get_field("cadence")
-    ).add_dependencies(
-        {
-            Dependency.observation_type.value: [
-                ObservationType.MONITORING,
-                ObservationType.EXPERT,
-            ]
-        }
-    )
+        cadence = TURMField.init_from_model(
+            ExpertObservation._meta.get_field("cadence")
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [
+                    ObservationType.MONITORING,
+                    ObservationType.EXPERT,
+                ]
+            }
+        )
+    except ProgrammingError as error:
+        error_message = str(error).split("\n")[0]
+        logger.warning(f"DB seems to be badly configured. \n{error_message}")
