@@ -22,6 +22,7 @@
     function submitForm(event, form) {
         event.stopPropagation();
         event.preventDefault();
+        console.log(new FormData(form))
         fetch("{{ create_form_url }}", {
             method: "POST",
             body: new FormData(form),

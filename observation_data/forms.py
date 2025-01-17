@@ -147,6 +147,7 @@ class ExposureSettingsForm(forms.Form):
             {
                 Dependency.observation_type.value: [
                     ObservationType.IMAGING,
+                    ObservationType.VARIABLE,
                     ObservationType.MONITORING,
                 ]
             }
@@ -201,6 +202,27 @@ class ExposureSettingsForm(forms.Form):
                     ObservationType.EXPERT,
                 ]
             }
+        )
+        moon_separation_settings = [
+            (
+                ExpertObservation._meta.get_field("moon_separation_angle"),
+                "Moon Separation Angle",
+            ),
+            (
+                ExpertObservation._meta.get_field("moon_separation_width"),
+                "Moon Separation Width",
+            ),
+        ]
+
+        moon_separation = TURMGridField(
+            moon_separation_settings, (2, 1)
+        ).add_dependencies(
+            {Dependency.observation_type.value: [ObservationType.EXPERT]}
+        )
+        priority = TURMField.init_from_model(
+            ExpertObservation._meta.get_field("priority")
+        ).add_dependencies(
+            {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
     except ProgrammingError as error:
         error_message = str(error).split("\n")[0]
