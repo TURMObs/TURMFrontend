@@ -58,7 +58,6 @@ def create_observation(request):
             )
 
     if "name" in request_data and isinstance(request_data["name"], str):
-        logger.warning("entered remapping")
         request_data = _nest_observation_request(
             request_data,
             {
@@ -73,7 +72,6 @@ def create_observation(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    logger.warning("serializer not valid")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
