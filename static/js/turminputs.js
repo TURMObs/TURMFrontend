@@ -6,7 +6,6 @@
  */
 
 function discard_input(event, el, suppressed) {
-    console.log(el.value, el.value.replace(RegExp(suppressed), ''), RegExp(suppressed));
     el.value = el.value.replace(RegExp(suppressed), '');
     event.stopPropagation();
     event.preventDefault();
@@ -41,8 +40,6 @@ function check_radio_if_none_selected() {
  * @param dependency
  */
 function disable_inputs(dependency_type, dependency) {
-    console.log("Disabled Inputs", dependency_type, dependency);
-
     const dependent_inputs = Array.from(document.getElementsByTagName('INPUT'))
         .filter(el => !!el.getAttribute(dependency_type));
 

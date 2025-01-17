@@ -7,13 +7,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
-    <style></style>
+    <style>
+    .error_msg {
+        background-color: var(--tom-info-error);
+    }
+    </style>
 {% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
     <script> onload = _ => {
         check_radio_if_none_selected()
     };
+
+    function submitForm(event, form) {
+        event.stopPropagation();
+        event.preventDefault();
+        fetch("{{ create_form_url }}", {
+            method: "POST",
+            body: new FormData(form),
+            credentials: 'include',
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then((response) => {
+            console.log(response.status);
+            if (response.ok) location.href = '{% url "dashboard" %}';
+            else response.json().then((json) => {
+                console.log(json);
+                console.log(json);
+                document.getElementById("error_msg").innerText=JSON.stringify(json);
+            })
+        }).catch(error => console.error("Error:", error));
+
+    }
     </script>
 {% endblock %}
 {% block content %}
@@ -24,7 +50,7 @@
                     <h1>Create New Observation</h1>
                 </div>
             </header>
-            <form action="{{ create_form_url }}" method="post" class="input_form">
+            <form class="input_form" id="form" onsubmit="submitForm(event, this)">
                 {% for name, form in forms %}
                     <article class="form_body">
                         <h2 class="sub_form_heading">{{ name }}</h2>
@@ -33,6 +59,7 @@
                 {% endfor %}
                 {% csrf_token %}
                 <input type="submit" class="base_button">
+                <p class="error_msg" id="error_msg"></p>
             </form>
         </div>
     </div>
