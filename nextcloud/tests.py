@@ -2,6 +2,7 @@ import filecmp
 import json
 import os
 from datetime import datetime, timedelta
+
 from django.utils import timezone
 
 
@@ -44,6 +45,7 @@ dict_upload = "nextcloud/test_data/upload_dict.json"
 dict_download = "nextcloud/test_data/download_dict.json"
 dict_nc = "dict1_test.json"
 
+test_prefix = "test"
 
 # noinspection DuplicatedCode
 def _create_imaging_observations(
@@ -58,7 +60,6 @@ def _create_imaging_observations(
     priority: int = 1,
     exposure_time: float = 10.0,
     frames_per_filter: int = 10,
-    required_amount: int = 100,
     second_filter: bool = False,
 ):
     """
@@ -80,7 +81,6 @@ def _create_imaging_observations(
         priority=priority,
         exposure_time=exposure_time,
         frames_per_filter=frames_per_filter,
-        required_amount=required_amount,
     )
 
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
@@ -141,7 +141,7 @@ def _create_variable_observation(
     priority: int = 1,
     exposure_time: float = 10.0,
     minimum_altitude: float = 10.0,
-    required_amount: int = 100,
+    frames_per_filter: int = 100,
 ):
     """
     Creates variable observations from scratch without checks from serializers
@@ -162,7 +162,7 @@ def _create_variable_observation(
         priority=priority,
         exposure_time=exposure_time,
         minimum_altitude=minimum_altitude,
-        required_amount=required_amount,
+        frames_per_filter=frames_per_filter,
     )
 
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
@@ -183,7 +183,6 @@ def _create_monitoring_observation(
     end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
     frames_per_filter: int = 10,
     cadence: int = 1,
-    required_amount: int = 100,
 ):
     """
     Creates monitoring observations from scratch without checks from serializers
@@ -206,9 +205,8 @@ def _create_monitoring_observation(
         start_scheduling=start_scheduling,
         end_scheduling=end_scheduling,
         next_upload=start_scheduling,
-        frames_per_filter=frames_per_filter,
         cadence=cadence,
-        required_amount=required_amount,
+        frames_per_filter=frames_per_filter,
     )
 
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
@@ -227,7 +225,6 @@ def _create_expert_observation(
     exposure_time: float = 10.0,
     start_scheduling: datetime = timezone.now(),
     end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
-    frames_per_filter: int = 10,
     dither_every: float = 10.0,
     binning: int = 1,
     gain: int = 10,
@@ -238,7 +235,7 @@ def _create_expert_observation(
     moon_separation_angle: float = 10.0,
     moon_separation_width: int = 1,
     minimum_altitude: float = 10.0,
-    required_amount: int = 100,
+    frames_per_filter: int = 100,
 ):
     """
     Creates expert observations from scratch without checks from serializers
@@ -261,7 +258,6 @@ def _create_expert_observation(
         start_scheduling=start_scheduling,
         end_scheduling=end_scheduling,
         next_upload=start_scheduling,
-        frames_per_filter=frames_per_filter,
         dither_every=dither_every,
         binning=binning,
         gain=gain,
@@ -272,26 +268,27 @@ def _create_expert_observation(
         moon_separation_angle=moon_separation_angle,
         moon_separation_width=moon_separation_width,
         minimum_altitude=minimum_altitude,
-        required_amount=required_amount,
+        frames_per_filter=frames_per_filter,
     )
 
     obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
 
 
-def _obs_exists_in_nextcloud(obs: AbstractObservation) -> bool:
+def _obs_exists_in_nextcloud(obs: AbstractObservation, prefix:str="") -> bool:
     """
     Checks if observation exists in nextcloud. Works by trying to download the observation.
 
     :param obs: AbstractObservation to check whether it exists in nextcloud
+    :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
     :return: True if Observation exists in nextcloud; else false
     """
-    return nm.file_exists(generate_observation_path(obs))
+    return nm.file_exists(generate_observation_path(obs, prefix=prefix))
 
 
 def _get_obs_by_id(obs_id: int) -> AbstractObservation:
     """
     :param obs_id: id of the observation
-    :return: the observation object from the database identified by obs_id
+    :return:  object from the database identified by obs_id
     """
     return AbstractObservation.objects.filter(id=obs_id)[0]
 
@@ -317,14 +314,13 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
         with self.assertRaises(Exception):
             nm.delete("/does/not/matter")
 
-
 # noinspection DuplicatedCode
 @unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudManagerTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
 
-        self.LOCAL_PATH = "test_data"
+        #self.LOCAL_PATH = "test_data"
 
         self.maxDiff = None
         self.client = django.test.Client()
@@ -371,27 +367,27 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete("mkdir_test")
 
     def test_mkdir_complex(self):
-        path = "this/is/a/long/path/"
-        nm.mkdir("this/is/test")
+        path = "test/this/is/a/long/path/"
+        nm.mkdir(f"{test_prefix}/this/is/test")
         nm.mkdir(path)
         nm.upload_file(path + file_nc, file_upload)
         nm.delete("this")
         self.assertRaises(NextcloudException)
 
     def test_file_exists(self):
-        nm.mkdir("Test/file/exists")
-        nm.upload_file("Test/file/exists/test.json", file_upload)
-        self.assertTrue(file_exists("Test/file/exists/test.json"))
-        self.assertFalse(file_exists("Test/file/exists/test_again.json"))
-        self.assertFalse(file_exists("Test/file"))
-        nm.delete("Test")
+        nm.mkdir(f"{test_prefix}/file/exists")
+        nm.upload_file(f"{test_prefix}/file/exists/test.json", file_upload)
+        self.assertTrue(file_exists(f"{test_prefix}/file/exists/test.json"))
+        self.assertFalse(file_exists(f"{test_prefix}/file/exists/test_again.json"))
+        self.assertFalse(file_exists(f"{test_prefix}/file"))
+        nm.delete(test_prefix + "/file")
 
 
-@unittest.skip("Skip in CI until solution for nc-container in found")
+#@unittest.skip("Skip in CI until solution for nc-container in found")
 class NextcloudSyncTestCase(django.test.TestCase):
     def setUp(self):
         nm.initialize_connection()
-        call_command("populate_debug_observatories")
+        call_command("populate_observatories")
 
         self.LOCAL_PATH = "test_data"
 
@@ -402,22 +398,23 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def test_calc_progress(self):
         # insert a specific Observation into the db and retrieve it as dict
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        turmx = Observatory.objects.filter(name="TURMX")[0]
         _create_imaging_observations(
             self,
             obs_id=1,
             target_name="I1",
-            required_amount=100,
             second_filter=True,
-            observatory=turmx_test,
+            observatory=turmx,
+            frames_per_filter=100,
         )
+
+        nm.initialize_connection()
+
+
         observation = AbstractObservation.objects.all()[0]
         serializer_class = get_serializer(observation.observation_type)
         serializer = serializer_class(observation)
         obs_dict = serializer.data
-
-        nm.initialize_connection()
-        nm.upload_dict("test.json", obs_dict)
 
         progress1 = calc_progress(obs_dict)
         self.assertEqual(progress1, 0.0)  # initial progress is 0 (no images taken yet)
@@ -427,74 +424,78 @@ class NextcloudSyncTestCase(django.test.TestCase):
         progress2 = calc_progress(obs_dict)
         self.assertEqual(progress2, 75.0)
 
-        nm.delete("test.json")
 
     def test_get_nextcloud_path(self):
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        turmx = Observatory.objects.filter(name="TURMX")[0]
         _create_imaging_observations(
             self,
             obs_id=42,
             target_name="I1",
-            required_amount=100,
-            observatory=turmx_test,
+            observatory=turmx,
         )
         observation = AbstractObservation.objects.all()[0]
         self.assertEqual(
             generate_observation_path(observation),
-            "TURMX_TEST/Projects/00042_Imaging_L_I1.json",
+            "TURMX/Projects/00042_Imaging_L_I1.json",
+        )
+
+        self.assertEqual(
+            generate_observation_path(observation, prefix="test"),
+            "test/TURMX/Projects/00042_Imaging_L_I1.json",
         )
 
     def test_upload_from_db_simple(self):
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        nm.mkdir(f"{test_prefix}/TURMX2/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+        turmx2 = Observatory.objects.filter(name="TURMX2")[0]
 
         # insert test data
-        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx_test)
-        _create_imaging_observations(self, obs_id=1, target_name="I2", observatory=turmx_test)
-        _create_exoplanet_observation(self, obs_id=2, target_name="E1", observatory=turmx_test)
-        _create_exoplanet_observation(self, obs_id=3, target_name="E2", observatory=turmx_test)
-        _create_variable_observation(self, obs_id=4, target_name="V1", observatory=turmx_test)
-        _create_variable_observation(self, obs_id=5, target_name="V2", observatory=turmx_test)
-        _create_monitoring_observation(self, obs_id=6, target_name="M1", observatory=turmx_test)
-        _create_monitoring_observation(self, obs_id=7, target_name="M2", observatory=turmx_test)
-        _create_expert_observation(self, obs_id=8, target_name="X1", observatory=turmx_test)
-        _create_expert_observation(self, obs_id=9, target_name="X2", observatory=turmx_test, project_status=ObservationStatus.COMPLETED)
-        _create_variable_observation(self, obs_id=10, target_name="V3", observatory=turmx_test, project_status=ObservationStatus.ERROR)
+        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx)
+        _create_imaging_observations(self, obs_id=1, target_name="I2", observatory=turmx2)
+        _create_exoplanet_observation(self, obs_id=2, target_name="E1", observatory=turmx)
+        _create_exoplanet_observation(self, obs_id=3, target_name="E2", observatory=turmx2)
+        _create_variable_observation(self, obs_id=4, target_name="V1", observatory=turmx)
+        _create_variable_observation(self, obs_id=5, target_name="V2", observatory=turmx2)
+        _create_monitoring_observation(self, obs_id=6, target_name="M1", observatory=turmx)
+        _create_monitoring_observation(self, obs_id=7, target_name="M2", observatory=turmx2)
+        _create_expert_observation(self, obs_id=8, target_name="X1", observatory=turmx)
+        _create_expert_observation(self, obs_id=9, target_name="X2", observatory=turmx, project_status=ObservationStatus.COMPLETED)
+        _create_variable_observation(self, obs_id=10, target_name="V3", observatory=turmx, project_status=ObservationStatus.ERROR)
         self.assertEqual(11, AbstractObservation.objects.all().count())
 
         expected_uploads = [True, True, True, True, True, True, True, True, True, False, False]
 
-        upload_observations()
+        upload_observations(prefix=test_prefix)
 
         # check if correct files were uploaded and status set accordingly
         for i, should_be_uploaded in enumerate(expected_uploads):
             obs = _get_obs_by_id(i)
-            obs_is_uploaded = file_exists(generate_observation_path(obs))
-            self.assertEqual(should_be_uploaded, obs_is_uploaded)
+            obs_is_uploaded = file_exists(generate_observation_path(obs, prefix=test_prefix))
+            self.assertEqual(should_be_uploaded, obs_is_uploaded, f"For i={i}, obs={obs.id}")
             if obs_is_uploaded:
                 self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
         self.assertEqual(_get_obs_by_id(9).project_status, ObservationStatus.COMPLETED)
         self.assertEqual(_get_obs_by_id(10).project_status, ObservationStatus.ERROR)
 
-        nm.delete("TURMX_TEST")
+        nm.delete(test_prefix)
         # fmt: on
 
     def test_upload_from_db_status(self):
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
         # fmt: off
         # since the tested properties are inherited by ScheduledObservation, MonitoringObservation does not need to be tested manually
-        _create_expert_observation(self, obs_id=0, target_name="E0", observatory=turmx_test)
-        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(1), end_scheduling=_day(2), observatory=turmx_test)
-        _create_expert_observation(self, obs_id=2, target_name="E2", start_scheduling=_day(-2), end_scheduling=_day(-3), observatory=turmx_test)
-        _create_imaging_observations(self, obs_id=3, target_name="I0", observatory=turmx_test)
-        _create_imaging_observations(self, obs_id=4, target_name="I1", project_status=ObservationStatus.COMPLETED, observatory=turmx_test)
-        _create_imaging_observations(self, obs_id=5, target_name="I2", project_status=ObservationStatus.ERROR, observatory=turmx_test)
+        _create_expert_observation(self, obs_id=0, target_name="E0", observatory=turmx)
+        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(1), end_scheduling=_day(2), observatory=turmx)
+        _create_expert_observation(self, obs_id=2, target_name="E2", start_scheduling=_day(-2), end_scheduling=_day(-3), observatory=turmx)
+        _create_imaging_observations(self, obs_id=3, target_name="I0", observatory=turmx)
+        _create_imaging_observations(self, obs_id=4, target_name="I1", project_status=ObservationStatus.COMPLETED, observatory=turmx)
+        _create_imaging_observations(self, obs_id=5, target_name="I2", project_status=ObservationStatus.ERROR, observatory=turmx)
         self.assertEqual(6, AbstractObservation.objects.all().count())
 
         # Expected values for day -1 to 4 (both included)
@@ -507,7 +508,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         expected_status = [status_e0, status_e1, status_e2, status_i0, status_i1, status_i2]
 
         for i in range(4):
-            upload_observations(_day(i-1))
+            upload_observations(_day(i-1), prefix=test_prefix)
             for j in range(len(expected_status)):
                 obs = _get_obs_by_id(j)
                 expected_s = expected_status[j][i]
@@ -515,19 +516,19 @@ class NextcloudSyncTestCase(django.test.TestCase):
                 self.assertEqual(expected_s, actual_s, f"Day: {i-1} – Expected status: {expected_s}, actual: {actual_s} for obs {obs.id}",)
 
         # fmt: on
-        nm.delete("TURMX_TEST")
+        nm.delete(test_prefix)
 
     def test_upload_from_db_repetitive_observations(self):
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx_test)
-        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(0), end_scheduling=_day(7), cadence=2, observatory=turmx_test)
-        _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3, observatory=turmx_test)
-        _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED, observatory=turmx_test)
-        _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED, observatory=turmx_test)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
+        _create_expert_observation(self, obs_id=1, target_name="E1", start_scheduling=_day(0), end_scheduling=_day(7), cadence=2, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=2, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(7), cadence=3, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=3, target_name="M1", start_scheduling=_day(1), end_scheduling=_day(3), cadence=1, project_status=ObservationStatus.UPLOADED, observatory=turmx)
+        _create_monitoring_observation(self, obs_id=4, target_name="M2", start_scheduling=_day(2), end_scheduling=_day(7), cadence=3, project_status=ObservationStatus.UPLOADED, observatory=turmx)
         self.assertEqual(5, AbstractObservation.objects.all().count())
 
         test_obs = [_get_obs_by_id(i) for i in range(5)]
@@ -549,10 +550,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # simulate day 0-8. Check if upload_status matches the one in the matrix
         for i in range(9):
-            upload_observations(_day(i))
+            upload_observations(_day(i), prefix=test_prefix)
             for j, obs in enumerate(test_obs):
                 should_be_uploaded = expected_uploads[j][i]
-                is_uploaded = _obs_exists_in_nextcloud(obs)
+                is_uploaded = _obs_exists_in_nextcloud(obs, prefix=test_prefix)
                 obs.target_name = obs.target.name
                 self.assertEqual(
                     is_uploaded,
@@ -560,96 +561,96 @@ class NextcloudSyncTestCase(django.test.TestCase):
                     f"Day: {i} – Expected upload: {should_be_uploaded}, actual: {is_uploaded} for obs {obs.id}",
                 )
                 if is_uploaded:
-                    nm.delete(generate_observation_path(obs))
+                    nm.delete(generate_observation_path(obs, prefix=test_prefix))
                     # Setting next upload needs to be done manually in test. During deployment will be handled during NC download. For testing, it assumes that the observation during this night succeeded.
                     obs.next_upload += timedelta(days=obs.cadence)
                     obs.save()
 
-        nm.mkdir("TURMX_TEST")
+        nm.delete(test_prefix)
         # fmt: on
 
     def test_download_non_scheduled(self):
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
-        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx_test, required_amount=10)
-        _create_exoplanet_observation(self, obs_id=1, target_name="E1", observatory=turmx_test)
+        _create_imaging_observations(self, obs_id=0, target_name="I1", observatory=turmx, frames_per_filter=10)
+        _create_exoplanet_observation(self, obs_id=1, target_name="E1", observatory=turmx)
         _get_obs_by_id(1).filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.HYDROGEN)) # add second filter to test multi filter handling
 
-        _create_variable_observation(self, obs_id=2, target_name="V1", observatory=turmx_test)
+        _create_variable_observation(self, obs_id=2, target_name="V1", observatory=turmx)
 
-        upload_observations()
+        upload_observations(prefix=test_prefix)
 
         # alter obs 0 to make it completed
         o0 = _get_obs_by_id(0)
-        o0_path = generate_observation_path(o0)
+        o0_path = generate_observation_path(o0, prefix=test_prefix)
         o0_dict = nm.download_dict(o0_path)
         o0_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 10
         nm.upload_dict(o0_path, o0_dict)
         # alter obs 1 to complete by half
         o1 = _get_obs_by_id(1)
-        o1_path = generate_observation_path(o1)
+        o1_path = generate_observation_path(o1, prefix=test_prefix)
         o1_dict = nm.download_dict(o1_path)
         o1_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 1000
         nm.upload_dict(o1_path, o1_dict)
         # no changes to obs 2
 
-        update_observations()
+        update_observations(prefix=test_prefix)
 
         o0 = _get_obs_by_id(0)
-        self.assertFalse(_obs_exists_in_nextcloud(o0))
+        self.assertFalse(_obs_exists_in_nextcloud(o0, prefix=test_prefix))
         self.assertEqual(o0.project_status, ObservationStatus.COMPLETED)
         self.assertEqual(o0.project_completion, 100.0)
         o1 = _get_obs_by_id(1)
-        self.assertTrue(_obs_exists_in_nextcloud(o1))
+        self.assertTrue(_obs_exists_in_nextcloud(o1, prefix=test_prefix))
         self.assertEqual(o1.project_status, ObservationStatus.UPLOADED)
         self.assertEqual(o1.project_completion, 50.0)
         o2 = _get_obs_by_id(2)
-        self.assertTrue(_obs_exists_in_nextcloud(o2))
+        self.assertTrue(_obs_exists_in_nextcloud(o2, prefix=test_prefix))
         self.assertEqual(o2.project_status, ObservationStatus.UPLOADED)
         self.assertEqual(o2.project_completion, 0.0)
 
         # alter obs 1 to make it complete
         o1 = _get_obs_by_id(1)
-        o1_path = generate_observation_path(o1)
+        o1_path = generate_observation_path(o1, prefix=test_prefix)
         o1_dict = nm.download_dict(o1_path)
         o1_dict["targets"][0]["exposures"][1]["acceptedAmount"] = 1000
         nm.upload_dict(o1_path, o1_dict)
         # alter obs 2 to make it complete by 99%
         o2 = _get_obs_by_id(2)
-        o2_path = generate_observation_path(o2)
+        o2_path = generate_observation_path(o2, prefix=test_prefix)
         o2_dict = nm.download_dict(o2_path)
         o2_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 99
         nm.upload_dict(o2_path, o2_dict)
 
-        update_observations()
+        update_observations(prefix=test_prefix)
 
         o1 = _get_obs_by_id(1)
-        self.assertFalse(_obs_exists_in_nextcloud(o1))
+        self.assertFalse(_obs_exists_in_nextcloud(o1, prefix=test_prefix))
         self.assertEqual(o1.project_status, ObservationStatus.COMPLETED)
         self.assertEqual(o1.project_completion, 100.0)
         o2 = _get_obs_by_id(2)
-        self.assertTrue(_obs_exists_in_nextcloud(o2))
+        self.assertTrue(_obs_exists_in_nextcloud(o2, prefix=test_prefix))
         self.assertEqual(o2.project_status, ObservationStatus.UPLOADED)
         self.assertEqual(o2.project_completion, 99)
 
         # alter obs 2 to make it complete
         o2 = _get_obs_by_id(2)
-        o2_path = generate_observation_path(o2)
+        o2_path = generate_observation_path(o2, prefix=test_prefix)
         o2_dict = nm.download_dict(o2_path)
         o2_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
         nm.upload_dict(o2_path, o2_dict)
 
-        update_observations()
+        update_observations(prefix=test_prefix)
 
         o2 = _get_obs_by_id(2)
-        self.assertFalse(_obs_exists_in_nextcloud(o2))
+        self.assertFalse(_obs_exists_in_nextcloud(o2, prefix=test_prefix))
         self.assertEqual(o2.project_status, ObservationStatus.COMPLETED)
         self.assertEqual(o2.project_completion, 100)
 
-        nm.delete("TURMX_TEST")
+        nm.delete(test_prefix)
         # fmt: on
 
     def test_update_scheduled_1(self):
@@ -659,30 +660,30 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
-        _create_monitoring_observation(self, obs_id=0, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx_test)
+        _create_monitoring_observation(self, obs_id=0, target_name="M0", start_scheduling=_day(0), end_scheduling=_day(5), cadence=1, observatory=turmx)
 
         for i in range(5):
-            upload_observations(_day(i))
+            upload_observations(_day(i), prefix=test_prefix)
 
             obs = _get_obs_by_id(0)
-            obs_path = generate_observation_path(obs)
+            obs_path = generate_observation_path(obs, prefix=test_prefix)
             obs_dict = nm.download_dict(obs_path)
 
-            obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
+            obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 10
             nm.upload_dict(obs_path, obs_dict)
 
-            update_observations(_day(i + 1))
+            update_observations(_day(i + 1), prefix=test_prefix)
 
-            self.assertFalse(_obs_exists_in_nextcloud(obs))
+            self.assertFalse(_obs_exists_in_nextcloud(obs, prefix=test_prefix), f"i={i} and obs.id={obs.id}")
             self.assertEqual(_get_obs_by_id(0).project_completion, ((i+1)/5)*100)
 
 
         self.assertEqual(_get_obs_by_id(0).project_status, ObservationStatus.COMPLETED)
 
-        nm.delete("TURMX_TEST")
+        nm.delete(test_prefix)
         # fmt: on
 
     def test_update_scheduled_2(self):
@@ -692,31 +693,31 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(2), cadence=1, observatory=turmx_test)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(2), cadence=1, observatory=turmx, frames_per_filter=100)
 
-        upload_observations()
+        upload_observations(prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        obs_path = generate_observation_path(obs)
+        obs_path = generate_observation_path(obs, prefix=test_prefix)
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 42
         nm.upload_dict(obs_path, obs_dict)
 
-        update_observations(_day(1))
+        update_observations(_day(1), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 50.0)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
-        update_observations(_day(2))
+        update_observations(_day(2), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertFalse(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 100.0) # <- although no pictures were taken, the completion is still set to 100
         self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
 
-        nm.delete("TURMX_TEST")
+        nm.delete(test_prefix)
         # fmt: on
 
     def test_update_scheduled_3(self):
@@ -726,125 +727,125 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # fmt: off
         nm.initialize_connection()
-        nm.mkdir("TURMX_TEST/Projects")
-        turmx_test = Observatory.objects.filter(name="TURMX_Test")[0]
+        nm.mkdir(f"{test_prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
 
-        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(10), cadence=3, observatory=turmx_test)
+        _create_expert_observation(self, obs_id=0, target_name="E0", start_scheduling=_day(0), end_scheduling=_day(10), cadence=3, observatory=turmx)
 
         # day 0/1
-        upload_observations(_day(0))
+        upload_observations(_day(0), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        obs_path = generate_observation_path(obs)
+        obs_path = generate_observation_path(obs, prefix=test_prefix)
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
         nm.upload_dict(obs_path, obs_dict)
-        update_observations(_day(1))
+        update_observations(_day(1), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertFalse(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion,10.0)
         self.assertEqual(obs.next_upload.day, _day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING)
 
         # day 1/2
-        upload_observations(_day(1))
-        update_observations(_day(2))
+        upload_observations(_day(1), prefix=test_prefix)
+        update_observations(_day(2), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertFalse(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 20.0)
         self.assertEqual(obs.next_upload.day, _day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING)
 
         # day 2/3
-        upload_observations(_day(2))
-        update_observations(_day(3))
+        upload_observations(_day(2), prefix=test_prefix)
+        update_observations(_day(3), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertFalse(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 30.0)
         self.assertEqual(obs.next_upload.day, _day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING)
 
         # day 3/4
-        upload_observations(_day(3))
-        update_observations(_day(4))
+        upload_observations(_day(3), prefix=test_prefix)
+        update_observations(_day(4), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 40.0)
         self.assertEqual(obs.next_upload.day, _day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 4/5
-        upload_observations(_day(4))
-        update_observations(_day(5))
+        upload_observations(_day(4), prefix=test_prefix)
+        update_observations(_day(5), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 50.0)
         self.assertEqual(obs.next_upload.day, _day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 5/6
-        upload_observations(_day(5))
+        upload_observations(_day(5), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        obs_path = generate_observation_path(obs)
+        obs_path = generate_observation_path(obs, prefix=test_prefix)
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 10
         nm.upload_dict(obs_path, obs_dict)
-        update_observations(_day(6))
+        update_observations(_day(6), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 60.0)
         self.assertEqual(obs.next_upload.day, _day(8).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 6/7
-        upload_observations(_day(6))
+        upload_observations(_day(6), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        obs_path = generate_observation_path(obs)
+        obs_path = generate_observation_path(obs, prefix=test_prefix)
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 20
         nm.upload_dict(obs_path, obs_dict)
-        update_observations(_day(7))
+        update_observations(_day(7), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 70.0)
         self.assertEqual(obs.next_upload.day, _day(8).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 7/8
-        upload_observations(_day(7))
+        upload_observations(_day(7), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        obs_path = generate_observation_path(obs)
+        obs_path = generate_observation_path(obs, prefix=test_prefix)
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 30
         nm.upload_dict(obs_path, obs_dict)
-        update_observations(_day(8))
+        update_observations(_day(8), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 80.0)
         self.assertEqual(obs.next_upload.day, _day(10).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 8/9
-        upload_observations(_day(8))
-        update_observations(_day(9))
+        upload_observations(_day(8), prefix=test_prefix)
+        update_observations(_day(9), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertTrue(_obs_exists_in_nextcloud(obs))
+        self.assertTrue(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 90.0)
         self.assertEqual(obs.next_upload.day, _day(10).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 9/10
-        upload_observations(_day(9))
+        upload_observations(_day(9), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        obs_path = generate_observation_path(obs)
+        obs_path = generate_observation_path(obs, prefix=test_prefix)
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 100
         nm.upload_dict(obs_path, obs_dict)
-        update_observations(_day(10))
+        update_observations(_day(10), prefix=test_prefix)
         obs = _get_obs_by_id(0)
-        self.assertFalse(_obs_exists_in_nextcloud(obs))
+        self.assertFalse(_obs_exists_in_nextcloud(obs, prefix=test_prefix))
         self.assertEqual(obs.project_completion, 100.0)
         self.assertEqual(obs.next_upload.day, _day(10).day) # although observation is finished, no new upload is set because it would be after the end of schedule
         self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
 
-        nm.delete("TURMX_TEST")
+        nm.delete(test_prefix)
         # fmt: on

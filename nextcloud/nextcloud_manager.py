@@ -80,7 +80,7 @@ def file_exists(nc_path: PathLike[bytes] | str) -> bool:
 
 
 @_check_initialized
-def get_observation_file(observation: AbstractObservation) -> str | None:
+def get_observation_file(observation: AbstractObservation, path_prefix: str=  "") -> str | None:
     """
     Returns the path of the observation request file in the nextcloud if it exists, else None
 
@@ -90,6 +90,10 @@ def get_observation_file(observation: AbstractObservation) -> str | None:
     observatory_string = str(observation.observatory.name).upper()
     base_path = observatory_string + "/Projects/"
     obs_id = observation.id
+
+    if path_prefix:  # adds the prefix if necessary
+        base_path = f"/{path_prefix}/{base_path}"
+
     target_pattern = re.compile(rf"(?<!\d)0*{obs_id}_")
     try:
         file_dir = nc.files.listdir(base_path)
@@ -104,7 +108,7 @@ def get_observation_file(observation: AbstractObservation) -> str | None:
 
 @_check_initialized
 def generate_observation_path(
-    observation: AbstractObservation, dec_offset: int = 5
+    observation: AbstractObservation, dec_offset: int = 5, prefix: str = ""
 ) -> str:
     """
     Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
@@ -123,10 +127,12 @@ def generate_observation_path(
     observatory_string = str(observation.observatory.name).upper()
     obs_id = observation.id
     formatted_id = f"{obs_id:0{dec_offset}}"
+    path = f"{observatory_string}/Projects/{formatted_id}_{project_name}.json"
 
-    return (
-        observatory_string + "/Projects/" + formatted_id + "_" + project_name + ".json"
-    )
+    if prefix: # adds the prefix if necessary
+        path = f"{prefix}/{path}"
+
+    return path
 
 
 @_check_initialized
