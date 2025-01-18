@@ -33,6 +33,6 @@ class Command(BaseCommand):
             username=email, email=email, password=password, is_superuser=True
         )
         if not Group.objects.filter(name=UserGroups.ADMIN).exists():
-            call_command("create_groups")
+            call_command("create_groups_and_permissions")
         user.groups.add(Group.objects.get(name=UserGroups.ADMIN))
         user.save()

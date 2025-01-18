@@ -175,7 +175,7 @@
                         <a class="navbar_link" href="{% url 'dsgvo' %}" aria-label="dsgvo">
                             <span class="navbar_link">USER DATA SETTINGS</span>
                         </a>
-                        {% if perms.authentication.can_generate_invitation %}
+                        {% if perms.accounts.can_generate_invitation %}
                             <a class="navbar_link"
                                href="{% url 'generate-invitation' %}"
                                aria-label="invite">

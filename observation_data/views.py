@@ -1,9 +1,13 @@
+from datetime import datetime
+
+from django.conf import settings
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
+from accounts.models import ObservatoryUser, UserPermissions
 from observation_data.models import ObservationType
 from observation_data.serializers import get_serializer
 
@@ -18,10 +22,30 @@ def create_observation(request):
     :param request: HTTP request with observation data
     :return: HTTP response with the created observation data or error message
     """
-    if not request.user.is_authenticated:
+
+    user = request.user
+    if not user.is_authenticated:
         return Response(
             {"error": "Authentication required"},
             status=HTTP_401_UNAUTHORIZED,
+        )
+
+    if not isinstance(user, ObservatoryUser): # note: it would be better to use isinstance(user, settings.AUTH_USER_MODEL), but that confuses the type checker and I don't like warnings
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not user.has_quota_left():
+        return Response(
+            {"error": "Quota exceeded"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if not user.has_lifetime_left():
+        return Response(
+            {"error": "Lifetime exceeded"},
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     request_data = request.data.copy()
@@ -29,7 +53,7 @@ def create_observation(request):
 
     observation_type = request_data.get("observation_type")
     if observation_type == ObservationType.EXPERT:
-        if not request.user.is_superuser:
+        if not user.has_perm("accounts." + UserPermissions.CAN_CREATE_EXPERT_OBSERVATION):
             return Response(
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,

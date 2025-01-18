@@ -25,8 +25,13 @@
                         <i class="bx bx-user"></i>
                     </div>
                     <div class="checkbox-field">
+                        <input type="checkbox" id="id_expert" name="expert"
+                               {% if form.expert.value %}checked{% endif %}>
+                        <label for="id_expert">Experte/Expertin</label>
+                    </div>
+                    <div class="checkbox-field">
                         <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
-                        <label for="enableQuota">Nutzungsquote</label>
+                        <label for="enableQuota">Max. gleichzeitige Observationsanfragen</label>
                     </div>
                     <div class="input-field" id="quotaField" style="display: none;">
                         {{ form.quota }}
@@ -38,6 +43,8 @@
                     <div class="input-field" id="lifetimeField" style="display: none;">
                         {{ form.lifetime }}
                     </div>
+
+
                     <button class="generatebutton" type="submit">Generate</button>
                 </form>
 
@@ -55,6 +62,20 @@
                             document.getElementById('id_lifetime').remove();
                         }
                     });
+
+                    document.getElementById('id_role').addEventListener('change', function () {
+                        const role = this.value;
+                        const expertCheckbox = document.getElementById('id_expert');
+
+                        if (role === '{{ UserGroups.ADMIN }}') {
+                            expertCheckbox.checked = true;
+                            expertCheckbox.disabled = true; // Gray out the checkbox
+                        } else {
+                            expertCheckbox.disabled = false; // Allow toggling
+                        }
+                    });
+
+                    document.getElementById('id_role').dispatchEvent(new Event('change'));
                 </script>
 
             {% else %}

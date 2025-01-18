@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
@@ -28,8 +28,8 @@ class GenerateInvitationForm(forms.Form):
     quota = forms.IntegerField(
         widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
         min_value=1,
-        max_value=10000,
-        initial=100,
+        max_value=100,
+        initial=5,
         required=False,
     )
     lifetime = forms.DateField(
@@ -43,20 +43,34 @@ class GenerateInvitationForm(forms.Form):
         initial=UserGroups.USER,
         required=True,
     )
+    expert = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"id": "id_expert"}),
+        label="expert",
+        required=False,
+        initial=False
+    )
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        choices = [(UserGroups.USER, "Nutzer")]
+        choices = [(UserGroups.USER, "Nutzer*in")]
 
         if user:
             if user.has_perm('accounts.' + UserPermissions.CAN_INVITE_ADMINS):
                 choices.append((UserGroups.ADMIN, "Admin"))
             if user.has_perm('accounts.' + UserPermissions.CAN_INVITE_GROUP_LEADERS):
-                choices.append((UserGroups.GROUP_LEADER, "Gruppenleiter"))
+                choices.append((UserGroups.GROUP_LEADER, "Gruppenleiter*in"))
 
         self.fields['role'].choices = choices
+
+    def clean_expert(self):
+        expert = self.cleaned_data.get("expert")
+        if expert is None:
+            expert = False
+        if self.cleaned_data.get("role") == UserGroups.ADMIN:
+            expert = True
+        return expert
 
 
 class SetPasswordForm(forms.Form):
@@ -123,6 +137,7 @@ def generate_invitation(request):
 def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
+        logger.warning(f"Invalid form data on account creation: {form.errors}")
         return generate_invitation_template(
             request, form=GenerateInvitationForm(user=request.user), error="Invalid email"
         )
@@ -131,6 +146,7 @@ def generate_user_invitation(request):
     quota = form.cleaned_data["quota"]
     lifetime = form.cleaned_data["lifetime"]
     role = form.cleaned_data["role"]
+    expert = form.cleaned_data["expert"]
 
     if role == UserGroups.ADMIN and not request.user.has_perm("accounts." + UserPermissions.CAN_INVITE_ADMINS):
         return generate_invitation_template(
@@ -143,7 +159,7 @@ def generate_user_invitation(request):
         )
 
     base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
-    link = generate_invitation_link(base_url, email, quota, lifetime, role)
+    link = generate_invitation_link(base_url, email, quota, lifetime, role, expert)
     if link is None:
         return generate_invitation_template(
             request, form=GenerateInvitationForm(request.user), error="Email already registered"
@@ -196,10 +212,12 @@ def register_user(request, token):
     )
     user.set_password(form.cleaned_data["new_password1"])
     user.groups.add(Group.objects.get(name=invitation.role))
+    if invitation.expert:
+        user.user_permissions.add(Permission.objects.get(codename=UserPermissions.CAN_CREATE_EXPERT_OBSERVATION))
     user.save()
     invitation.save()
     auth.login(request, user)
-    logger.info(f"Created new account for {user.username}")
+    logger.info(f"Created new {invitation.role} account for {user.username} with quota {user.quota} and lifetime {user.lifetime} (expert: {invitation.expert})")
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 
@@ -211,7 +229,7 @@ def generate_invitation_template(request, error=None, link=None, form=None):
     return render(
         request,
         "authentication/generate_invitation.html",
-        {"error": error, "form": form, "link": link},
+        {"error": error, "form": form, "link": link, "UserGroups": UserGroups},
     )
 
 
