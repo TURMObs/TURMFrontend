@@ -17,7 +17,7 @@ import nextcloud.nextcloud_manager as nm
 
 """
 This module retrieves the observation requests for a night and uses the nextcloud_manager to upload them to the nextcloud.
-`upload_observation()` and `download_observation()` are supposed to be triggered via a cron-Job
+`upload_observation()` and `update_observation()` are supposed to be triggered via a cron-Job
 """
 
 logger = logging.getLogger(__name__)
@@ -43,19 +43,18 @@ def calc_progress(observation: dict) -> float:
     return round((accepted_amount / required_amount) * 100, 2)
 
 
-def get_data_from_nc(obs: AbstractObservation, prefix:str=""):
+def get_data_from_nc(obs: AbstractObservation):
     """
     Downloads the dict of the observation from the nextcloud.
     If an error occurs, it will be logged and the status set to error.
     Requires nextcloud connection to be initialized.
 
     :param obs: Observation to retrieve the dict from.
-    :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
 
     :return: the dictionary of the observation and the nc_path. The progress is None if an error occurs.
     """
     try:
-        nc_path = nm.get_observation_file(obs, prefix)
+        nc_path = nm.get_observation_file(obs)
         nc_dict = nm.download_dict(nc_path)
     except NextcloudException as e:
         logger.error(
@@ -67,13 +66,11 @@ def get_data_from_nc(obs: AbstractObservation, prefix:str=""):
     return calc_progress(nc_dict), nc_path
 
 
-def update_non_scheduled_observations( prefix: str = ""):
+def update_non_scheduled_observations():
     """
     Downloads all non-scheduled observations from the nextcloud, checks for progress and updates database accordingly.
-
-    :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
-
     """
+
     observations = AbstractObservation.objects.filter(
         project_status=ObservationStatus.UPLOADED
     ).not_instance_of(ScheduledObservation)
@@ -85,7 +82,7 @@ def update_non_scheduled_observations( prefix: str = ""):
         return
 
     for obs in observations:
-        progress, nc_path = get_data_from_nc(obs, prefix=prefix)
+        progress, nc_path = get_data_from_nc(obs)
         if progress is None:
             continue
         if progress != obs.project_completion:
@@ -101,12 +98,11 @@ def update_non_scheduled_observations( prefix: str = ""):
         obs.save()
 
 
-def update_scheduled_observations(today: datetime = timezone.now(), prefix: str = ""):
+def update_scheduled_observations(today: datetime = timezone.now()):
     """
     Downloads all scheduled observations from the nextcloud, checks for progress and updates database accordingly.
 
     :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
-    :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
 
     """
     observations = AbstractObservation.objects.instance_of(ScheduledObservation).filter(
@@ -137,7 +133,7 @@ def update_scheduled_observations(today: datetime = timezone.now(), prefix: str 
             obs.save()
             continue
 
-        partial_progress, nc_path = get_data_from_nc(obs, prefix=prefix)
+        partial_progress, nc_path = get_data_from_nc(obs)
         if partial_progress is None:
             continue
 
@@ -176,7 +172,7 @@ def update_scheduled_observations(today: datetime = timezone.now(), prefix: str 
         obs.save()
 
 
-def update_observations(today: datetime = timezone.now(), prefix: str = ""):
+def update_observations(today: datetime = timezone.now()):
     """
     Wrapper method for calling 'download_non_scheduled_observations' and 'download_scheduled_observations'.
 
@@ -184,17 +180,15 @@ def update_observations(today: datetime = timezone.now(), prefix: str = ""):
     :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
 
     """
-    update_non_scheduled_observations(prefix=prefix)
-    update_scheduled_observations(today, prefix=prefix)
+    update_non_scheduled_observations()
+    update_scheduled_observations(today)
 
 
-def upload_observations(today = timezone.now(), prefix:str = ""):
+def upload_observations(today=timezone.now()):
     """
     Uploads all observations with project_status "upload_pending" from the database to the nextcloud and updates the status accordingly.
 
     :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
-    :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
-
     """
 
     # Handling of observations, that can be uploaded anytime (all non-scheduled observations)
@@ -234,7 +228,7 @@ def upload_observations(today = timezone.now(), prefix:str = ""):
         serializer = serializer_class(obs)
 
         obs_dict = serializer.data
-        nc_path = nm.generate_observation_path(obs, prefix=prefix)
+        nc_path = nm.generate_observation_path(obs)
         try:
             nm.upload_dict(nc_path, obs_dict)
             logger.info(

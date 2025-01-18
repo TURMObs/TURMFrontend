@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from nextcloud import nextcloud_manager
 from nextcloud.nextcloud_sync import upload_observations
 import logging
 
@@ -13,15 +14,29 @@ class Command(BaseCommand):
     help = "Uploads observations from database to Nextcloud"
 
     def handle(self, *args, **options):
-        try:
-            time_delta = 0
-            if options["days"]:
-                time_delta = options["days"]
-            upload_observations(timezone.now() + timedelta(days=time_delta))
+        time_delta = 0
+        old_prefix = ""
+        if options["days"]:
+            time_delta = options["days"]
 
+        if options["prefix"]:
+            old_prefix = options["prefix"]
+            nextcloud_manager.prefix = options["prefix"].strip("/")
+
+        try:
+            upload_observations(timezone.now() + timedelta(days=time_delta))
         except Exception as e:
-            logger.error(f"Error uploading observations: {e}")
-            self.stdout.write(self.style.ERROR(f"Error uploading observations: {e}"))
+            logger.error(f"Error downloading observations: {e}")
+            self.stdout.write(self.style.ERROR(f"Error downloading observations: {e}"))
+
+        if options["prefix"]:
+            nextcloud_manager.prefix = old_prefix
 
     def add_arguments(self, parser):
         parser.add_argument("--days", "-d", type=int, help="Timedelta of days from now")
+        parser.add_argument(
+            "--prefix",
+            "-p",
+            type=str,
+            help="Top level prefix in the nextcloud path. Overwrites `NC_PREFIX` of .env",
+        )

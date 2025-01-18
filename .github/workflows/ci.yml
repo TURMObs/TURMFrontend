@@ -13,6 +13,7 @@ env:
   POSTGRES_PASSWORD: root
   ADMIN_EMAIL: admin@gmail.com
   ADMIN_PASSWORD: admin
+  NC_TEST: False
 jobs:
   build:
     if: github.event.pull_request.draft == false

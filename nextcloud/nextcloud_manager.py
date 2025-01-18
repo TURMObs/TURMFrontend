@@ -24,6 +24,8 @@ from dotenv import load_dotenv
 from observation_data.models import AbstractObservation
 from observation_data.serializers import get_serializer
 
+
+prefix = os.getenv("NC_PREFIX", default="")
 nc: Nextcloud
 
 
@@ -67,7 +69,7 @@ def file_exists(nc_path: PathLike[bytes] | str) -> bool:
     Checks if a file exists on the Nextcloud server.
 
     :param nc_path: Path to the file to check whether it exists
-    :return true if file exists, else false
+    :return: true if file exists, else false
     """
     try:
         file_dir = nc.files.listdir(str(os.path.dirname(nc_path)))
@@ -80,19 +82,20 @@ def file_exists(nc_path: PathLike[bytes] | str) -> bool:
 
 
 @_check_initialized
-def get_observation_file(observation: AbstractObservation, path_prefix: str=  "") -> str | None:
+def get_observation_file(observation: AbstractObservation) -> str | None:
     """
     Returns the path of the observation request file in the nextcloud if it exists, else None
 
     :param observation: Abstract observation
-    :return path of the file in nextcloud or None if the file does not exist
+
+    :return: path of the file in nextcloud or None if the file does not exist
     """
     observatory_string = str(observation.observatory.name).upper()
     base_path = observatory_string + "/Projects/"
     obs_id = observation.id
 
-    if path_prefix:  # adds the prefix if necessary
-        base_path = f"/{path_prefix}/{base_path}"
+    if prefix:  # adds the prefix if necessary
+        base_path = f"{prefix}/{base_path}"
 
     target_pattern = re.compile(rf"(?<!\d)0*{obs_id}_")
     try:
@@ -108,7 +111,8 @@ def get_observation_file(observation: AbstractObservation, path_prefix: str=  ""
 
 @_check_initialized
 def generate_observation_path(
-    observation: AbstractObservation, dec_offset: int = 5, prefix: str = ""
+    observation: AbstractObservation,
+    dec_offset: int = 5,
 ) -> str:
     """
     Generates the path of the file according to the scheme "/[Observatory]/Projects/[Observation_ID]_[Project_Name].json".
@@ -227,7 +231,7 @@ def delete(nc_path: str) -> None:
     """
     Deletes a file/directory from the Nextcloud server (if it is a folder including all its files/subfolders)
     Example: ``delete("Documents/test.json"), delete("Files")``
-    :raises NextcloudException: If the file does not exist on the server
+    :raises NextcloudException: If the file/folder does not exist on the server
     """
     nc.files.delete(nc_path)
 

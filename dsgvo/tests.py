@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import django.test
@@ -46,8 +47,7 @@ def _create_imaging_observation(test_instance, target_name: str, user: User = No
         "observation_type": ObservationType.IMAGING,
         "exposure_time": 300.0,
         "filter_set": ["R"],
-        "frames_per_filter": 1,
-        "required_amount": 100,
+        "frames_per_filter": 10,
     }
     _create_observation(test_instance, data, user)
     return ImagingObservation.objects.get(target__name=target_name)
@@ -66,7 +66,7 @@ def _create_variable_observation(test_instance, target_name: str, user: User = N
         "exposure_time": 60.0,
         "filter_set": ["L"],
         "minimum_altitude": 30.0,
-        "required_amount": 450,
+        "frames_per_filter": 450,
     }
     _create_observation(test_instance, data, user)
     return VariableObservation.objects.get(target__name=target_name)
@@ -80,7 +80,13 @@ def _clear_data():
         pass
 
 
-@unittest.skip("Skip in CI until solution for nc-container in found")
+run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
+
+
+@unittest.skipIf(
+    not run_nc_test,
+    "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
+)
 class DSGVOUserDataTestCase(django.test.TestCase):
     def setUp(self):
         initialize_connection()
