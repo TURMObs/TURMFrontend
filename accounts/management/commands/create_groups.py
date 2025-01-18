@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
         # Assign permissions to groups
         admin_group.permissions.add(can_generate_invitation, can_invite_admins, can_invite_group_leaders)
-        group_leader_group.permissions.add(can_generate_invitation, can_invite_group_leaders)
+        group_leader_group.permissions.add(can_generate_invitation)
 
         admin_group.save()
         group_leader_group.save()

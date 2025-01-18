@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
 
-from .models import InvitationToken, generate_invitation_link, ObservatoryUser
+from .models import InvitationToken, generate_invitation_link, ObservatoryUser, UserPermissions, UserGroups
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class GenerateInvitationForm(forms.Form):
     role = forms.ChoiceField(
         widget=forms.Select(),
         choices=[],
-        initial="user",
+        initial=UserGroups.USER,
         required=True,
     )
 
@@ -48,13 +48,13 @@ class GenerateInvitationForm(forms.Form):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        choices = [("user", "user")]
+        choices = [(UserGroups.USER, "Nutzer")]
 
         if user:
-            if user.has_perm('accounts.can_invite_admins'):
-                choices.append(("admin", "admin"))
-            if user.has_perm('accounts.can_invite_group_leaders'):
-                choices.append(("group_leader", "group_leader"))
+            if user.has_perm('accounts.' + UserPermissions.CAN_INVITE_ADMINS):
+                choices.append((UserGroups.ADMIN, "Admin"))
+            if user.has_perm('accounts.' + UserPermissions.CAN_INVITE_GROUP_LEADERS):
+                choices.append((UserGroups.GROUP_LEADER, "Gruppenleiter"))
 
         self.fields['role'].choices = choices
 
@@ -113,13 +113,13 @@ def login_user(request):
 
 
 @require_GET
-@user_passes_test(lambda u: u.has_perm("accounts.can_generate_invitation"))
+@user_passes_test(lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION))
 def generate_invitation(request):
     return generate_invitation_template(request, form=GenerateInvitationForm(user=request.user))
 
 
 @require_POST
-@user_passes_test(lambda u: u.has_perm("accounts.can_generate_invitation"))
+@user_passes_test(lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION))
 def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
@@ -132,12 +132,12 @@ def generate_user_invitation(request):
     lifetime = form.cleaned_data["lifetime"]
     role = form.cleaned_data["role"]
 
-    if role == "admin" and not request.user.has_perm("accounts.can_invite_admins"):
+    if role == UserGroups.ADMIN and not request.user.has_perm("accounts." + UserPermissions.CAN_INVITE_ADMINS):
         return generate_invitation_template(
             request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite admins"
         )
 
-    if role == "group_leader" and not request.user.has_perm("accounts.can_invite_group_leaders"):
+    if role == UserGroups.GROUP_LEADER and not request.user.has_perm("accounts." + UserPermissions.CAN_INVITE_GROUP_LEADERS):
         return generate_invitation_template(
             request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite group leaders"
         )
