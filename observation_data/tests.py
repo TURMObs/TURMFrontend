@@ -3,11 +3,12 @@ import os
 from datetime import datetime, timezone, timedelta
 
 import django.test
+from django.contrib.auth.models import Permission
 from django.core.management import call_command
 from django.conf import settings
 from dotenv import load_dotenv
 
-from accounts.models import ObservatoryUser
+from accounts.models import ObservatoryUser, UserPermissions
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
@@ -279,6 +280,8 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_no_expert_user(self):
         self.user.is_superuser = False
+        self.user.groups.clear()
+        self.user.user_permissions.remove(Permission.objects.get(codename=UserPermissions.CAN_CREATE_EXPERT_OBSERVATION))
         self.user.save()
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.EXPERT
