@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
-from authentication.views import logger
+from accounts.views import logger
 from dsgvo import user_data
 
 

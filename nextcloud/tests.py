@@ -13,7 +13,7 @@ from nc_py_api import NextcloudException
 from django.core.management import call_command
 from numpy.ma.testutils import assert_equal
 
-from authentication.models import ObservatoryUser
+from accounts.models import ObservatoryUser
 from nextcloud import nextcloud_manager as nm
 from nextcloud.nextcloud_manager import file_exists, generate_observation_path
 from nextcloud.nextcloud_sync import upload_observations, calc_progress

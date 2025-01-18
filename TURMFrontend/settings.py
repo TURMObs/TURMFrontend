@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "polymorphic",
     # Modules defined by TURMFrontend
-    "authentication",
+    "accounts",
     "dashboard",
     "observation_data",
     "observation_request",
@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     "nextcloud",
 ]
 
-AUTH_USER_MODEL = "authentication.ObservatoryUser"
+AUTH_USER_MODEL = "accounts.ObservatoryUser"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

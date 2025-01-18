@@ -4,7 +4,7 @@ import django.test
 from django.core.management import call_command
 from nc_py_api import NextcloudException
 
-from authentication.models import ObservatoryUser
+from accounts.models import ObservatoryUser
 from nextcloud.nextcloud_manager import (
     file_exists,
     get_observation_file,

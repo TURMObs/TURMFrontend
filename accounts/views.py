@@ -51,9 +51,9 @@ class GenerateInvitationForm(forms.Form):
         choices = [("user", "user")]
 
         if user:
-            if user.has_perm('authentication.can_invite_admins'):
+            if user.has_perm('accounts.can_invite_admins'):
                 choices.append(("admin", "admin"))
-            if user.has_perm('authentication.can_invite_group_leaders'):
+            if user.has_perm('accounts.can_invite_group_leaders'):
                 choices.append(("group_leader", "group_leader"))
 
         self.fields['role'].choices = choices
@@ -113,13 +113,13 @@ def login_user(request):
 
 
 @require_GET
-@user_passes_test(lambda u: u.has_perm("authentication.can_generate_invitation"))
+@user_passes_test(lambda u: u.has_perm("accounts.can_generate_invitation"))
 def generate_invitation(request):
     return generate_invitation_template(request, form=GenerateInvitationForm(user=request.user))
 
 
 @require_POST
-@user_passes_test(lambda u: u.has_perm("authentication.can_generate_invitation"))
+@user_passes_test(lambda u: u.has_perm("accounts.can_generate_invitation"))
 def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
@@ -132,17 +132,17 @@ def generate_user_invitation(request):
     lifetime = form.cleaned_data["lifetime"]
     role = form.cleaned_data["role"]
 
-    if role == "admin" and not request.user.has_perm("authentication.can_invite_admins"):
+    if role == "admin" and not request.user.has_perm("accounts.can_invite_admins"):
         return generate_invitation_template(
             request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite admins"
         )
 
-    if role == "group_leader" and not request.user.has_perm("authentication.can_invite_group_leaders"):
+    if role == "group_leader" and not request.user.has_perm("accounts.can_invite_group_leaders"):
         return generate_invitation_template(
             request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite group leaders"
         )
 
-    base_url = f"{request.scheme}://{request.get_host()}/authentication/register"  # this seems convoluted
+    base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
     link = generate_invitation_link(base_url, email, quota, lifetime, role)
     if link is None:
         return generate_invitation_template(

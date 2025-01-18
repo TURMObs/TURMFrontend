@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.conf import settings
 from dotenv import load_dotenv
 
-from authentication.models import ObservatoryUser
+from accounts.models import ObservatoryUser
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
@@ -80,7 +80,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.client.logout()
         response = self._send_post_request({})
         self.assertEqual(
-            response.url, "/authentication/login?next=/observation-data/create/"
+            response.url, "/accounts/login?next=/observation-data/create/"
         )
         self.assertEqual(response.status_code, 302)
 
