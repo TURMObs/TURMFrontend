@@ -14,7 +14,9 @@
             <h1>Generate Invitation Link</h1>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             {% if link is None %}
-                <form method="post" action="{% url 'generate-user-invitation' %}" id="invitationForm">
+                <form method="post"
+                      action="{% url 'generate-user-invitation' %}"
+                      id="invitationForm">
                     {% csrf_token %}
                     <div class="input-field">
                         {{ form.email }}
@@ -25,7 +27,9 @@
                         <i class="bx bx-user"></i>
                     </div>
                     <div class="checkbox-field">
-                        <input type="checkbox" id="id_expert" name="expert"
+                        <input type="checkbox"
+                               id="id_expert"
+                               name="expert"
                                {% if form.expert.value %}checked{% endif %}>
                         <label for="id_expert">Experte/Expertin</label>
                     </div>
@@ -33,21 +37,16 @@
                         <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
                         <label for="enableQuota">Max. gleichzeitige Observationsanfragen</label>
                     </div>
-                    <div class="input-field" id="quotaField" style="display: none;">
-                        {{ form.quota }}
-                    </div>
+                    <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
                     <div class="checkbox-field">
-                        <input type="checkbox" id="enableLifetime" onclick="toggleInput('lifetimeField')">
+                        <input type="checkbox"
+                               id="enableLifetime"
+                               onclick="toggleInput('lifetimeField')">
                         <label for="enableLifetime">Begrenzte Nutzungszeit</label>
                     </div>
-                    <div class="input-field" id="lifetimeField" style="display: none;">
-                        {{ form.lifetime }}
-                    </div>
-
-
+                    <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
                     <button class="generatebutton" type="submit">Generate</button>
                 </form>
-
                 <script>
                     function toggleInput(fieldId) {
                         const field = document.getElementById(fieldId);
@@ -77,7 +76,6 @@
 
                     document.getElementById('id_role').dispatchEvent(new Event('change'));
                 </script>
-
             {% else %}
                 <p id="invitationLink">{{ link }}</p>
                 <button class="copybutton" onclick="copyLink()">Copy Link</button>

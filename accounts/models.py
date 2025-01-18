@@ -5,10 +5,12 @@ from typing import Optional
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
 class UserGroups:
     ADMIN = "admin"
     GROUP_LEADER = "group_leader"
     USER = "user"
+
 
 class UserPermissions:
     CAN_GENERATE_INVITATION = "can_generate_invitation"
@@ -16,15 +18,22 @@ class UserPermissions:
     CAN_INVITE_GROUP_LEADERS = "can_invite_group_leaders"
     CAN_CREATE_EXPERT_OBSERVATION = "can_create_expert_observation"
 
+
 class InvitationToken(models.Model):
     email = models.EmailField(unique=True)
     quota = models.IntegerField(null=True)
     lifetime = models.DateField(null=True)
-    role = models.CharField(max_length=100, null=True, choices=[(UserGroups.ADMIN, "Admin"), (UserGroups.GROUP_LEADER, "Gruppenleiter")])
+    role = models.CharField(
+        max_length=100,
+        null=True,
+        choices=[
+            (UserGroups.ADMIN, "Admin"),
+            (UserGroups.GROUP_LEADER, "Gruppenleiter"),
+        ],
+    )
     expert = models.BooleanField(default=False)
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
 
 
 class ObservatoryUser(AbstractUser):
@@ -42,12 +51,20 @@ class ObservatoryUser(AbstractUser):
             (UserPermissions.CAN_GENERATE_INVITATION, "Can generate invitation links"),
             (UserPermissions.CAN_INVITE_ADMINS, "Can invite new admin users"),
             (UserPermissions.CAN_INVITE_GROUP_LEADERS, "Can invite new group leaders"),
-            (UserPermissions.CAN_CREATE_EXPERT_OBSERVATION, "Can create expert observation"),
+            (
+                UserPermissions.CAN_CREATE_EXPERT_OBSERVATION,
+                "Can create expert observation",
+            ),
         ]
 
 
 def generate_invitation_link(
-    base_url: str, email: str, quota: Optional[int] = None, lifetime: Optional[datetime] = None, role: UserGroups = UserGroups.USER, expert: bool = False
+    base_url: str,
+    email: str,
+    quota: Optional[int] = None,
+    lifetime: Optional[datetime] = None,
+    role: UserGroups = UserGroups.USER,
+    expert: bool = False,
 ) -> Optional[str]:
     """
     Generate an invitation link for a user with a given email address.

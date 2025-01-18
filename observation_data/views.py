@@ -1,6 +1,4 @@
-from datetime import datetime
 
-from django.conf import settings
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -30,7 +28,9 @@ def create_observation(request):
             status=HTTP_401_UNAUTHORIZED,
         )
 
-    if not isinstance(user, ObservatoryUser): # note: it would be better to use isinstance(user, settings.AUTH_USER_MODEL), but that confuses the type checker and I don't like warnings
+    if not isinstance(
+        user, ObservatoryUser
+    ):  # note: it would be better to use isinstance(user, settings.AUTH_USER_MODEL), but that confuses the type checker and I don't like warnings
         return Response(
             {"error": "Invalid user model"},
             status=status.HTTP_400_BAD_REQUEST,
@@ -53,7 +53,9 @@ def create_observation(request):
 
     observation_type = request_data.get("observation_type")
     if observation_type == ObservationType.EXPERT:
-        if not user.has_perm("accounts." + UserPermissions.CAN_CREATE_EXPERT_OBSERVATION):
+        if not user.has_perm(
+            "accounts." + UserPermissions.CAN_CREATE_EXPERT_OBSERVATION
+        ):
             return Response(
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,

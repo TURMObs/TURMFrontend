@@ -55,7 +55,9 @@ def _create_imaging_observation(
     return ImagingObservation.objects.get(target__name=target_name)
 
 
-def _create_variable_observation(test_instance, target_name: str, user: ObservatoryUser = None):
+def _create_variable_observation(
+    test_instance, target_name: str, user: ObservatoryUser = None
+):
     data = {
         "observatory": "TURMX",
         "target": {
@@ -120,7 +122,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         _create_imaging_observation(
             self,
             "M52",
-            ObservatoryUser.objects.create_user(username="testuser2", password="testpassword"),
+            ObservatoryUser.objects.create_user(
+                username="testuser2", password="testpassword"
+            ),
         )
         response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)

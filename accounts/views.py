@@ -11,7 +11,13 @@ from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
 
-from .models import InvitationToken, generate_invitation_link, ObservatoryUser, UserPermissions, UserGroups
+from .models import (
+    InvitationToken,
+    generate_invitation_link,
+    ObservatoryUser,
+    UserPermissions,
+    UserGroups,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +53,7 @@ class GenerateInvitationForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"id": "id_expert"}),
         label="expert",
         required=False,
-        initial=False
+        initial=False,
     )
 
     def __init__(self, *args, **kwargs):
@@ -57,12 +63,12 @@ class GenerateInvitationForm(forms.Form):
         choices = [(UserGroups.USER, "Nutzer*in")]
 
         if user:
-            if user.has_perm('accounts.' + UserPermissions.CAN_INVITE_ADMINS):
+            if user.has_perm("accounts." + UserPermissions.CAN_INVITE_ADMINS):
                 choices.append((UserGroups.ADMIN, "Admin"))
-            if user.has_perm('accounts.' + UserPermissions.CAN_INVITE_GROUP_LEADERS):
+            if user.has_perm("accounts." + UserPermissions.CAN_INVITE_GROUP_LEADERS):
                 choices.append((UserGroups.GROUP_LEADER, "Gruppenleiter*in"))
 
-        self.fields['role'].choices = choices
+        self.fields["role"].choices = choices
 
     def clean_expert(self):
         expert = self.cleaned_data.get("expert")
@@ -127,19 +133,27 @@ def login_user(request):
 
 
 @require_GET
-@user_passes_test(lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION))
+@user_passes_test(
+    lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION)
+)
 def generate_invitation(request):
-    return generate_invitation_template(request, form=GenerateInvitationForm(user=request.user))
+    return generate_invitation_template(
+        request, form=GenerateInvitationForm(user=request.user)
+    )
 
 
 @require_POST
-@user_passes_test(lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION))
+@user_passes_test(
+    lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION)
+)
 def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
         logger.warning(f"Invalid form data on account creation: {form.errors}")
         return generate_invitation_template(
-            request, form=GenerateInvitationForm(user=request.user), error="Invalid email"
+            request,
+            form=GenerateInvitationForm(user=request.user),
+            error="Invalid email",
         )
 
     email = form.cleaned_data["email"]
@@ -148,21 +162,31 @@ def generate_user_invitation(request):
     role = form.cleaned_data["role"]
     expert = form.cleaned_data["expert"]
 
-    if role == UserGroups.ADMIN and not request.user.has_perm("accounts." + UserPermissions.CAN_INVITE_ADMINS):
+    if role == UserGroups.ADMIN and not request.user.has_perm(
+        "accounts." + UserPermissions.CAN_INVITE_ADMINS
+    ):
         return generate_invitation_template(
-            request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite admins"
+            request,
+            form=GenerateInvitationForm(request.user),
+            error="You do not have permission to invite admins",
         )
 
-    if role == UserGroups.GROUP_LEADER and not request.user.has_perm("accounts." + UserPermissions.CAN_INVITE_GROUP_LEADERS):
+    if role == UserGroups.GROUP_LEADER and not request.user.has_perm(
+        "accounts." + UserPermissions.CAN_INVITE_GROUP_LEADERS
+    ):
         return generate_invitation_template(
-            request, form=GenerateInvitationForm(request.user), error="You do not have permission to invite group leaders"
+            request,
+            form=GenerateInvitationForm(request.user),
+            error="You do not have permission to invite group leaders",
         )
 
     base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
     link = generate_invitation_link(base_url, email, quota, lifetime, role, expert)
     if link is None:
         return generate_invitation_template(
-            request, form=GenerateInvitationForm(request.user), error="Email already registered"
+            request,
+            form=GenerateInvitationForm(request.user),
+            error="Email already registered",
         )
     logger.info(f"Invitation generated for email {email} by {request.user.username}")
     return generate_invitation_template(request, link=link)
@@ -213,11 +237,17 @@ def register_user(request, token):
     user.set_password(form.cleaned_data["new_password1"])
     user.groups.add(Group.objects.get(name=invitation.role))
     if invitation.expert:
-        user.user_permissions.add(Permission.objects.get(codename=UserPermissions.CAN_CREATE_EXPERT_OBSERVATION))
+        user.user_permissions.add(
+            Permission.objects.get(
+                codename=UserPermissions.CAN_CREATE_EXPERT_OBSERVATION
+            )
+        )
     user.save()
     invitation.save()
     auth.login(request, user)
-    logger.info(f"Created new {invitation.role} account for {user.username} with quota {user.quota} and lifetime {user.lifetime} (expert: {invitation.expert})")
+    logger.info(
+        f"Created new {invitation.role} account for {user.username} with quota {user.quota} and lifetime {user.lifetime} (expert: {invitation.expert})"
+    )
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 

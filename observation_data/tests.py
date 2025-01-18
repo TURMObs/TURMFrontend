@@ -79,9 +79,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_no_user(self):
         self.client.logout()
         response = self._send_post_request({})
-        self.assertEqual(
-            response.url, "/accounts/login?next=/observation-data/create/"
-        )
+        self.assertEqual(response.url, "/accounts/login?next=/observation-data/create/")
         self.assertEqual(response.status_code, 302)
 
     def test_missing_type(self):
