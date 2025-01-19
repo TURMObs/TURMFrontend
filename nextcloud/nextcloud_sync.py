@@ -81,6 +81,10 @@ def update_non_scheduled_observations():
         logger.error(f"Failed to initialize connection: {e}")
         return
 
+    logger.info(
+        f"Got {len(observations)} non-scheduled observations to check for updates."
+    )
+
     for obs in observations:
         progress, nc_path = get_data_from_nc(obs)
         if progress is None:
@@ -91,6 +95,9 @@ def update_non_scheduled_observations():
             obs.project_status = ObservationStatus.COMPLETED
             try:
                 nm.delete(nc_path)
+                logger.info(
+                    f"Deleted observation {obs.id} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}!"
+                )
             except NextcloudException as e:
                 logger.error(
                     f"Tried to delete observation {obs.id} because progress is 100, but got: {e}"
@@ -115,6 +122,10 @@ def update_scheduled_observations(today: datetime = timezone.now()):
     except NextcloudException as e:
         logger.error(f"Failed to initialize connection: {e}")
         return
+
+    logger.info(
+        f"Got {len(observations)} scheduled observations to check for updates."
+    )
 
     for obs in observations:
         # Calculates the progress of a scheduled observation. Only considers the continuance of the days, not whether pictures were actually taken.
@@ -155,6 +166,9 @@ def update_scheduled_observations(today: datetime = timezone.now()):
             try:
                 obs.project_status = ObservationStatus.COMPLETED
                 nm.delete(nc_path)
+                logger.info(
+                    f"Deleted observation {obs.id} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
+                )
             except NextcloudException as e:
                 logger.error(
                     f"Tried to delete observation {obs.id} because it has reached its scheduled end, but got: {e}"
@@ -164,6 +178,9 @@ def update_scheduled_observations(today: datetime = timezone.now()):
             try:
                 obs.project_status = ObservationStatus.PENDING  # set status to pending to indicate observation currently does NOT exist in the nextcloud.
                 nm.delete(nc_path)
+                logger.info(
+                    f"Deleted observation {obs.id} from nextcloud as it is partially completed. Set status to {ObservationStatus.PENDING} to prepare for new upload on {obs.next_upload}."
+                )
             except NextcloudException as e:
                 logger.error(
                     f"Tried to delete observation {obs.id} because partial progress is 100, but got: {e}"
@@ -177,8 +194,6 @@ def update_observations(today: datetime = timezone.now()):
     Wrapper method for calling 'download_non_scheduled_observations' and 'download_scheduled_observations'.
 
     :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
-    :param prefix: Path prefix to add to the nextcloud path. To be used during development to prevent usage of production folders.
-
     """
     update_non_scheduled_observations()
     update_scheduled_observations(today)
