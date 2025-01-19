@@ -66,10 +66,10 @@ function hide_inputs(dependency_type, dependency) {
     for (let input of dependent_inputs) {
         const hide_el = !input.getAttribute(dependency_type).includes(dependency)
         let parent = input.parentElement;
+        const local_inputs = Array.from(parent.children).filter(el => el.tagName === 'INPUT');
         if (parent.classList.contains("radio_input_div")) {
             parent = input.parentElement.parentElement;
         }
-        const local_inputs = Array.from(parent.children).filter(el => el.tagName === 'INPUT');
         if (hide_el) {
             parent.style.display = 'none';
             for (let l_input of local_inputs) {
