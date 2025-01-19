@@ -22,8 +22,6 @@ from observation_data.models import (
 )
 
 
-
-
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 
 
