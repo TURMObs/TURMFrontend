@@ -1,207 +1,67 @@
 {% extends "base_template.html" %}
 {% block title %}Create Observation{% endblock %}
 {% block style %}
+    {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
           rel="stylesheet">
+    <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
     <style>
-    .form_body {
-        background-color: #313131;
-
-        width: 1140px;
-        min-width: 256px;
-        max-width: 1140px;
-
-        margin: 0.75em auto;
-
-        border-radius: 5px;
-
-        padding: 1em 30px;
-
-        color: white;
-        font-family: var(--tom-base-font), sans-serif;
+    .error_msg {
+        background-color: var(--tom-info-error);
     }
-
-    label {
-        font-size: 1.15em;
-    }
-
-    .input_text {
-        display: block;
-
-        margin-top: 0.25em;
-        margin-bottom: 0.75em;
-
-        border: .1em solid transparent;
-        border-radius: 5px;
-
-        padding: 0.5em;
-
-        width: 100%;
-
-
-        background-color: #242424;
-
-        color: white;
-        font-family: var(--tom-base-font), sans-serif;
-        font-size: 1.15em;
-    }
-
-    .input_text:hover {
-
-    }
-
-    .input_text:focus {
-        outline: none;
-
-        border: .1em solid white;
-    }
-
-    .base_button {
-        background-color: var(--tom-primary-color);
-
-        border-radius: var(--tom-corner-radius);
-        border: .125em solid transparent;
-
-        font-family: var(--tom-base-font), sans-serif;
-        font-size: 1.15em;
-        padding: 0.5em;
-
-    }
-    .base_button:hover {
-
-        border: .125em solid white;
-    }
-    .base_button:active {
-        background-color: var(--tom-primary-color-dark);
-    }
-
-    .sub_form_heading {
-        margin-bottom: .5em;
-    }
-    .switch_button_container {
-        display: flex;
-        width: 1080px;
-
-        gap: 3px;
-    }
-    .observation_type_radio {
-        display: none;
-    }
-    .observation_type_label {
-        background-color: var(--tom-disabled-grey);
-        padding: .5em;
-
-        flex: 1;
-        text-align: center;
-        font-weight: bold;
-
-
-    }
-    .observation_type_label:hover {
-        background-color: var(--tom-accent-color);
-    }
-    .observation_type_label:first-child {
-        -moz-border-radius-topleft: var(--tom-corner-radius);
-        -webkit-border-top-left-radius: var(--tom-corner-radius);
-        -moz-border-radius-bottomleft: var(--tom-corner-radius);
-        -webkit-border-bottom-left-radius: var(--tom-corner-radius);
-    }
-    .observation_type_label:nth-last-child(2) {
-        border-left: transparent;
-
-
-        -moz-border-radius-topright: var(--tom-corner-radius);
-        -webkit-border-top-right-radius: var(--tom-corner-radius);
-        -moz-border-radius-bottomright: var(--tom-corner-radius);
-        -webkit-border-bottom-right-radius: var(--tom-corner-radius);
-    }
-
-    .observation_type_label_active {
-        background-color: var(--tom-primary-color);
-    }
-
-    .observation_type_label_active:hover {
-        background-color: var(--tom-primary-color-dark);
-    }
-
     </style>
 {% endblock %}
+{% block scripts %}
+    <script src="{% static '/js/turminputs.js' %}"></script>
+    <script> onload = _ => {
+        check_radio_if_none_selected()
+    };
+
+    function submitForm(event, form) {
+        event.stopPropagation();
+        event.preventDefault();
+        console.log(new FormData(form))
+        fetch("{{ create_form_url }}", {
+            method: "POST",
+            body: new FormData(form),
+            credentials: 'include',
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then((response) => {
+            console.log(response.status);
+            if (response.ok) location.href = '{% url "dashboard" %}';
+            else response.json().then((json) => {
+                console.log(json);
+                console.log(json);
+                document.getElementById("error_msg").innerText=JSON.stringify(json);
+            })
+        }).catch(error => console.error("Error:", error));
+
+    }
+    </script>
+{% endblock %}
 {% block content %}
-    <div class="container_center">
-        <div class="container_column">
+    <div class="middle">
+        <div class="content_wrapper">
             <header class="form_body">
                 <div class="container_center">
-                    <h1>create new Observation</h1>
+                    <h1>Create New Observation</h1>
                 </div>
             </header>
-            <script>
-            window.onload = function() {
-                only_show('Imaging', document.getElementById('Imaging'));
-            };
-
-            function set_element_visibility(element, show) {
-                if (show) {
-                    element.style.display = 'block';
-                    element.removeAttribute("disabled");
-                } else {
-                    element.style.display = 'none';
-                    element.setAttribute("disabled", "disabled");
-                }
-            }
-
-            function only_show(className, obj) {
-                const observation_labels = document.getElementsByClassName('observation_type_label')
-                for (let label of observation_labels) {
-                    if (obj === undefined) break
-                    if (label.htmlFor === obj.id) {
-                        label.classList.add('observation_type_label_active')
-                    } else {
-                        label.classList.remove('observation_type_label_active')
-                    }
-                }
-
-                const all_elements = Array.from(document.getElementsByClassName('Expert'));
-
-                for (let el of all_elements) {
-                    const show = el.classList.contains(className);
-                    const labels = document.getElementsByTagName('label');
-                    for (let label of labels) {
-                        if (label.htmlFor === el.id) {
-                            set_element_visibility(label, show);
-                        }
-                    }
-                    set_element_visibility(el, show);
-                }
-            }
-            </script>
-            <form action="{{ create_form_url }}" method="post" class="input_form">
-                {% for name, form, options in forms %}
+            <form class="input_form" id="form" onsubmit="submitForm(event, this)">
+                {% for name, form in forms %}
                     <article class="form_body">
                         <h2 class="sub_form_heading">{{ name }}</h2>
-                        {% if options is not None %}
-                            <div class="switch_button_container">
-                                {% for observation_t, require_super_user in options %}
-                                    {% if not require_super_user or True %}
-                                        <label class="observation_type_label" for="{{ observation_t }}">{{ observation_t }}</label>
-                                        <input class="observation_type_radio"
-                                               type="radio"
-                                               id="{{ observation_t }}"
-                                               name="observation_type"
-                                               onclick="only_show('{{ observation_t }}', this)">
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <br>
-                        {% endif %}
                         <div class="form_center">{{ form }}</div>
                     </article>
                 {% endfor %}
                 {% csrf_token %}
                 <input type="submit" class="base_button">
+                <p class="error_msg" id="error_msg"></p>
             </form>
-            <div class="disabled_inputs"></div>
         </div>
     </div>
 {% endblock %}
