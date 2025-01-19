@@ -40,6 +40,7 @@ class CelestialTargetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ""
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
         self.fields["name"].widget.attrs.update({"placeholder": "OrionNebula"})
@@ -53,6 +54,10 @@ class TURMProjectForm(forms.Form):
     Form for selecting the Project data
     rn the Observatory
     """
+
+    def __init__(self, *args, **kwargs):
+        super(TURMProjectForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ""
 
     try:
         observatory = TURMField.init_from_model(
@@ -78,6 +83,10 @@ class ExposureSettingsForm(forms.Form):
     """
     Form for selecting the Exposure settings
     """
+
+    def __init__(self, *args, **kwargs):
+        super(ExposureSettingsForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ""
 
     try:
         observation_type = TURMSelectField(
