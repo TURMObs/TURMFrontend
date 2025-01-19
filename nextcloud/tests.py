@@ -32,10 +32,8 @@ dict_nc = "dict1_test.json"
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 
 
-@unittest.skipIf(
-    not run_nc_test,
-    "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
-)
+# @unittest.skipIf(not run_nc_test,"Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.")
+@unittest.skip("Nextclouds test cannot run in CI.")
 class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
     def test_access_nc_without_init(self):
         self.client = django.test.Client()
@@ -44,10 +42,8 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
 
 
 # noinspection DuplicatedCode
-@unittest.skipIf(
-    not run_nc_test,
-    "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
-)
+# @unittest.skipIf(not run_nc_test,"Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.")
+@unittest.skip("Nextclouds test cannot run in CI.")
 class NextcloudManagerTestCase(django.test.TestCase):
     old_prefix = ""
     prefix = nextcloud_manager.prefix
@@ -125,10 +121,8 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete(self.prefix)
 
 
-@unittest.skipIf(
-    not run_nc_test,
-    "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
-)
+# @unittest.skipIf(not run_nc_test,"Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.")
+@unittest.skip("Nextclouds test cannot run in CI.")
 class NextcloudSyncTestCase(django.test.TestCase):
     old_prefix = ""
     prefix = nextcloud_manager.prefix

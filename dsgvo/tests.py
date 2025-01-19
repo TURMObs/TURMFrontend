@@ -25,10 +25,8 @@ from observation_data.models import (
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 
 
-@unittest.skipIf(
-    not run_nc_test,
-    "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
-)
+# @unittest.skipIf(not run_nc_test,"Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.")
+@unittest.skip("Nextclouds test cannot run in CI.")
 class DSGVOUserDataTestCase(django.test.TestCase):
     def setUp(self):
         initialize_connection()
