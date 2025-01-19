@@ -63,5 +63,6 @@ Optionally use `docker-compose --profile test up` to run a (non-persisting) Next
 # Known Limitations
 - The Nextcloud container is not persistent. This is by design, as the Nextcloud container is only used for testing purposes.
 - The test that interact with the nextcloud automatically add `test-` to the parent folder
+- When changing the nextcloud prefix while files are uploaded in the nextcloud, the update fails as the prefix is not stored with the observation in the database.  
 - During development some migration files might have been deleted. This means that the database might need to be reset when running the application for the first time. If the database was used without mapping the volume to a local folder, simply run `docker-compose down -v` to remove all docker volumes. If the volume was mapped to a local folder, simply delete the folder and run `docker-compose up` again.
 - Dependencies are only installed when building the Docker image. If a new dependency is added, you can rebuild the image using `docker-compose up --build` or install `requirements.txt` using `docker exec turmfrontend-web pip install -r requirements.txt`.
