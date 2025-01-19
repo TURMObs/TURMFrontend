@@ -48,6 +48,8 @@ jobs:
         run: ruff check --output-format=github .
       - name: Check Django template formatting
         run: djlint . --check
+      - name: Check Javascript and CSS formatting
+        run: npx prettier --check "**/*.{js,css}"
       - name: Check for typos
         uses: crate-ci/typos@v1.27.2
         with:
