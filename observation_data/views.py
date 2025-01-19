@@ -18,6 +18,29 @@ logger = logging.getLogger(__name__)
 
 @require_POST
 @api_view(["POST"])
+def delete_observation(request, observation_id):
+    observation = AbstractObservation.objects.filter(id=observation_id).first()
+    if observation is None:
+        return Response(
+            {"error": f"Observation with id {observation_id} not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if request.user.is_superuser or observation.user.email == request.user.email:
+        observation.delete()
+        return Response(
+            {"message": f"Observation with id {observation_id} deleted"},
+            status=status.HTTP_200_OK,
+        )
+
+    return Response(
+        {"error": "Not authorized to delete this observation"},
+        status=HTTP_401_UNAUTHORIZED,
+    )
+
+
+@require_POST
+@api_view(["POST"])
 def create_observation(request):
     """
     Create an observation based on the observation type.

@@ -3,8 +3,12 @@
 {% block style %}
     <style>
     .container {
-        display: flex;
         height: 90vh;
+        margin: 30px;
+    }
+
+    .empty-container {
+        display: flex;
         justify-content: center;
         align-items: center;
     }
@@ -16,8 +20,10 @@
     }
 
     .observations-table {
-        width: 90%;
-        margin: auto;
+        margin: 10px;
+        width: calc(100% - 20px);
+        height: calc(100% - 20px);
+        box-sizing: border-box;
     }
 
     .observations-table th, td {
@@ -37,91 +43,91 @@
     }
 
     .observation-row:hover {
-        background-color: #313131;
+        background-color: var(--tom-light-grey);
         cursor: pointer;
     }
     </style>
 {% endblock %}
 {% block content %}
-    {% if observations|length == 0 %}
-        <div class="container">
-            <p class="empty-text">Submitted observations will show up here.</p>
+    <div class="container">
+        <div class="content_wrapper">
+            {% if observations|length == 0 %}
+                <div class="empty-container">
+                    <p class="empty-text">Submitted observations will show up here.</p>
+                </div>
+            {% else %}
+                <table class="observations-table">
+                    <thead>
+                        <tr>
+                            <th class="left-align">Observatory</th>
+                            <th class="left-align">Target</th>
+                            <th class="left-align">Type</th>
+                            <th class="left-align">Filters</th>
+                            <th class="right-align">Exposure time</th>
+                            {% if request.user.is_superuser %}<th class="left-align">User</th>{% endif %}
+                            <th class="right-align">Created at</th>
+                            <th class="right-align">Project status</th>
+                            <th class="right-align">Project completion</th>
+                            <th class="right-align">Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for observation in observations %}
+                            <tr class="observation-row" data-id="{{ observation.id }}">
+                                <td class="left-align">{{ observation.observatory.name }}</td>
+                                <td class="left-align">{{ observation.target.name }}</td>
+                                <td class="left-align">{{ observation.observation_type }}</td>
+                                <td class="left-align">
+                                    {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
+                                </td>
+                                <td class="right-align">{{ observation.exposure_time }}</td>
+                                {% if request.user.is_superuser %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
+                                <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
+                                <td class="right-align">{{ observation.project_status }}</td>
+                                <td class="right-align">{{ observation.project_completion }}</td>
+                                <td class="right-align">{{ observation.priority }}</td>
+                            </tr>
+                            <tr class="expander-row"
+                                id="expander-{{ observation.id }}"
+                                style="display: none">
+                                <td colspan="5">
+                                    <div class="expander-content">
+                                        {% if observation.observation_type == 'Imaging' %}
+                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                        {% elif observation.observation_type == 'Exoplanet' %}
+                                            <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                            <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                        {% elif observation.observation_type == 'Variable' %}
+                                            <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                        {% elif observation.observation_type == 'Monitor' %}
+                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                            <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                            <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                            <p>Cadence: {{ observation.cadence }}</p>
+                                        {% elif observation.observation_type == 'Expert' %}
+                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                            <p>Dither every: {{ observation.dither_every }}</p>
+                                            <p>Binning: {{ observation.binning }}</p>
+                                            <p>Gain: {{ observation.gain }}</p>
+                                            <p>Offset: {{ observation.offset }}</p>
+                                            <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                            <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                            <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                            <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                            <p>Cadence: {{ observation.cadence }}</p>
+                                            <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
+                                            <p>Moon separation width: {{ observation.moon_separation_width }}</p>
+                                            <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
         </div>
-    {% else %}
-        <table class="observations-table">
-            <thead>
-                <tr>
-                    <th class="left-align">Observatory</th>
-                    <th class="left-align">Target</th>
-                    <th class="left-align">Type</th>
-                    <th class="left-align">Filters</th>
-                    <th class="right-align">Exposure time</th>
-                    {% if request.user.is_superuser %}<th class="left-align">User</th>{% endif %}
-                    <th class="right-align">Created at</th>
-                    <th class="right-align">Project status</th>
-                    <th class="right-align">Project completion</th>
-                    <th class="right-align">Priority</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for observation in observations %}
-                    <tr class="observation-row" data-id="{{ observation.id }}">
-                        <td class="left-align">{{ observation.observatory.name }}</td>
-                        <td class="left-align">{{ observation.target.name }}</td>
-                        <td class="left-align">{{ observation.observation_type }}</td>
-                        <td class="left-align">
-                            {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
-                        </td>
-                        <td class="right-align">{{ observation.exposure_time }}</td>
-                        {% if request.user.is_superuser %}<th class="left-align">{{ observation.user.username }}</th>{% endif %}
-                        <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
-                        <td class="right-align">{{ observation.project_status }}</td>
-                        <td class="right-align">{{ observation.project_completion }}</td>
-                        <td class="right-align">{{ observation.priority }}</td>
-                    </tr>
-                    <tr class="expander-row"
-                        id="expander-{{ observation.id }}"
-                        style="display: none">
-                        <td colspan="5">
-                            <div class="expander-content">
-                                {% if observation.observation_type == 'Imaging' %}
-                                    <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                    <p>Required amount: {{ observation.required_amount }}</p>
-                                {% elif observation.observation_type == 'Exoplanet' %}
-                                    <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                    <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                {% elif observation.observation_type == 'Variable' %}
-                                    <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
-                                    <p>Required amount: {{ observation.required_amount }}</p>
-                                {% elif observation.observation_type == 'Monitor' %}
-                                    <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                    <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                    <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                    <p>Cadence: {{ observation.cadence }}</p>
-                                    <p>Required amount: {{ observation.required_amount }}</p>
-                                {% elif observation.observation_type == 'Expert' %}
-                                    <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                    <p>Dither every: {{ observation.dither_every }}</p>
-                                    <p>Binning: {{ observation.binning }}</p>
-                                    <p>Gain: {{ observation.gain }}</p>
-                                    <p>Offset: {{ observation.offset }}</p>
-                                    <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                    <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                    <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                    <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                    <p>Cadence: {{ observation.cadence }}</p>
-                                    <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
-                                    <p>Moon separation width: {{ observation.moon_separation_width }}</p>
-                                    <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
-                                    <p>Required amount: {{ observation.required_amount }}</p>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+    </div>
 {% endblock %}
 {% block scripts %}
     <script>

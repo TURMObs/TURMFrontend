@@ -8,6 +8,8 @@
     </head>
     {% load static %}
     <link rel="stylesheet" href="{% static "/css/base_template.css" %}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+          rel='stylesheet'>
     <style>
     * {
         box-sizing: border-box;
@@ -69,18 +71,20 @@
 
     .navbar_link {
         text-decoration: none;
-
         color: var(--tom-white);
-
         font-size: 1.25em;
         font-weight: bold;
-        font-family: 'Roboto Thin', sans-serif;
     }
 
-    .logout_link {
-        background: none;
-        border: none;
-        cursor: pointer;
+    .logout_button {
+        background: none!important;
+        border: none!important;
+        box-shadow: none;
+        padding: 0!important;
+        text-decoration: none;
+        color: var(--tom-white);
+        font-size: 1.25em;
+        font-weight: bold;
     }
 
     .space {
@@ -145,6 +149,50 @@
         flex-flow: column;
     }
 
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .user-icon {
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+    }
+
+    .user-icon i {
+        font-size: 1.5em;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: var(--tom-dark-grey);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a,
+    .dropdown-content form {
+        color: var(--tom-white);
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        border-radius: 8px;
+    }
+
+    .dropdown-content a:hover,
+    .dropdown-content form:hover {
+        background-color: var(--tom-primary-color);
+    }
+
+    .show {
+        display: block;
+    }
     </style>
     {% block style %}{% endblock %}
     {% block scripts %}{% endblock %}
@@ -179,11 +227,18 @@
                             <span class="navbar_link">INVITE</span>
                         </a>
                     {% endif %}
-                    <!-- TODO make this look like the other buttons -->
-                    <form action="{% url 'logout' %}" method="post">
-                        {% csrf_token %}
-                        <button class="navbar_link logout_link" type="submit">LOGOUT</button>
-                    </form>
+                    <div class="dropdown">
+                        <div class="user-icon" onclick="toggleDropdown()">
+                            <i class='bx bxs-user'></i>
+                        </div>
+                        <div id="userDropdown" class="dropdown-content">
+                            <a class="navbar_link" href="{% url 'dsgvo' %}">USER DATA SETTINGS</a>
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button class="logout_button" type="submit">LOGOUT</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -208,5 +263,23 @@
                 </div>
             </div>
         </footer>
+        <script>
+        function toggleDropdown() {
+            document.getElementById("userDropdown").classList.toggle("show");
+        }
+
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-icon') && !event.target.matches('.user-icon i')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        </script>
     </body>
 </html>

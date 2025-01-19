@@ -44,24 +44,22 @@
     </script>
 {% endblock %}
 {% block content %}
-    <div class="middle">
-        <div class="content_wrapper">
-            <header class="form_body">
-                <div class="container_center">
-                    <h1>Create New Observation</h1>
-                </div>
-            </header>
-            <form class="input_form" id="form" onsubmit="submitForm(event, this)">
-                {% for name, form in forms %}
-                    <article class="form_body">
-                        <h2 class="sub_form_heading">{{ name }}</h2>
-                        <div class="form_center">{{ form }}</div>
-                    </article>
-                {% endfor %}
-                {% csrf_token %}
-                <input type="submit" class="base_button">
-                <p class="error_msg" id="error_msg"></p>
-            </form>
-        </div>
+    <div class="content_wrapper form_wrapper">
+        <header class="form_body">
+            <div class="container_center">
+                <h1>Create New Observation</h1>
+            </div>
+        </header>
+        <form class="input_form" id="form" onsubmit="submitForm(event, this)">
+            {% for name, form in forms %}
+                <article class="form_body">
+                    <h2 class="sub_form_heading">{{ name }}</h2>
+                    <div class="form_center">{{ form }}</div>
+                </article>
+            {% endfor %}
+            {% csrf_token %}
+            <input type="submit" class="base_button">
+            <p class="error_msg" id="error_msg"></p>
+        </form>
     </div>
 {% endblock %}
