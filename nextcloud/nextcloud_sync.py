@@ -123,9 +123,7 @@ def update_scheduled_observations(today: datetime = timezone.now()):
         logger.error(f"Failed to initialize connection: {e}")
         return
 
-    logger.info(
-        f"Got {len(observations)} scheduled observations to check for updates."
-    )
+    logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
     for obs in observations:
         # Calculates the progress of a scheduled observation. Only considers the continuance of the days, not whether pictures were actually taken.

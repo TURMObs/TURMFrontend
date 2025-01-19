@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from nextcloud import nextcloud_manager
 from nextcloud.nextcloud_sync import upload_observations
 import logging
 

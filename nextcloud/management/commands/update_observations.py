@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from django.core.management.base import BaseCommand
 
-from nextcloud import nextcloud_manager
 from nextcloud.nextcloud_sync import update_observations
 import logging
 
@@ -26,4 +25,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Error downloading observations: {e}"))
 
     def add_arguments(self, parser):
-        parser.add_argument("--days", "-d", type=int, help="Timedelta of days from now", default=0)
+        parser.add_argument(
+            "--days", "-d", type=int, help="Timedelta of days from now", default=0
+        )

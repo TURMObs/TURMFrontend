@@ -133,7 +133,7 @@ def generate_observation_path(
     formatted_id = f"{obs_id:0{dec_offset}}"
     path = f"{observatory_string}/Projects/{formatted_id}_{project_name}.json"
 
-    if prefix: # adds the prefix if necessary
+    if prefix:  # adds the prefix if necessary
         path = f"{prefix}/{path}"
 
     return path
