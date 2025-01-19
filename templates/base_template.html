@@ -155,7 +155,7 @@
         display: inline-block;
     }
 
-    .user-icon {
+    .dropdown-button {
         width: 40px;
         height: 40px;
         cursor: pointer;
@@ -165,11 +165,11 @@
         border-radius: 8px;
     }
 
-    .user-icon:hover {
+    .dropdown-button:hover {
         background: var(--tom-dark-grey);
     }
 
-    .user-icon i {
+    .dropdown-button i {
         font-size: 1.5em;
     }
 
@@ -237,7 +237,7 @@
                         </a>
                     {% endif %}
                     <div class="dropdown">
-                        <div class="user-icon" onclick="toggleDropdown()">
+                        <div class="dropdown-button" onclick="toggleDropdown()">
                             <i class='bx bxs-user'></i>
                         </div>
                         <div id="userDropdown" class="dropdown-content">
@@ -277,9 +277,9 @@
             document.getElementById("userDropdown").classList.toggle("show");
         }
 
-        // Close the dropdown if the user clicks outside of it
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-icon') && !event.target.matches('.user-icon i')) {
+        // Close the dropdown only when clicking outside both the icon or the dropdown
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown-button') && !event.target.closest('.dropdown-content')) {
                 var dropdowns = document.getElementsByClassName("dropdown-content");
                 for (var i = 0; i < dropdowns.length; i++) {
                     var openDropdown = dropdowns[i];
@@ -288,7 +288,7 @@
                     }
                 }
             }
-        }
+        });
         </script>
     </body>
 </html>
