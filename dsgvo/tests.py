@@ -22,62 +22,6 @@ from observation_data.models import (
 )
 
 
-def _create_observation(test_instance, data: dict, user: User = None):
-    prev_user = test_instance.user
-    if user is not None:
-        test_instance.client.logout()
-        test_instance.client.force_login(user)
-    response = test_instance.client.post(
-        path="/observation-data/create/", data=data, content_type="application/json"
-    )
-    test_instance.assertEqual(response.status_code, 201, response.json())
-    if user is not None:
-        test_instance.client.logout()
-        test_instance.client.force_login(prev_user)
-
-
-def _create_imaging_observation(test_instance, target_name: str, user: User = None):
-    data = {
-        "observatory": "TURMX",
-        "target": {
-            "name": target_name,
-            "ra": "22 32 01",
-            "dec": "40 49 24",
-        },
-        "observation_type": ObservationType.IMAGING,
-        "exposure_time": 300.0,
-        "filter_set": ["R"],
-        "frames_per_filter": 10,
-    }
-    _create_observation(test_instance, data, user)
-    return ImagingObservation.objects.get(target__name=target_name)
-
-
-def _create_variable_observation(test_instance, target_name: str, user: User = None):
-    data = {
-        "observatory": "TURMX",
-        "target": {
-            "name": target_name,
-            "catalog_id": "RV-Ari",
-            "ra": "02 15 07",
-            "dec": "+18 04 28",
-        },
-        "observation_type": ObservationType.VARIABLE,
-        "exposure_time": 60.0,
-        "filter_set": ["L"],
-        "minimum_altitude": 30.0,
-        "frames_per_filter": 450,
-    }
-    _create_observation(test_instance, data, user)
-    return VariableObservation.objects.get(target__name=target_name)
-
-
-def _clear_data():
-    AbstractObservation.objects.all().delete()
-    try:
-        delete("TURMX")
-    except NextcloudException:
-        pass
 
 
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
@@ -90,7 +34,7 @@ run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 class DSGVOUserDataTestCase(django.test.TestCase):
     def setUp(self):
         initialize_connection()
-        _clear_data()
+        self._clear_data()
         self.user = User.objects.create_user(
             username="testuser", password="testpassword", is_superuser=True
         )
@@ -98,9 +42,63 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.client.login(username="testuser", password="testpassword")
         call_command("populate_observatories")
 
+    def _create_observation(self, data: dict, user: User = None):
+        prev_user = self.user
+        if user is not None:
+            self.client.logout()
+            self.client.force_login(user)
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        if user is not None:
+            self.client.logout()
+            self.client.force_login(prev_user)
+
+    def _create_imaging_observation(self, target_name: str, user: User = None):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": target_name,
+                "ra": "22 32 01",
+                "dec": "40 49 24",
+            },
+            "observation_type": ObservationType.IMAGING,
+            "exposure_time": 300.0,
+            "filter_set": ["R"],
+            "frames_per_filter": 10,
+        }
+        self._create_observation(data, user)
+        return ImagingObservation.objects.get(target__name=target_name)
+
+    def _create_variable_observation(self, target_name: str, user: User = None):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": target_name,
+                "catalog_id": "RV-Ari",
+                "ra": "02 15 07",
+                "dec": "+18 04 28",
+            },
+            "observation_type": ObservationType.VARIABLE,
+            "exposure_time": 60.0,
+            "filter_set": ["L"],
+            "minimum_altitude": 30.0,
+            "frames_per_filter": 450,
+        }
+        self._create_observation(data, user)
+        return VariableObservation.objects.get(target__name=target_name)
+
+    def _clear_data(self):
+        AbstractObservation.objects.all().delete()
+        try:
+            delete("TURMX")
+        except NextcloudException:
+            pass
+
     def test_data_download(self):
-        _create_imaging_observation(self, "M51")
-        _create_variable_observation(self, "M42")
+        self._create_imaging_observation("M51")
+        self._create_variable_observation("M42")
         response = self.client.get("/dsgvo/get-user-data/")
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -119,10 +117,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertEqual(data["user"]["password"], "PASSWORD HASH")
 
     def test_data_deletion(self):
-        _create_imaging_observation(self, "M51")
-        _create_variable_observation(self, "M42")
-        _create_imaging_observation(
-            self,
+        self._create_imaging_observation("M51")
+        self._create_variable_observation("M42")
+        self._create_imaging_observation(
             "M52",
             User.objects.create_user(username="testuser2", password="testpassword"),
         )
@@ -135,10 +132,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertEqual(remaining_observation.target.name, "M52")
 
     def test_data_uploaded_deletion(self):
-        im1 = _create_imaging_observation(self, "M51")
-        var1 = _create_variable_observation(self, "M42")
-        im2 = _create_imaging_observation(
-            self,
+        im1 = self._create_imaging_observation("M51")
+        var1 = self._create_variable_observation("M42")
+        im2 = self._create_imaging_observation(
             "M52",
             User.objects.create_user(username="testuser2", password="testpassword"),
         )
