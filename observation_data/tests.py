@@ -87,19 +87,19 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_missing_type(self):
         response = self._send_post_request({})
         self._assert_error_response(
-            response, 400, {"error": "Invalid observation type"}
+            response, 400, {"error": "Invalid observation type: None"}
         )
 
     def test_invalid_type(self):
         response = self._send_post_request({"observation_type": "Invalid"})
         self._assert_error_response(
-            response, 400, {"error": "Invalid observation type"}
+            response, 400, {"error": "Invalid observation type: Invalid"}
         )
 
     def test_invalid_type_flat(self):
         response = self._send_post_request(self._get_flat_base_request())
         self._assert_error_response(
-            response, 400, {"error": "Invalid observation type"}
+            response, 400, {"error": "Invalid observation type: Invalid"}
         )
 
     def test_missing_fields(self):
