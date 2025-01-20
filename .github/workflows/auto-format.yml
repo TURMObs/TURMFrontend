@@ -1,0 +1,32 @@
+name: Auto-format on comment
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  format:
+    if: github.event.issue.pull_request && github.event.comment.body == '/format'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Run formatting script
+        run: |
+          ./scripts/format.sh
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit changes
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "Apply automatic formatting"
+          git push
