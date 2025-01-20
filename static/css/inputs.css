@@ -151,3 +151,8 @@ input[type=text], input[type=date], input[type=datetime-local] {
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--tom-corner-radius-input);
 }
+
+.grid_input_div+.error_msg {
+    margin-top: 0;
+    margin-bottom: 1em;
+}

@@ -111,10 +111,18 @@ function submitForm(event, form, post_address, redirect_address) {
             clear_error_messages();
             for (let key in json_response) {
                 if (key !== 'target') {
-                    add_error_message(document.getElementById("id_" + key), json_response[key][0]);
+                    let name = key;
+                    let escape_grid = false;
+                    if (key === 'time_range' || key === 'start_time') {
+                        name = 'start_observation'
+                        escape_grid = true;
+                    }
+                    let element = document.getElementById("id_" + name)
+                    add_error_message(element, json_response[key][0], escape_grid);
                 } else {
                     for (let sub_key in json_response.target) {
-                        add_error_message(document.getElementById("id_" + sub_key), json_response[key][sub_key][0]);
+                        let element = document.getElementById("id_" + sub_key)
+                        add_error_message(element, json_response[key][sub_key][0]);
                     }
                 }
             }
@@ -122,19 +130,20 @@ function submitForm(event, form, post_address, redirect_address) {
     }).catch(error => console.error("Error:", error));
 }
 
-function add_error_message(element, message) {
+function add_error_message(element, message, escape_grid = false) {
     const message_element = '<span>' + message + '</span>'
     const icon_element = '<i class="bx bx-error-circle"></i>'
     const error = document.createElement('div');
     error.classList.add('error_msg');
     error.innerHTML = icon_element + message_element;
 
+    // find place to insert error
     let container = element.parentElement;
-
     if (container.classList.contains("tooltip")) container = container.parentElement;
     if (container.classList.contains("radio_input_div")) container = container.parentElement;
+    if (escape_grid && container.parentElement.classList.contains("grid_input_div")) container = container.parentElement.parentElement;
     else if (container.parentElement.classList.contains("checkbox_input_div")) container = container.parentElement.parentElement;
-    //
+    // write error
     container.appendChild(error);
 }
 
