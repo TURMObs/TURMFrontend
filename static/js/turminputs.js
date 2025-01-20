@@ -93,3 +93,53 @@ function update_date_dependency(el) {
         end.value = end.min;
     }
 }
+
+
+function submitForm(event, form, post_address, redirect_address) {
+    console.log(event)
+    event.preventDefault();
+    event.stopPropagation();
+    fetch(post_address, {
+        method: "POST",
+        body: new FormData(form),
+        credentials: 'include',
+        headers: {
+            "Accept": "application/json"
+        }
+    }).then((response) => {
+        if (response.ok) location.href = redirect_address;
+        else response.json().then((json_response) => {
+            clear_error_messages();
+            //document.getElementById("error_msg").innerText=JSON.stringify(json_response);
+            for (let key in json_response) {
+                if (key !== 'target') {
+                    add_error_message(document.getElementById("id_" + key), json_response[key][0]);
+                }
+                else {
+                    for (let sub_key in json_response.target) {
+                        add_error_message(document.getElementById("id_" + sub_key), json_response[key][sub_key][0]);
+                    }
+                }
+            }
+        })
+    }).catch(error => console.error("Error:", error));
+
+}
+
+function add_error_message(element, message) {
+    const message_element = '<span>' + message + '</span>'
+    const icon_element = '<i class="bx bx-error-circle"></i>'
+    const error = '<div class="error_msg">' + icon_element + message_element + '</div>';
+
+    let container = element.parentElement;
+
+    if (container.classList.contains("radio_input_div")) container = container.parentElement;
+    else if (container.parentElement.classList.contains("checkbox_input_div")) container = container.parentElement.parentElement;
+    container.innerHTML += error;
+}
+
+function clear_error_messages() {
+    for (let el of Array.from(document.getElementsByClassName("error_msg"))) {
+        el.remove();
+    }
+}
