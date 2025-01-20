@@ -10,9 +10,6 @@
     <link rel='stylesheet'
           href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
     <style>
-    .error_msg {
-        background-color: var(--tom-info-error);
-    }
     </style>
 {% endblock %}
 {% block scripts %}
@@ -39,7 +36,6 @@
                 {% endfor %}
                 {% csrf_token %}
                 <input type="submit" class="base_button">
-                <p class="error_msg" id="error_msg"></p>
             </form>
         </div>
     </div>
