@@ -76,8 +76,8 @@ class NextcloudManagerTestCase(django.test.TestCase):
 
         # automatically adds test in name of test root folder
         self.old_prefix = self.prefix
-        nextcloud_manager.prefix = f"test-{self.prefix}"
-        self.prefix = f"test-{self.prefix}"
+        nextcloud_manager.prefix = f"test{self.prefix}"
+        self.prefix = f"test{self.prefix}"
 
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix
@@ -159,8 +159,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # automatically adds test in name of test root folder
         self.old_prefix = self.prefix
-        nextcloud_manager.prefix = f"test-{self.prefix}"
-        self.prefix = f"test-{self.prefix}"
+        nextcloud_manager.prefix = f"test{self.prefix}"
+        self.prefix = f"test{self.prefix}"
 
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix

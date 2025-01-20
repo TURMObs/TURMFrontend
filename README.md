@@ -21,8 +21,8 @@
     | `NC_USER`                | User for the Nextcloud instance                                                                                                                               | **No**       | Nextcloud User                                 |
     | `NC_PASSWORD`            | Password for the Nextcloud instance                                                                                                                           | **No**       | Nextcloud password                             |
     | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **YES**      | `http://localhost:8080`, when testing locally. `http://turmfrontend-nextcloud:80` when run in Docker                                |
-    | `NC_PREFIX`              | A global prefix to specific nextcloud parent folder                                                                                                           | **No**.      | default `None`                                 |
-    | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**.      | default `True`                                 |
+    | `NC_PREFIX`              | Top level folders in the nextcloud to store the observations in . Entered as string (without "" or leading/following '/' for multiple folders)                | **No**.      | `test`, default/non-existing: root directory of nextcloud,                                  |
+    | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**.      | default/non-existing `True`                                 |
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
@@ -62,7 +62,7 @@ Optionally use `docker-compose --profile test up` to run a (non-persisting) Next
 
 # Known Limitations
 - The Nextcloud container is not persistent. This is by design, as the Nextcloud container is only used for testing purposes.
-- The test that interact with the nextcloud automatically add `test-` to the parent folder
+- The test that interact with the nextcloud will automatically add `test` to the `NC_PREFIX` defined in .env
 - When changing the nextcloud prefix while files are uploaded in the nextcloud, the update fails as the prefix is not stored with the observation in the database.  
 - During development some migration files might have been deleted. This means that the database might need to be reset when running the application for the first time. If the database was used without mapping the volume to a local folder, simply run `docker-compose down -v` to remove all docker volumes. If the volume was mapped to a local folder, simply delete the folder and run `docker-compose up` again.
 - Dependencies are only installed when building the Docker image. If a new dependency is added, you can rebuild the image using `docker-compose up --build` or install `requirements.txt` using `docker exec turmfrontend-web pip install -r requirements.txt`.
