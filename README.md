@@ -46,7 +46,8 @@ To develop the project locally, install the dependencies running both
 
 Run the server using `docker-compose up`.
 
-To format the code, run `scripts/format.sh`.
+Our CI enforces properly formatted code. To format the code, run `scripts/format.sh`.
+Alternatively, you can comment `/format` on any pull request to automatically run the formatting script and commit the changes.
 
 To run the tests, run `python manage.py test` or `docker exec turmfrontend-web python manage.py test` to run the tests inside Docker.
 
