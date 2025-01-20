@@ -918,4 +918,3 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
 
         nm.delete(self.prefix)
-
