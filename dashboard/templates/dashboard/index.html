@@ -84,7 +84,7 @@
                                 {% if request.user.is_superuser %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
                                 <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 <td class="right-align">{{ observation.project_status }}</td>
-                                <td class="right-align">{{ observation.project_completion }}</td>
+                                <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 <td class="right-align">{{ observation.priority }}</td>
                             </tr>
                             <tr class="expander-row"
