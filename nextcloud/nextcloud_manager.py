@@ -85,19 +85,14 @@ def file_exists(nc_path: PathLike[bytes] | str) -> bool:
 def get_observation_file(observation: AbstractObservation) -> str | None:
     """
     Returns the path of the observation request file in the nextcloud if it exists, else None
-
     :param observation: Abstract observation
 
     :return: path of the file in nextcloud or None if the file does not exist
     """
-    observatory_string = str(observation.observatory.name).upper()
-    base_path = observatory_string + "/Projects/"
-    obs_id = observation.id
 
-    if prefix:  # adds the prefix if necessary
-        base_path = f"{prefix}/{base_path}"
+    base_path = generate_observation_path(observation).rsplit("/", 1)[0]
 
-    target_pattern = re.compile(rf"(?<!\d)0*{obs_id}_")
+    target_pattern = re.compile(rf"(?<!\d)0*{observation.id}_")
     try:
         file_dir = nc.files.listdir(base_path)
         for file in file_dir:

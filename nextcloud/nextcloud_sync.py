@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from nc_py_api import NextcloudException
 
+from nextcloud.nextcloud_manager import generate_observation_path
 from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
@@ -55,12 +56,18 @@ def get_data_from_nc(obs: AbstractObservation):
     """
     try:
         nc_path = nm.get_observation_file(obs)
+
+        if nc_path is None:
+            logger.error(
+                f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got could not find it under expected path: {generate_observation_path(obs)}"
+            )
+            return None, None
+
         nc_dict = nm.download_dict(nc_path)
     except NextcloudException as e:
         logger.error(
             f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got: {e}"
         )
-        obs.save()
         return None, None
 
     return calc_progress(nc_dict), nc_path
@@ -87,7 +94,11 @@ def update_non_scheduled_observations():
 
     for obs in observations:
         progress, nc_path = get_data_from_nc(obs)
-        if progress is None:
+        if (
+            progress is None or nc_path is None
+        ):  # an error occurred and has already been logged
+            obs.project_status = ObservationStatus.ERROR
+            obs.save()
             continue
         if progress != obs.project_completion:
             obs.project_completion = progress
@@ -102,6 +113,8 @@ def update_non_scheduled_observations():
                 logger.error(
                     f"Tried to delete observation {obs.id} because progress is 100, but got: {e}"
                 )
+                obs.project_status = ObservationStatus.ERROR
+                obs.save()
         obs.save()
 
 
@@ -143,7 +156,9 @@ def update_scheduled_observations(today: datetime = timezone.now()):
             continue
 
         partial_progress, nc_path = get_data_from_nc(obs)
-        if partial_progress is None:
+        if partial_progress is None:  # has already been logged
+            obs.project_status = ObservationStatus.ERROR
+            obs.save()
             continue
 
         new_upload = today + timedelta(days=obs.cadence - 1)
@@ -171,6 +186,8 @@ def update_scheduled_observations(today: datetime = timezone.now()):
                 logger.error(
                     f"Tried to delete observation {obs.id} because it has reached its scheduled end, but got: {e}"
                 )
+                obs.project_status = ObservationStatus.ERROR
+                obs.save()
         elif partial_progress == 100.0:
             # If an observation has reached 100.0% partial completion, it is deleted from the nextcloud since no images have to be taken until it is uploaded again
             try:
@@ -183,6 +200,8 @@ def update_scheduled_observations(today: datetime = timezone.now()):
                 logger.error(
                     f"Tried to delete observation {obs.id} because partial progress is 100, but got: {e}"
                 )
+                obs.project_status = ObservationStatus.ERROR
+                obs.save()
 
         obs.save()
 
@@ -253,4 +272,5 @@ def upload_observations(today=timezone.now()):
             logger.error(
                 f"Failed to upload observation {obs_dict['name']} with id {obs.id}: {e}"
             )
+            obs.project_status = ObservationStatus.ERROR
         obs.save()

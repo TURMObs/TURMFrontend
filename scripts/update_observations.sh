@@ -2,5 +2,4 @@
 
 DAYS=${1:-0}
 
-docker exec turmfrontend-web python manage.py upload_observations --days "$DAYS"
-echo "$DAYS"
+docker exec turmfrontend-web python manage.py update_observations --days "$DAYS"

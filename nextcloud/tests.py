@@ -861,3 +861,61 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         nm.delete(self.prefix)
         # fmt: on
+
+    def test_handling_non_existent_non_scheduled(self):
+        """
+        Checks for correct behavior when an observation does not exist in the nextcloud anymore.
+        """
+
+        # fmt: off
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        self._create_imaging_observations(obs_id=0, observatory=turmx)
+        self._create_imaging_observations(obs_id=1, observatory=turmx)
+
+        upload_observations()
+        self.assertEqual(2, len(AbstractObservation.objects.filter(project_status=ObservationStatus.UPLOADED)))
+
+        nm.delete(generate_observation_path(self._get_obs_by_id(0)))
+
+        obs = self._get_obs_by_id(1)
+        obs_path = generate_observation_path(obs)
+        obs_dict = nm.download_dict(obs_path)
+        obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 10
+        nm.upload_dict(obs_path, obs_dict)
+
+        update_observations()
+
+        self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
+        self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.COMPLETED)
+
+        nm.delete(self.prefix)
+        # fmt: on
+
+    def test_handling_non_existent_scheduled(self):
+        """
+        Checks for correct behavior when an observation does not exist in the nextcloud anymore.
+        """
+
+        # fmt: off
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        self._create_expert_observation(obs_id=0, target_name="E0", start_scheduling=self._day(0), end_scheduling=self._day(1), cadence=3, observatory=turmx)
+        self._create_expert_observation(obs_id=1, target_name="E0", start_scheduling=self._day(0), end_scheduling=self._day(1), cadence=3, observatory=turmx)
+
+
+        upload_observations()
+        nm.delete(generate_observation_path(self._get_obs_by_id(0)))
+
+        update_observations(self._day(1))
+        self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
+        self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.COMPLETED)
+
+
+
+        nm.delete(self.prefix)
+

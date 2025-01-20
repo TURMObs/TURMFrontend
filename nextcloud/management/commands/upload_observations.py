@@ -22,7 +22,7 @@ class Command(BaseCommand):
             upload_observations(timezone.now() + timedelta(days=time_delta))
         except Exception as e:
             logger.error(f"Error uploading observations: {e}")
-            self.stdout.write(self.style.ERROR(f"Error downloading observations: {e}"))
+            self.stdout.write(self.style.ERROR(f"Error uploading observations: {e}"))
 
     def add_arguments(self, parser):
         parser.add_argument("--days", "-d", type=int, help="Timedelta of days from now")
