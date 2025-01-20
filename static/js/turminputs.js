@@ -113,7 +113,7 @@ function submitForm(event, form, post_address, redirect_address) {
                 if (key !== 'target') {
                     let name = key;
                     let escape_grid = false;
-                    if (key === 'time_range' || key === 'start_time') {
+                    if (key === 'time_range' || key === 'start_time' || key === 'year_range') {
                         name = 'start_observation'
                         escape_grid = true;
                     }
