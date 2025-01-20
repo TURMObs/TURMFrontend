@@ -15,8 +15,8 @@ from .models import (
     InvitationToken,
     generate_invitation_link,
     ObservatoryUser,
-    UserPermissions,
-    UserGroups,
+    UserPermission,
+    UserGroup,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class GenerateInvitationForm(forms.Form):
     role = forms.ChoiceField(
         widget=forms.Select(),
         choices=[],
-        initial=UserGroups.USER,
+        initial=UserGroup.USER,
         required=True,
     )
     expert = forms.BooleanField(
@@ -60,13 +60,13 @@ class GenerateInvitationForm(forms.Form):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        choices = [(UserGroups.USER, "Nutzer*in")]
+        choices = [(UserGroup.USER, "Nutzer*in")]
 
         if user:
-            if user.has_perm("accounts." + UserPermissions.CAN_INVITE_ADMINS):
-                choices.append((UserGroups.ADMIN, "Admin"))
-            if user.has_perm("accounts." + UserPermissions.CAN_INVITE_GROUP_LEADERS):
-                choices.append((UserGroups.GROUP_LEADER, "Gruppenleiter*in"))
+            if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
+                choices.append((UserGroup.ADMIN, "Admin"))
+            if user.has_perm(UserPermission.CAN_INVITE_GROUP_LEADERS):
+                choices.append((UserGroup.GROUP_LEADER, "Gruppenleiter*in"))
 
         self.fields["role"].choices = choices
 
@@ -74,7 +74,7 @@ class GenerateInvitationForm(forms.Form):
         expert = self.cleaned_data.get("expert")
         if expert is None:
             expert = False
-        if self.cleaned_data.get("role") == UserGroups.ADMIN:
+        if self.cleaned_data.get("role") == UserGroup.ADMIN:
             expert = True
         return expert
 
@@ -133,9 +133,7 @@ def login_user(request):
 
 
 @require_GET
-@user_passes_test(
-    lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION)
-)
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
 def generate_invitation(request):
     return generate_invitation_template(
         request, form=GenerateInvitationForm(user=request.user)
@@ -143,9 +141,7 @@ def generate_invitation(request):
 
 
 @require_POST
-@user_passes_test(
-    lambda u: u.has_perm("accounts." + UserPermissions.CAN_GENERATE_INVITATION)
-)
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
 def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
@@ -162,8 +158,8 @@ def generate_user_invitation(request):
     role = form.cleaned_data["role"]
     expert = form.cleaned_data["expert"]
 
-    if role == UserGroups.ADMIN and not request.user.has_perm(
-        "accounts." + UserPermissions.CAN_INVITE_ADMINS
+    if role == UserGroup.ADMIN and not request.user.has_perm(
+        UserPermission.CAN_INVITE_ADMINS
     ):
         return generate_invitation_template(
             request,
@@ -171,8 +167,8 @@ def generate_user_invitation(request):
             error="You do not have permission to invite admins",
         )
 
-    if role == UserGroups.GROUP_LEADER and not request.user.has_perm(
-        "accounts." + UserPermissions.CAN_INVITE_GROUP_LEADERS
+    if role == UserGroup.GROUP_LEADER and not request.user.has_perm(
+        UserPermission.CAN_INVITE_GROUP_LEADERS
     ):
         return generate_invitation_template(
             request,
@@ -239,7 +235,7 @@ def register_user(request, token):
     if invitation.expert:
         user.user_permissions.add(
             Permission.objects.get(
-                codename=UserPermissions.CAN_CREATE_EXPERT_OBSERVATION
+                codename=UserPermission.CAN_CREATE_EXPERT_OBSERVATION
             )
         )
     user.save()
@@ -259,7 +255,7 @@ def generate_invitation_template(request, error=None, link=None, form=None):
     return render(
         request,
         "authentication/generate_invitation.html",
-        {"error": error, "form": form, "link": link, "UserGroups": UserGroups},
+        {"error": error, "form": form, "link": link, "UserGroups": UserGroup},
     )
 
 

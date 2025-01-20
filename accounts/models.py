@@ -6,13 +6,13 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class UserGroups:
+class UserGroup:
     ADMIN = "admin"
     GROUP_LEADER = "group_leader"
     USER = "user"
 
 
-class UserPermissions:
+class UserPermission:
     CAN_GENERATE_INVITATION = "can_generate_invitation"
     CAN_INVITE_ADMINS = "can_invite_admins"
     CAN_INVITE_GROUP_LEADERS = "can_invite_group_leaders"
@@ -27,8 +27,8 @@ class InvitationToken(models.Model):
         max_length=100,
         null=True,
         choices=[
-            (UserGroups.ADMIN, "Admin"),
-            (UserGroups.GROUP_LEADER, "Gruppenleiter"),
+            (UserGroup.ADMIN, "Admin"),
+            (UserGroup.GROUP_LEADER, "Gruppenleiter"),
         ],
     )
     expert = models.BooleanField(default=False)
@@ -40,19 +40,43 @@ class ObservatoryUser(AbstractUser):
     quota = models.IntegerField(null=True)
     lifetime = models.DateField(null=True)
 
+    def has_perm(self, perm: UserPermission, obj=None):
+        """
+        Check if the user has a specific UserPermission. Defaults to checking for global permissions.
+        """
+        if super().has_perm("accounts." + str(perm)):
+            return True
+        return super().has_perm(str(perm), obj)
+
     def has_quota_left(self) -> bool:
         return self.quota is None or self.quota > 0
 
     def has_lifetime_left(self) -> bool:
-        return self.lifetime is None or self.lifetime > datetime.now()
+        return self.lifetime is None or self.lifetime > datetime.now().date()
+
+    def reduce_quota(self):
+        """
+        Reduce the quota of the user by one, i.e. the user has made an observation request.
+        """
+        if self.quota is not None:
+            self.quota -= 1
+            self.save()
+
+    def increase_quota(self):
+        """
+        Increase the quota of the user by one, i.e. an observation request by the user has finished.
+        """
+        if self.quota is not None:
+            self.quota += 1
+            self.save()
 
     class Meta:
         permissions = [
-            (UserPermissions.CAN_GENERATE_INVITATION, "Can generate invitation links"),
-            (UserPermissions.CAN_INVITE_ADMINS, "Can invite new admin users"),
-            (UserPermissions.CAN_INVITE_GROUP_LEADERS, "Can invite new group leaders"),
+            (UserPermission.CAN_GENERATE_INVITATION, "Can generate invitation links"),
+            (UserPermission.CAN_INVITE_ADMINS, "Can invite new admin users"),
+            (UserPermission.CAN_INVITE_GROUP_LEADERS, "Can invite new group leaders"),
             (
-                UserPermissions.CAN_CREATE_EXPERT_OBSERVATION,
+                UserPermission.CAN_CREATE_EXPERT_OBSERVATION,
                 "Can create expert observation",
             ),
         ]
@@ -63,7 +87,7 @@ def generate_invitation_link(
     email: str,
     quota: Optional[int] = None,
     lifetime: Optional[datetime] = None,
-    role: UserGroups = UserGroups.USER,
+    role: UserGroup = UserGroup.USER,
     expert: bool = False,
 ) -> Optional[str]:
     """
