@@ -44,6 +44,8 @@ NC_PASSWORD=<password>
 To develop the project locally, install the dependencies running both
 `pip install -r requirements.txt` and  `pip install -r requirements_dev.txt`.
 
+Prettier is used to format JS and CSS files, you can install it [here](https://prettier.io/docs/en/install)
+
 Run the server using `docker-compose up`.
 
 To format the code, run `scripts/format.sh`.
