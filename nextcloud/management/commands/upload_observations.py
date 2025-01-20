@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Uploads observations to Nextcloud"
+    help = "Uploads observations from database to Nextcloud"
 
     def handle(self, *args, **options):
         try:

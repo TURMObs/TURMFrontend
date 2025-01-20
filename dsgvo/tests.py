@@ -156,5 +156,5 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)
         self.assertFalse(file_exists(file_im1))
-        self.assertFalse(file_exists(file_var1))
         self.assertTrue(file_exists(file_im2))
+        self.assertFalse(file_exists(file_var1))

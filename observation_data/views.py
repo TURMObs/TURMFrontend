@@ -1,12 +1,20 @@
+import logging
+
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models import ManyToManyField
+from django.http import QueryDict
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
+from observation_data.models import ObservationType, AbstractObservation
 from accounts.models import ObservatoryUser, UserPermission
-from observation_data.models import ObservationType
 from observation_data.serializers import get_serializer
+
+
+logger = logging.getLogger(__name__)
 
 
 @require_POST
@@ -48,21 +56,29 @@ def create_observation(request):
         )
 
     request_data = request.data.copy()
-    request_data["user"] = request.user.id
+    observation_type = request_data.get("observation_type")
+
+    serializer_class = get_serializer(observation_type)
+    if not serializer_class:
+        return Response(
+            {"error": f"Invalid observation type: {observation_type}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if isinstance(request.data, QueryDict):
+        request_data = convert_query_dict(
+            request.data.copy(), serializer_class.Meta.model
+        )
 
     observation_type = request_data.get("observation_type")
+    request_data["user"] = request.user.id
+
     if observation_type == ObservationType.EXPERT:
         if not user.has_perm(UserPermission.CAN_CREATE_EXPERT_OBSERVATION):
             return Response(
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-
-    serializer_class = get_serializer(observation_type)
-    if not serializer_class:
-        return Response(
-            {"error": "Invalid observation type"}, status=status.HTTP_400_BAD_REQUEST
-        )
 
     if "name" in request_data and isinstance(request_data["name"], str):
         request_data = _nest_observation_request(
@@ -102,3 +118,23 @@ def _nest_observation_request(data, mappings):
             d[keys[-1]] = value
     nested_data.update(data)
     return nested_data
+
+
+def convert_query_dict(qdict, model: AbstractObservation):
+    converted_dict = {}
+    meta = model._meta
+    for key, val in dict(qdict).items():
+        try:
+            meta.get_field(key)
+        except FieldDoesNotExist:
+            converted_dict[key] = val[0]
+            continue
+        if len(val) > 1:
+            converted_dict[key] = val
+            continue
+        if isinstance(meta.get_field(key), ManyToManyField):
+            converted_dict[key] = val
+            continue
+        converted_dict[key] = val[0]
+
+    return converted_dict
