@@ -448,9 +448,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
             target_name="I1",
             observatory=turmx,
         )
-        path1 = "TURMX/Projects/00042_Imaging_L_I1.json"
-        if self.prefix:
-            path1 = f"{self.prefix}/{path1}"
+        path1 = f"{self.prefix}/TURMX/Projects/00042_Imaging_L_I1.json"
+
         observation = AbstractObservation.objects.all()[0]
         self.assertEqual(
             generate_observation_path(observation),
