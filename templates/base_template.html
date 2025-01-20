@@ -155,7 +155,7 @@
         display: inline-block;
     }
 
-    .dropdown-button {
+    .dropdown-trigger {
         width: 40px;
         height: 40px;
         cursor: pointer;
@@ -165,12 +165,16 @@
         border-radius: 8px;
     }
 
-    .dropdown-button:hover {
+    .dropdown-trigger:hover {
         background: var(--tom-dark-grey);
     }
 
-    .dropdown-button i {
+    .dropdown-trigger i {
         font-size: 1.5em;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
     }
 
     .dropdown-content {
@@ -237,7 +241,7 @@
                         </a>
                     {% endif %}
                     <div class="dropdown">
-                        <div class="dropdown-button" onclick="toggleDropdown()">
+                        <div class="dropdown-trigger">
                             <i class='bx bxs-user'></i>
                         </div>
                         <div id="userDropdown" class="dropdown-content">
@@ -272,23 +276,5 @@
                 </div>
             </div>
         </footer>
-        <script>
-        function toggleDropdown() {
-            document.getElementById("userDropdown").classList.toggle("show");
-        }
-
-        // Close the dropdown only when clicking outside both the icon or the dropdown
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.dropdown-button') && !event.target.closest('.dropdown-content')) {
-                var dropdowns = document.getElementsByClassName("dropdown-content");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        });
-        </script>
     </body>
 </html>
