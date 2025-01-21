@@ -35,9 +35,7 @@ def create_observation(request):
             status=HTTP_401_UNAUTHORIZED,
         )
 
-    if not isinstance(
-        user, ObservatoryUser
-    ):  # note: it would be better to use isinstance(user, settings.AUTH_USER_MODEL), but that confuses the type checker and I don't like warnings
+    if not isinstance(user, ObservatoryUser):
         return Response(
             {"error": "Invalid user model"},
             status=status.HTTP_400_BAD_REQUEST,

@@ -59,6 +59,8 @@ class ObservatoryUser(AbstractUser):
         Reduce the quota of the user by one, i.e. the user has made an observation request.
         """
         if self.quota is not None:
+            if self.quota <= 0:
+                raise ValueError("User has no quota left")
             self.quota -= 1
             self.save()
 
