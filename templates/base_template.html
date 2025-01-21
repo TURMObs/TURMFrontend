@@ -244,7 +244,7 @@
                        aria-label="new project">
                         <span class="navbar_link">NEW PROJECT</span>
                     </a>
-                    {% if request.user.is_superuser %}
+                    {% if perms.accounts.can_generate_invitation %}
                         <a class="navbar_link"
                            href="{% url 'generate-invitation' %}"
                            aria-label="invite">

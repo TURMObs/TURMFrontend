@@ -43,12 +43,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
+          npm install --global prettier
       - name: Check python code formatting
         run: ruff format --check
       - name: Check for python lints
         run: ruff check --output-format=github .
       - name: Check Django template formatting
         run: djlint . --check
+      - name: Check Javascript and CSS formatting
+        run: npx prettier --check "**/*.{js,css}"
       - name: Check for typos
         uses: crate-ci/typos@v1.27.2
         with:

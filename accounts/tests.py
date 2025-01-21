@@ -1,7 +1,6 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .models import InvitationToken, generate_invitation_link
+from .models import InvitationToken, generate_invitation_link, ObservatoryUser
 
 
 class GenerateInvitationLinkTest(TestCase):
@@ -20,7 +19,7 @@ class GenerateInvitationLinkTest(TestCase):
         self.assertEqual(link, f"{self.base_url}/{token.token}")
 
     def test_generate_invitation_link_existing_user(self):
-        User.objects.create_user(
+        ObservatoryUser.objects.create_user(
             username="testuser", email=self.email, password="testpass"
         )
         link = generate_invitation_link(self.base_url, self.email)
