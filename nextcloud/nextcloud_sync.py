@@ -59,7 +59,7 @@ def get_data_from_nc(obs: AbstractObservation):
 
         if nc_path is None:
             logger.error(
-                f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got could not find it under expected path: {generate_observation_path(obs)}"
+                f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but could not find it under expected path: {generate_observation_path(obs)}"
             )
             return None, None
 
@@ -77,16 +77,15 @@ def update_non_scheduled_observations():
     """
     Downloads all non-scheduled observations from the nextcloud, checks for progress and updates database accordingly.
     """
-
-    observations = AbstractObservation.objects.filter(
-        project_status=ObservationStatus.UPLOADED
-    ).not_instance_of(ScheduledObservation)
-
     try:
         nm.initialize_connection()
     except NextcloudException as e:
         logger.error(f"Failed to initialize connection: {e}")
         return
+
+    observations = AbstractObservation.objects.filter(
+        project_status=ObservationStatus.UPLOADED
+    ).not_instance_of(ScheduledObservation)
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
@@ -125,16 +124,16 @@ def update_scheduled_observations(today: datetime = timezone.now()):
     :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
 
     """
-    observations = AbstractObservation.objects.instance_of(ScheduledObservation).filter(
-        Q(project_status=ObservationStatus.PENDING)
-        | Q(project_status=ObservationStatus.UPLOADED)
-    )
-
     try:
         nm.initialize_connection()
     except NextcloudException as e:
         logger.error(f"Failed to initialize connection: {e}")
         return
+
+    observations = AbstractObservation.objects.instance_of(ScheduledObservation).filter(
+        Q(project_status=ObservationStatus.PENDING)
+        | Q(project_status=ObservationStatus.UPLOADED)
+    )
 
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
@@ -222,6 +221,11 @@ def upload_observations(today=timezone.now()):
 
     :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
     """
+    try:
+        nm.initialize_connection()
+    except NextcloudException as e:
+        logger.error(f"Failed to initialize connection: {e}")
+        return
 
     # Handling of observations, that can be uploaded anytime (all non-scheduled observations)
     pending_observations = AbstractObservation.objects.filter(
@@ -249,12 +253,6 @@ def upload_observations(today=timezone.now()):
     list_to_upload = list(pending_observations)
     logger.info(f"Uploading {len(list_to_upload)} observations ...")
 
-    try:
-        nm.initialize_connection()
-    except NextcloudException as e:
-        logger.error(f"Failed to initialize connection: {e}")
-        return
-
     for obs in list_to_upload:
         serializer_class = get_serializer(obs.observation_type)
         serializer = serializer_class(obs)
@@ -270,7 +268,7 @@ def upload_observations(today=timezone.now()):
 
         except NextcloudException as e:
             logger.error(
-                f"Failed to upload observation {obs_dict['name']} with id {obs.id}: {e}"
+                f"Failed to upload observation {obs.id} to {nc_path}. Got: {e}"
             )
             obs.project_status = ObservationStatus.ERROR
         obs.save()
