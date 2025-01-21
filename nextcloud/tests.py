@@ -1,10 +1,10 @@
 import django
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.management import call_command
 import django.test
 
 from nextcloud import nextcloud_manager as nm, nextcloud_manager
+from accounts.models import ObservatoryUser
 from nextcloud.nextcloud_manager import file_exists, generate_observation_path
 from nextcloud.nextcloud_sync import (
     upload_observations,
@@ -400,7 +400,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         admin_username = os.getenv("ADMIN_EMAIL")
         if not admin_username:
             self.fail("ADMIN_EMAIL environment variable not set")
-        self.user = User.objects.get(username=admin_username)
+        self.user = ObservatoryUser.objects.get(username=admin_username)
         self.client.force_login(self.user)
 
     def _day(self, d: int):

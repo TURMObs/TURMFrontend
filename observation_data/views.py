@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 
 from observation_data.models import ObservationType, AbstractObservation
+from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
 
 
@@ -26,10 +27,30 @@ def create_observation(request):
     :param request: HTTP request with observation data
     :return: HTTP response with the created observation data or error message
     """
-    if not request.user.is_authenticated:
+
+    user = request.user
+    if not user.is_authenticated:
         return Response(
             {"error": "Authentication required"},
             status=HTTP_401_UNAUTHORIZED,
+        )
+
+    if not isinstance(user, ObservatoryUser):
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not user.has_quota_left():
+        return Response(
+            {"error": "Quota exceeded"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if not user.has_lifetime_left():
+        return Response(
+            {"error": "Lifetime exceeded"},
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     request_data = request.data.copy()
@@ -51,7 +72,7 @@ def create_observation(request):
     request_data["user"] = request.user.id
 
     if observation_type == ObservationType.EXPERT:
-        if not request.user.is_superuser:
+        if not user.has_perm(UserPermission.CAN_CREATE_EXPERT_OBSERVATION):
             return Response(
                 {"error": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -69,10 +90,11 @@ def create_observation(request):
         )
 
     serializer = serializer_class(data=request_data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 def _nest_observation_request(data, mappings):

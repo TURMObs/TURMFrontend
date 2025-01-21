@@ -1,6 +1,10 @@
 import os
+
+from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
+
+from accounts.models import ObservatoryUser, UserGroup
 
 
 class Command(BaseCommand):
@@ -22,11 +26,13 @@ class Command(BaseCommand):
 
     @staticmethod
     def insert_admin_user(email, password):
-        if User.objects.filter(email=email).exists():
+        if ObservatoryUser.objects.filter(email=email).exists():
             return
 
-        user = User.objects.create_user(
+        user = ObservatoryUser.objects.create_user(
             username=email, email=email, password=password, is_superuser=True
         )
-        user.is_admin = True
+        if not Group.objects.filter(name=UserGroup.ADMIN).exists():
+            call_command("create_groups_and_permissions")
+        user.groups.add(Group.objects.get(name=UserGroup.ADMIN))
         user.save()
