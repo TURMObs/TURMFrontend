@@ -9,8 +9,7 @@
     <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
     <link rel='stylesheet'
           href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
-    <style>
-    </style>
+    <style></style>
 {% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
@@ -27,7 +26,9 @@
                     <h1>Create New Observation</h1>
                 </div>
             </header>
-            <form class="input_form" id="form" onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
+            <form class="input_form"
+                  id="form"
+                  onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
                 {% for name, form in forms %}
                     <article class="form_body">
                         <h2 class="sub_form_heading">{{ name }}</h2>

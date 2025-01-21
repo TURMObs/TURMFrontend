@@ -95,6 +95,13 @@ function update_date_dependency(el) {
 }
 
 
+/**
+ * submits form to specified address. In case of failure it marks the errors in html. In case of success user gets redirected.
+ * @param event the form submission event
+ * @param form the form element that is to be submitted
+ * @param post_address web address to submit to
+ * @param redirect_address address where a successful submit redirects to
+ */
 function submitForm(event, form, post_address, redirect_address) {
     event.preventDefault();
     event.stopPropagation();
@@ -130,6 +137,12 @@ function submitForm(event, form, post_address, redirect_address) {
     }).catch(error => console.error("Error:", error));
 }
 
+/**
+ * Adds an error note under the element with the message text.
+ * @param element that the error is for
+ * @param message text that should be displayed
+ * @param escape_grid when the element is in a grid_input_div this param specifies if it should be displayed in the same cell or under the whole grid (useful for duration inputs)
+ */
 function add_error_message(element, message, escape_grid = false) {
     const message_element = '<span>' + message + '</span>'
     const icon_element = '<i class="bx bx-error-circle"></i>'
@@ -147,6 +160,9 @@ function add_error_message(element, message, escape_grid = false) {
     container.appendChild(error);
 }
 
+/**
+ * clears every element with the "error_msg" class
+ */
 function clear_error_messages() {
     for (let el of Array.from(document.getElementsByClassName("error_msg"))) {
         el.remove();
