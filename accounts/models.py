@@ -4,6 +4,9 @@ from typing import Optional
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q
+
+from observation_data.models import AbstractObservation, ObservationStatus
 
 
 class UserGroup:
@@ -49,28 +52,16 @@ class ObservatoryUser(AbstractUser):
         return super().has_perm(str(perm), obj)
 
     def has_quota_left(self) -> bool:
-        return self.quota is None or self.quota > 0
+        if self.quota is None:
+            return True
+        user_observations = AbstractObservation.objects.filter(user=self).filter(
+            Q(project_status=ObservationStatus.PENDING)
+            | Q(project_status=ObservationStatus.UPLOADED)
+        )
+        return self.quota > user_observations.count()
 
     def has_lifetime_left(self) -> bool:
         return self.lifetime is None or self.lifetime > datetime.now().date()
-
-    def reduce_quota(self):
-        """
-        Reduce the quota of the user by one, i.e. the user has made an observation request.
-        """
-        if self.quota is not None:
-            if self.quota <= 0:
-                raise ValueError("User has no quota left")
-            self.quota -= 1
-            self.save()
-
-    def increase_quota(self):
-        """
-        Increase the quota of the user by one, i.e. an observation request by the user has finished.
-        """
-        if self.quota is not None:
-            self.quota += 1
-            self.save()
 
     class Meta:
         permissions = [

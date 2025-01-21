@@ -13,6 +13,8 @@ from observation_data.models import (
     ImagingObservation,
     ObservationType,
     Filter,
+    AbstractObservation,
+    ObservationStatus,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
@@ -668,7 +670,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             },
         )
 
-    def test_user_quota_exceeded(self):
+    def test_user_quota(self):
         self.user.quota = 1
         self.user.save()
         data = self._get_flat_base_request()
@@ -678,6 +680,11 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
         response = self._send_post_request(data)
         self._assert_error_response(response, 403, {"error": "Quota exceeded"})
+        obs_request = AbstractObservation.objects.filter(user=self.user)[0]
+        obs_request.project_status = ObservationStatus.COMPLETED
+        obs_request.save()
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
 
     def test_lifetime_exceeded(self):
         data = self._get_flat_base_request()

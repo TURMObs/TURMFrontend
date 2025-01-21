@@ -23,9 +23,18 @@
                         <i class="bx bx-envelope"></i>
                     </div>
                     <div class="input-field">
-                        {{ form.role }}
+                        <select name="role" id="id_role"
+                                style="background-color: #333333; color: #ffffff; border: 1px solid #444444; border-radius: 4px; padding: 8px;">
+                            {% for value, label in form.role.field.choices %}
+                                <option value="{{ value }}" {% if form.role.value == value %}selected{% endif %}
+                                        style="background-color: #222222; color: #ffffff;">
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
                         <i class="bx bx-user"></i>
                     </div>
+
                     <div class="checkbox-field">
                         <input type="checkbox"
                                id="id_expert"

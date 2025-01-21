@@ -94,7 +94,6 @@ def create_observation(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     serializer.save()
-    user.reduce_quota()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
