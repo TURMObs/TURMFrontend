@@ -108,7 +108,6 @@ class ExposureSettingsForm(forms.Form):
             TURMRadioInput(
                 name="exposure_time",
                 choices=[
-                    ("15s", "15"),
                     ("30s", "30"),
                     ("60s", "60"),
                     ("120s", "120"),

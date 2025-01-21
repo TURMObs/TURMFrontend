@@ -93,3 +93,78 @@ function update_date_dependency(el) {
         end.value = end.min;
     }
 }
+
+
+/**
+ * submits form to specified address. In case of failure it marks the errors in html. In case of success user gets redirected.
+ * @param event the form submission event
+ * @param form the form element that is to be submitted
+ * @param post_address web address to submit to
+ * @param redirect_address address where a successful submit redirects to
+ */
+function submitForm(event, form, post_address, redirect_address) {
+    event.preventDefault();
+    event.stopPropagation();
+    fetch(post_address, {
+        method: "POST",
+        body: new FormData(form),
+        credentials: 'include',
+        headers: {
+            "Accept": "application/json"
+        }
+    }).then((response) => {
+        if (response.ok) location.href = redirect_address;
+        else response.json().then((json_response) => {
+            clear_error_messages();
+            for (let key in json_response) {
+                if (key !== 'target') {
+                    let name = key;
+                    let escape_grid = false;
+                    if (key === 'time_range' || key === 'start_time' || key === 'year_range') {
+                        name = 'start_observation'
+                        escape_grid = true;
+                    }
+                    let element = document.getElementById("id_" + name)
+                    add_error_message(element, json_response[key][0], escape_grid);
+                } else {
+                    for (let sub_key in json_response.target) {
+                        let element = document.getElementById("id_" + sub_key)
+                        add_error_message(element, json_response[key][sub_key][0]);
+                    }
+                }
+            }
+        }).catch(error => console.log(error, response));
+    }).catch(error => console.error("Error:", error));
+}
+
+/**
+ * Adds an error note under the element with the message text.
+ * @param element that the error is for
+ * @param message text that should be displayed
+ * @param escape_grid when the element is in a grid_input_div this param specifies if it should be displayed in the same cell or under the whole grid (useful for duration inputs)
+ */
+function add_error_message(element, message, escape_grid = false) {
+    const message_element = '<span>' + message + '</span>'
+    const icon_element = '<i class="bx bx-error-circle"></i>'
+    const error = document.createElement('div');
+    error.classList.add('error_msg');
+    error.innerHTML = icon_element + message_element;
+
+    // find place to insert error
+    let container = element.parentElement;
+    if (container.classList.contains("tooltip")) container = container.parentElement;
+    if (container.classList.contains("radio_input_div")) container = container.parentElement;
+    if (escape_grid && container.parentElement.classList.contains("grid_input_div")) container = container.parentElement.parentElement;
+    else if (container.parentElement.classList.contains("checkbox_input_div")) container = container.parentElement.parentElement;
+    // write error
+    container.appendChild(error);
+}
+
+/**
+ * clears every element with the "error_msg" class
+ */
+function clear_error_messages() {
+    for (let el of Array.from(document.getElementsByClassName("error_msg"))) {
+        el.remove();
+    }
+}
