@@ -40,7 +40,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.client.login(username="testuser", password="testpassword")
         call_command("populate_observatories")
 
-    def _create_observation(self, data: dict, user: User = None):
+    def _create_observation(self, data: dict, user: ObservatoryUser = None):
         prev_user = self.user
         if user is not None:
             self.client.logout()
@@ -53,7 +53,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
             self.client.logout()
             self.client.force_login(prev_user)
 
-    def _create_imaging_observation(self, target_name: str, user: User = None):
+    def _create_imaging_observation(
+        self, target_name: str, user: ObservatoryUser = None
+    ):
         data = {
             "observatory": "TURMX",
             "target": {
@@ -69,7 +71,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self._create_observation(data, user)
         return ImagingObservation.objects.get(target__name=target_name)
 
-    def _create_variable_observation(self, target_name: str, user: User = None):
+    def _create_variable_observation(
+        self, target_name: str, user: ObservatoryUser = None
+    ):
         data = {
             "observatory": "TURMX",
             "target": {
