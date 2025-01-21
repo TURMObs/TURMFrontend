@@ -13,6 +13,12 @@ input[type=text], input[type=date], input[type=datetime-local] {
     padding: .75em 1.5em;
 }
 
+.radio_input_div, .checkbox_input_div {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
 .radio_input_div {
     display: flex;
     align-items: center;
