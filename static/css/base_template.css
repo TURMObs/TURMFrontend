@@ -18,7 +18,7 @@
     --tom-corner-radius-container: 5px;
     --tom-corner-radius-input: 2em;
     /* fonts */
-    --tom-base-font: 'Source Sans 3';
+    --tom-base-font: "Source Sans 3";
 }
 
 * {
@@ -40,7 +40,6 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: row;
-
 }
 
 .center_div {
@@ -50,21 +49,21 @@ body {
     flex-direction: row;
 }
 
-.middle_div {
-    margin: 0 50px;
+.form_wrapper {
+    min-width: 512px;
+    max-width: 960px;
+    padding: 30px 40px;
 }
 
 .content_wrapper {
-    min-width: 512px;
-    max-width: 960px;
     margin: 0 auto;
     border: 2px solid rgba(255, 255, 255, 0.2);
     background: var(--tom-dark-grey);
     border-radius: 20px;
-    padding: 30px 40px;
 }
 
-button, input[type='submit'] {
+button,
+input[type="submit"] {
     height: 45px;
     background: #fff;
     border: 2px transparent;
@@ -78,7 +77,8 @@ button, input[type='submit'] {
     font-weight: 600;
 }
 
-button:hover, input[type='submit']:hover {
+button:hover,
+input[type="submit"]:hover {
     background: var(--tom-dark-grey);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.2);
