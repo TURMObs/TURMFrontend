@@ -206,6 +206,10 @@
     .show {
         display: block;
     }
+
+    .min_height {
+        min-height: 50vh;
+    }
     </style>
     {% block style %}{% endblock %}
     {% block scripts %}{% endblock %}
@@ -245,7 +249,7 @@
                             <i class='bx bxs-user'></i>
                         </div>
                         <div id="userDropdown" class="dropdown-content">
-                            <a class="navbar_link" href="{% url 'dsgvo' %}">USER DATA SETTINGS</a>
+                            <a class="navbar_link" href="{% url 'dsgvo' %}">SETTINGS</a>
                             <form action="{% url 'logout' %}" method="post">
                                 {% csrf_token %}
                                 <button class="logout_button" type="submit">LOGOUT</button>
@@ -255,7 +259,9 @@
                 </div>
             </div>
         </header>
+        <div class="min_height">
         {% block content %}{% endblock %}
+        </div>
         <footer class="footer_container">
             <div class="footer_row">
                 <aside class="footer_column">

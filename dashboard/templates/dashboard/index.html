@@ -3,7 +3,6 @@
 {% block style %}
     <style>
     .container {
-        height: 90vh;
         margin: 30px;
     }
 
@@ -36,6 +35,14 @@
 
     .left-align {
         text-align: left;
+    }
+
+    .filter_set_container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1em;
+        align-content: center;
+        justify-content: center;
     }
 
     .right-align {
@@ -77,8 +84,10 @@
                                 <td class="left-align">{{ observation.observatory.name }}</td>
                                 <td class="left-align">{{ observation.target.name }}</td>
                                 <td class="left-align">{{ observation.observation_type }}</td>
-                                <td class="left-align">
+                                <td>
+                                <div class="filter_set_container">
                                     {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
+                                </div>
                                 </td>
                                 <td class="right-align">{{ observation.exposure_time }}</td>
                                 {% if request.user.is_superuser %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
