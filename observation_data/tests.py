@@ -3,15 +3,18 @@ import os
 from datetime import datetime, timezone, timedelta
 
 import django.test
+from django.contrib.auth.models import Permission
 from django.core.management import call_command
 from django.conf import settings
-from django.contrib.auth.models import User
 from dotenv import load_dotenv
 
+from accounts.models import ObservatoryUser, UserPermission
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
     Filter,
+    AbstractObservation,
+    ObservationStatus,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
@@ -27,7 +30,7 @@ def _create_user_and_login(test_instance):
     if not admin_username:
         test_instance.fail("ADMIN_EMAIL environment variable not set")
     call_command("generate_admin_user")
-    test_instance.user = User.objects.get(username=admin_username)
+    test_instance.user = ObservatoryUser.objects.get(username=admin_username)
     test_instance.client.force_login(test_instance.user)
 
 
@@ -79,9 +82,7 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_no_user(self):
         self.client.logout()
         response = self._send_post_request({})
-        self.assertEqual(
-            response.url, "/authentication/login?next=/observation-data/create/"
-        )
+        self.assertEqual(response.url, "/accounts/login?next=/observation-data/create/")
         self.assertEqual(response.status_code, 302)
 
     def test_missing_type(self):
@@ -281,6 +282,12 @@ class ObservationCreationTestCase(django.test.TestCase):
 
     def test_no_expert_user(self):
         self.user.is_superuser = False
+        self.user.groups.clear()
+        self.user.user_permissions.remove(
+            Permission.objects.get(
+                codename=UserPermission.CAN_CREATE_EXPERT_OBSERVATION
+            )
+        )
         self.user.save()
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.EXPERT
@@ -662,6 +669,33 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "start_time": ["Start time must be in the future."],
             },
         )
+
+    def test_user_quota(self):
+        self.user.quota = 1
+        self.user.save()
+        data = self._get_flat_base_request()
+        data["observation_type"] = ObservationType.IMAGING
+        data["frames_per_filter"] = 100
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+        response = self._send_post_request(data)
+        self._assert_error_response(response, 403, {"error": "Quota exceeded"})
+        obs_request = AbstractObservation.objects.filter(user=self.user)[0]
+        obs_request.project_status = ObservationStatus.COMPLETED
+        obs_request.save()
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_lifetime_exceeded(self):
+        data = self._get_flat_base_request()
+        data["observation_type"] = ObservationType.IMAGING
+        data["frames_per_filter"] = 100
+        response = self._send_post_request(data)
+        self.assertEqual(response.status_code, 201, response.json())
+        self.user.lifetime = (datetime.now(timezone.utc) - timedelta(days=1)).date()
+        self.user.save()
+        response = self._send_post_request(data)
+        self._assert_error_response(response, 403, {"error": "Lifetime exceeded"})
 
 
 class JsonFormattingTestCase(django.test.TestCase):

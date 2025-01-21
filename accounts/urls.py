@@ -2,7 +2,7 @@ from django.contrib.auth.views import LogoutView
 from django.urls import path
 from django.conf import settings
 
-from authentication.views import (
+from accounts.views import (
     generate_invitation,
     generate_user_invitation,
     login,
