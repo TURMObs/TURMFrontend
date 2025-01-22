@@ -22,6 +22,7 @@ class Command(BaseCommand):
                 "Can create expert observation",
             ),
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
+            (UserPermission.CAN_DELETE_USERS, "Can delete users"),
         ]
 
         # Create permissions if they don't exist
@@ -46,6 +47,9 @@ class Command(BaseCommand):
         can_see_all_observations = Permission.objects.get(
             codename=UserPermission.CAN_SEE_ALL_OBSERVATIONS, content_type=content_type
         )
+        can_delete_users = Permission.objects.get(
+            codename=UserPermission.CAN_DELETE_USERS, content_type=content_type
+        )
 
         # Assign permissions to groups
         admin_group.permissions.add(
@@ -54,6 +58,7 @@ class Command(BaseCommand):
             can_invite_group_leaders,
             can_create_expert_observation,
             can_see_all_observations,
+            can_delete_users,
         )
         group_leader_group.permissions.add(can_generate_invitation)
 

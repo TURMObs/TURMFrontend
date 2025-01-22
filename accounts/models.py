@@ -21,6 +21,7 @@ class UserPermission:
     CAN_INVITE_GROUP_LEADERS = "can_invite_group_leaders"
     CAN_CREATE_EXPERT_OBSERVATION = "can_create_expert_observation"
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
+    CAN_DELETE_USERS = "can_delete_users"
 
 
 class InvitationToken(models.Model):

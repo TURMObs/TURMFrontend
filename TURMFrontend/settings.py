@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "dashboard",
     "observation_data",
     "observation_request",
-    "dsgvo",
     "nextcloud",
 ]
 

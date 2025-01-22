@@ -1,0 +1,318 @@
+{% extends "base_template.html" %}
+{% load static %}
+{% block title %}Dashboard - Invitations & Users{% endblock %}
+{% block style %}
+    <link rel="stylesheet" href="{% static "/css/generate_invitation.css" %}">
+    <style>
+        .container {
+            margin: 30px;
+        }
+
+        .content_wrapper {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .empty-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .empty-text p {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin: 20px 0;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            border: 1px solid #444444;
+            padding: 8px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #222222;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #333333;
+            cursor: pointer;
+        }
+
+        .styled-select {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            width: 100%;
+        }
+
+        .styled-select:focus {
+            outline: none;
+            box-shadow: 0 0 5px #888;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            background-color: #555; /* A more muted gray */
+            font-weight: normal;
+            color: #f1f1f1; /* Keeping the text light */
+        }
+
+
+        .generatebutton {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .generatebutton:hover {
+            background-color: #45a049;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            background-color: #da190b;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Dashboard</h1>
+        <!-- Invitation Form -->
+        <div class="content_wrapper">
+            <h2>Generate Invitation</h2>
+            {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
+            {% if link is None %}
+                <form method="post"
+                      action="{% url 'generate-user-invitation' %}"
+                      id="invitationForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <div class="input-field">
+                            {{ form.email }}
+                            <i class="bx bx-envelope"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-field">
+                            <select name="role" id="id_role" class="styled-select">
+                                {% for value, label in form.role.field.choices %}
+                                    <option value="{{ value }}"
+                                            {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <i class="bx bx-user"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-field">
+                            <input type="checkbox"
+                                   id="id_expert"
+                                   name="expert"
+                                   {% if form.expert.value %}checked{% endif %}>
+                            <label for="id_expert">Expert</label>
+                        </div>
+                        <div class="checkbox-field">
+                            <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
+                            <label for="enableQuota">Max. Simultaneous Requests</label>
+                        </div>
+                        <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
+                        <div class="checkbox-field">
+                            <input type="checkbox"
+                                   id="enableLifetime"
+                                   onclick="toggleInput('lifetimeField')">
+                            <label for="enableLifetime">Limited Usage Time</label>
+                        </div>
+                        <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
+                    </div>
+                    <div class="form-group">
+                        <button class="generatebutton" type="submit">Generate</button>
+                    </div>
+                </form>
+            {% else %}
+                <p id="invitationLink">{{ link }}</p>
+                <button class="copybutton" onclick="copyLink()">Copy Link</button>
+            {% endif %}
+        </div>
+        <!-- Open Invitations -->
+        <div class="open-invitations">
+            <h3>Open Invitations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if invitations %}
+                        {% for invitation in invitations %}
+                            <tr>
+                                <td>{{ invitation.email }}</td>
+                                <td>{{ invitation.role }}</td>
+                                <td>
+                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="delete-button"
+                                                onclick="deleteInvitation({{ invitation.id }}">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">No open invitations found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <!-- All Users -->
+        <div class="all-users">
+            <h3>All Users</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Quota</th>
+                        <th>Lifetime</th>
+                        <th>Date Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr id="user-{{ user.id }}"
+                            class="{% if user.id == current_user_id %}highlight{% endif %}">
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.role }}</td>
+                            <td>{{ user.quota }}</td>
+                            <td>{{ user.lifetime }}</td>
+                            <td>{{ user.date_joined }}</td>
+                            <td>
+                                <form id="delete-user-{{ user.id }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="button"
+                                            class="delete-button"
+                                            onclick="deleteUser({{ user.id }})">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script>
+        function toggleInput(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.style.display = field.style.display === 'none' ? 'block' : 'none';
+        }
+
+        document.getElementById('invitationForm')?.addEventListener('submit', function () {
+            if (document.getElementById('quotaField').style.display === 'none') {
+                document.getElementById('id_quota')?.remove();
+            }
+            if (document.getElementById('lifetimeField').style.display === 'none') {
+                document.getElementById('id_lifetime')?.remove();
+            }
+        });
+
+        function copyLink() {
+            var linkText = document.getElementById("invitationLink").textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm("Are you sure you want to delete this user?")) {
+                return;  // If the user cancels, do nothing
+            }
+
+            const form = document.getElementById(`delete-user-${userId}`);
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            try {
+                const response = await fetch("{% url 'delete-user' 0 %}".replace("0", userId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || "User deleted successfully!");
+                    form.closest('tr').remove(); // Remove the row from the table
+                } else {
+                    alert(data.error || "An error occurred while deleting the user.");
+                }
+            } catch (error) {
+                alert("Failed to delete the user. Please try again.");
+            }
+        }
+
+
+        async function deleteInvitation(invitationId) {
+            const form = document.getElementById(`delete-invitation-${invitationId}`);
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            try {
+                const response = await fetch("{% url 'delete-invitation' 0 %}".replace("0", invitationId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || "Invitation deleted successfully!");
+                    form.closest('tr').remove(); // Remove the row from the table
+                } else {
+                    alert(data.error || "An error occurred while deleting the invitation.");
+                }
+            } catch (error) {
+                alert("Failed to delete the invitation. Please try again.");
+            }
+        }
+    </script>
+{% endblock %}

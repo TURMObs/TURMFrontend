@@ -54,9 +54,11 @@ def get_all_data(user: AbstractBaseUser):
     for key, value in data["user"].items():
         if value is None or value == "" or value == []:
             empty_fields.append(key)
+
     for field in empty_fields:
         data["user"].pop(field)
 
+    data["user"]["groups"] = [str(group) for group in data["user"]["groups"]]
     return data
 
 

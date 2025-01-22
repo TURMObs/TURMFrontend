@@ -5,12 +5,14 @@ import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
 
+from . import user_data
 from .models import (
     InvitationToken,
     generate_invitation_link,
@@ -247,14 +249,48 @@ def register_user(request, token):
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 
+@require_POST
+def delete_invitation(request, invitation_id):
+    invitation = InvitationToken.objects.get(id=invitation_id)
+    invitation.delete()
+    return JsonResponse({"status": "success"}, status=200)
+
+
+@require_POST
+def delete_user(request, user_id):
+    user = request.user
+    if user_id != user.id and not user.has_perm(UserPermission.CAN_DELETE_USERS):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "You do not have permission to delete this user.",
+            },
+            status=403,
+        )
+    user_data.delete_user(user)
+    logger.info(f"User {user} deleted their account.")
+    return JsonResponse({"status": "success"}, status=200)
+
+
+@require_GET
+def get_user_data(request):
+    data = user_data.get_all_data(request.user)
+    return JsonResponse(data)
+
+
+@require_GET
+def dsgvo_options(request):
+    return render(request, "accounts/dsgvo.html")
+
+
 def index_template(request, error=None, form=None):
-    return render(request, "authentication/index.html", {"error": error, "form": form})
+    return render(request, "accounts/index.html", {"error": error, "form": form})
 
 
 def generate_invitation_template(request, error=None, link=None, form=None):
     return render(
         request,
-        "authentication/generate_invitation.html",
+        "accounts/generate_invitation.html",
         {
             "error": error,
             "form": form,
@@ -262,6 +298,7 @@ def generate_invitation_template(request, error=None, link=None, form=None):
             "UserGroups": UserGroup,
             "invitations": InvitationToken.objects.all(),
             "users": ObservatoryUser.objects.all(),
+            "current_user_id": request.user.id,
         },
     )
 
@@ -271,7 +308,7 @@ def register_from_invitation_template(
 ):
     return render(
         request,
-        "authentication/register_from_invitation.html",
+        "accounts/register_from_invitation.html",
         {"error": error, "form": form, "email": email, "token": token},
     )
 
