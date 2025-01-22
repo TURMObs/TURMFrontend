@@ -255,7 +255,14 @@ def generate_invitation_template(request, error=None, link=None, form=None):
     return render(
         request,
         "authentication/generate_invitation.html",
-        {"error": error, "form": form, "link": link, "UserGroups": UserGroup},
+        {
+            "error": error,
+            "form": form,
+            "link": link,
+            "UserGroups": UserGroup,
+            "open_invitations": InvitationToken.objects.all(),
+            "users": ObservatoryUser.objects.all(),
+        },
     )
 
 
