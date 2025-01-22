@@ -260,7 +260,7 @@ def generate_invitation_template(request, error=None, link=None, form=None):
             "form": form,
             "link": link,
             "UserGroups": UserGroup,
-            "open_invitations": InvitationToken.objects.all(),
+            "invitations": InvitationToken.objects.all(),
             "users": ObservatoryUser.objects.all(),
         },
     )
