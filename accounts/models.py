@@ -20,6 +20,7 @@ class UserPermission:
     CAN_INVITE_ADMINS = "can_invite_admins"
     CAN_INVITE_GROUP_LEADERS = "can_invite_group_leaders"
     CAN_CREATE_EXPERT_OBSERVATION = "can_create_expert_observation"
+    CAN_DELETE_ALL_OBSERVATIONS = "can_delete_all_observations"
 
 
 class InvitationToken(models.Model):
@@ -72,6 +73,7 @@ class ObservatoryUser(AbstractUser):
                 UserPermission.CAN_CREATE_EXPERT_OBSERVATION,
                 "Can create expert observation",
             ),
+            (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
         ]
 
 
