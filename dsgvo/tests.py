@@ -6,6 +6,7 @@ from django.core.management import call_command
 from nc_py_api import NextcloudException
 
 from accounts.models import ObservatoryUser
+from nextcloud import nextcloud_manager
 from nextcloud.nextcloud_manager import (
     file_exists,
     get_observation_file,
@@ -30,6 +31,10 @@ run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
     "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
 )
 class DSGVOUserDataTestCase(django.test.TestCase):
+    old_prefix = ""
+    prefix = nextcloud_manager.prefix
+    nc_prefix = "test-nc"
+
     def setUp(self):
         initialize_connection()
         self._clear_data()
@@ -39,6 +44,14 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.client = django.test.Client()
         self.client.login(username="testuser", password="testpassword")
         call_command("populate_observatories")
+
+        # automatically adds test in name of test root folder
+        self.old_prefix = self.prefix
+        nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
+        self.prefix = f"{self.nc_prefix}{self.prefix}"
+
+    def tearDown(self):
+        nextcloud_manager.prefix = self.old_prefix
 
     def _create_observation(self, data: dict, user: ObservatoryUser = None):
         prev_user = self.user
@@ -145,7 +158,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
             ),
         )
         initialize_connection()
-        mkdir("TURMX/Projects")
+        mkdir(f"{self.prefix}/TURMX/Projects")
         upload_observations()
         file_im1 = get_observation_file(im1)
         file_var1 = get_observation_file(var1)
@@ -158,3 +171,4 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertFalse(file_exists(file_im1))
         self.assertTrue(file_exists(file_im2))
         self.assertFalse(file_exists(file_var1))
+        delete(self.prefix)

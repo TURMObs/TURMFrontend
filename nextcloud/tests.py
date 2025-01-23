@@ -64,11 +64,10 @@ class NextcloudManagerTestCaseWithoutInit(django.test.TestCase):
 class NextcloudManagerTestCase(django.test.TestCase):
     old_prefix = ""
     prefix = nextcloud_manager.prefix
+    nc_prefix = "test-nc"
 
     def setUp(self):
         nm.initialize_connection()
-
-        # self.LOCAL_PATH = "test_data"
 
         self.maxDiff = None
         self.client = django.test.Client()
@@ -76,8 +75,8 @@ class NextcloudManagerTestCase(django.test.TestCase):
 
         # automatically adds test in name of test root folder
         self.old_prefix = self.prefix
-        nextcloud_manager.prefix = f"test{self.prefix}"
-        self.prefix = f"test{self.prefix}"
+        nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
+        self.prefix = f"{self.nc_prefix}{self.prefix}"
 
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix
@@ -145,12 +144,13 @@ class NextcloudManagerTestCase(django.test.TestCase):
 class NextcloudSyncTestCase(django.test.TestCase):
     old_prefix = ""
     prefix = nextcloud_manager.prefix
+    nc_prefix = "test-nc"
 
     def setUp(self):
         nm.initialize_connection()
         call_command("populate_observatories")
 
-        self.LOCAL_PATH = "test_data"
+        # self.LOCAL_PATH = "test_data"
 
         self.maxDiff = None
         self.client = django.test.Client()
@@ -159,8 +159,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # automatically adds test in name of test root folder
         self.old_prefix = self.prefix
-        nextcloud_manager.prefix = f"test{self.prefix}"
-        self.prefix = f"test{self.prefix}"
+        nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
+        self.prefix = f"{self.nc_prefix}{self.prefix}"
 
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix

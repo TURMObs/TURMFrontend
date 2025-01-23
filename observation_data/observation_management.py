@@ -21,9 +21,15 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
 
     :param user: The user who tries to delete the observation.
     :param observation_id: The id of the observation.
+    :raises ValueError: If no such observation exists.
+    :raises PermissionError: If the user does not have permission to delete the observation.
+    :raises BadRequest: If the user does not have permission to delete the observation.
+
     """
 
-    if obs := AbstractObservation.objects.get(id=observation_id) is None:
+    try:
+        obs = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist:
         raise ValueError(f"Could not find observation with id {observation_id}")
 
     if not user == obs.user and not user.has_perm(
