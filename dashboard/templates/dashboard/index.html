@@ -64,9 +64,9 @@
 {% endblock %}
 {% block content %}
     <div>
-    <button onclick="delete_observatories()">delete all observations</button>
-    <button onclick="window.location.href = '/upload-observations/'">upload observations</button>
-    <button onclick="window.location.href = '/update-observations/'">update observations</button>
+        <button onclick="delete_observatories()">delete all observations</button>
+        <button onclick="window.location.href = '/upload-observations/'">upload observations</button>
+        <button onclick="window.location.href = '/update-observations/'">update observations</button>
     </div>
     <div class="container">
         <div class="content_wrapper">
@@ -97,9 +97,9 @@
                                 <td class="left-align">{{ observation.target.name }}</td>
                                 <td class="left-align">{{ observation.observation_type }}</td>
                                 <td>
-                                <div class="filter_set_container">
-                                    {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
-                                </div>
+                                    <div class="filter_set_container">
+                                        {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
+                                    </div>
                                 </td>
                                 <td class="right-align">{{ observation.exposure_time }}</td>
                                 {% if request.user.is_superuser %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}

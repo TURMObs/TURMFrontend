@@ -1,6 +1,11 @@
 from django.urls import path
 
-from dashboard.views import dashboard, delete_all, upload_observation, update_observation
+from dashboard.views import (
+    dashboard,
+    delete_all,
+    upload_observation,
+    update_observation,
+)
 from django.conf import settings
 
 urlpatterns = [
