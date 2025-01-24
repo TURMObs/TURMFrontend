@@ -1,5 +1,6 @@
 import logging
 
+from django.core.exceptions import BadRequest
 from nc_py_api import NextcloudException
 
 from accounts.models import ObservatoryUser, UserPermission
@@ -28,6 +29,7 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
     except AbstractObservation.DoesNotExist:
         raise ValueError(f"Could not find observation with id {observation_id}")
 
+
     if not user == obs.user and not user.has_perm(
         UserPermission.CAN_DELETE_ALL_OBSERVATIONS
     ):
@@ -37,6 +39,9 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
         raise PermissionError(
             f"User {user.get_username()} does not have permission to delete observation {observation_id}."
         )
+
+    if obs.project_status == ObservationStatus.PENDING:
+        raise BadRequest(f"Observation {obs.id} is already marked for deletion.")
 
     if obs.project_status == ObservationStatus.UPLOADED:
         obs.project_status = ObservationStatus.PENDING_DELETE
