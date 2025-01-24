@@ -1,17 +1,19 @@
+import builtins
 import logging
 
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, BadRequest
 from django.db.models import ManyToManyField
 from django.http import QueryDict
 from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.status import HTTP_401_UNAUTHORIZED
+from rest_framework.status import HTTP_401_UNAUTHORIZED, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 from observation_data.models import ObservationType, AbstractObservation
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
+from observation_data.observation_management import delete_observation as delete_observation_command
 
 
 logger = logging.getLogger(__name__)
@@ -135,3 +137,43 @@ def convert_query_dict(qdict, model: AbstractObservation):
         converted_dict[key] = val[0]
 
     return converted_dict
+
+@require_POST
+@api_view(["POST"])
+def delete_observation(request):
+    user = request.user
+    if not user.is_authenticated:
+        return Response(
+            {"error": "Authentication required"},
+            status=HTTP_401_UNAUTHORIZED,
+        )
+
+    if not isinstance(user, ObservatoryUser):
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    request_data = request.data
+    observation_id = request_data.get("id")
+
+    if not observation_id:
+        return Response(
+            {"error": "Invalid observation id"},
+            status=HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        delete_observation_command(user, observation_id)
+    except (ValueError, PermissionError, BadRequest) as error:
+        match type(error):
+            case builtins.PermissionError:
+                error_status = HTTP_403_FORBIDDEN
+            case _:
+                error_status = HTTP_400_BAD_REQUEST
+        return Response(
+            {"error": str(error)},
+            status=error_status
+        )
+
+    return Response(status=status.HTTP_202_ACCEPTED)
