@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timedelta
 
@@ -11,6 +12,8 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
+
+from rest_framework.decorators import api_view
 
 from . import user_data
 from .models import (
@@ -248,6 +251,12 @@ def register_user(request, token):
     )
     return redirect(settings.LOGIN_REDIRECT_URL)
 
+@api_view(["POST"])
+def has_invitation(request):
+    email = request.data.get("email")
+    print(email)
+    exists = InvitationToken.objects.filter(email=email).exists()
+    return JsonResponse({"has_invitation": exists}, status=200)
 
 @require_POST
 def delete_invitation(request, invitation_id):

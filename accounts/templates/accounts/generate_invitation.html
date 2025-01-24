@@ -152,7 +152,7 @@
                         <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
                     </div>
                     <div class="form-group">
-                        <button class="generatebutton" type="submit">Generate</button>
+                        <button type="button" class="generate-invitation-button" onclick="createInvitation()">Generate</button>
                     </div>
                 </form>
             {% else %}
@@ -165,33 +165,34 @@
             <h3>Open Invitations</h3>
             <table>
                 <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                    </tr>
+                <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {% if invitations %}
-                        {% for invitation in invitations %}
-                            <tr>
-                                <td>{{ invitation.email }}</td>
-                                <td>{{ invitation.role }}</td>
-                                <td>
-                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button"
-                                                class="delete-button"
-                                                onclick="deleteInvitation({{ invitation.id }}">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
+                {% if invitations %}
+                    {% for invitation in invitations %}
                         <tr>
-                            <td colspan="3">No open invitations found.</td>
+                            <td>{{ invitation.email }}</td>
+                            <td>{{ invitation.role }}</td>
+                            <td>
+                                <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="button"
+                                            class="delete-button"
+                                            onclick="deleteInvitation({{ invitation.id }}">Delete
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                    {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="3">No open invitations found.</td>
+                    </tr>
+                {% endif %}
                 </tbody>
             </table>
         </div>
@@ -200,38 +201,39 @@
             <h3>All Users</h3>
             <table>
                 <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Quota</th>
-                        <th>Lifetime</th>
-                        <th>Date Joined</th>
-                        <th>Actions</th>
-                    </tr>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Quota</th>
+                    <th>Lifetime</th>
+                    <th>Date Joined</th>
+                    <th>Actions</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {% for user in users %}
-                        {% if user.deletion_pending == False %}
-                            <tr id="user-{{ user.id }}"
-                                class="{% if user.id == current_user_id %}highlight{% endif %}">
-                                <td>{{ user.username }}</td>
-                                <td>{{ user.email }}</td>
-                                <td>{{ user.role }}</td>
-                                <td>{{ user.quota }}</td>
-                                <td>{{ user.lifetime }}</td>
-                                <td>{{ user.date_joined }}</td>
-                                <td>
-                                    <form id="delete-user-{{ user.id }}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button"
-                                                class="delete-button"
-                                                onclick="deleteUser({{ user.id }})">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
+                {% for user in users %}
+                    {% if user.deletion_pending == False %}
+                        <tr id="user-{{ user.id }}"
+                            class="{% if user.id == current_user_id %}highlight{% endif %}">
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.role }}</td>
+                            <td>{{ user.quota }}</td>
+                            <td>{{ user.lifetime }}</td>
+                            <td>{{ user.date_joined }}</td>
+                            <td>
+                                <form id="delete-user-{{ user.id }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="button"
+                                            class="delete-button"
+                                            onclick="deleteUser({{ user.id }})">Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -251,6 +253,7 @@
             if (document.getElementById('lifetimeField').style.display === 'none') {
                 document.getElementById('id_lifetime')?.remove();
             }
+            createInvitation(document.getElementById('email').value);
         });
 
         function copyLink() {
@@ -258,6 +261,52 @@
             navigator.clipboard.writeText(linkText).then(() => {
                 alert("Link copied to clipboard!");
             });
+        }
+
+        async function createInvitation() {
+            const form = document.getElementById('invitationForm');
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const email = form.querySelector('input[name="email"]').value;
+
+            if (form.querySelector('input[name="quota"]').value === "") {
+                form.querySelector('input[name="quota"]').value = null;
+            }
+            if (form.querySelector('input[name="lifetime"]').value === "") {
+                form.querySelector('input[name="lifetime"]').value = null;
+            }
+
+            const formData = new FormData(form);
+
+            let data;
+            try {
+                const response = await fetch("{%  url 'has-invitation' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                    }),
+                })
+                data = await response.json();
+                console.log(data['has_invitation']);
+                if (data['has_invitation'] === true) {
+                    if (!confirm("An invitation already exists for this email. Do you want to override the invitation?")) {
+                        return;
+                    }
+                }
+                await fetch("{% url 'generate-user-invitation' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData,
+                });
+                alert("Invitation created successfully!");
+            } catch (error) {
+                alert("Failed to create invitation. Please try again.");
+            }
         }
 
         async function deleteUser(userId) {

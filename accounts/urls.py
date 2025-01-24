@@ -12,7 +12,7 @@ from accounts.views import (
     delete_user,
     get_user_data,
     dsgvo_options,
-    delete_invitation,
+    delete_invitation, has_invitation,
 )
 
 urlpatterns = [
@@ -35,8 +35,9 @@ urlpatterns = [
     ),
     path("register/<uuid:token>", register),
     path("register/<uuid:token>/signup", register_user, name="signup"),
+    path("has-invitation", has_invitation, name="has-invitation"),
     path(
-        "delete_invitation/<int:invitation_id>",
+        "delete-invitation/<int:invitation_id>",
         delete_invitation,
         name="delete-invitation",
     ),
