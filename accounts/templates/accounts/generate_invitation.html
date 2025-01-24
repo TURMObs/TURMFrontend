@@ -152,7 +152,8 @@
                         <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
                     </div>
                     <div class="form-group">
-                        <button type="button" class="generate-invitation-button" onclick="createInvitation()">Generate</button>
+                        <button type="button" class="generate-invitation-button" onclick="createInvitation()">Generate
+                        </button>
                     </div>
                 </form>
             {% else %}
@@ -182,7 +183,7 @@
                                     {% csrf_token %}
                                     <button type="button"
                                             class="delete-button"
-                                            onclick="deleteInvitation({{ invitation.id }}">Delete
+                                            onclick="deleteInvitation({{ invitation.id }})">Delete
                                     </button>
                                 </form>
                             </td>
@@ -296,14 +297,19 @@
                         return;
                     }
                 }
-                await fetch("{% url 'generate-user-invitation' %}", {
+                const generateResponse = await fetch("{% url 'generate-user-invitation' %}", {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,
                     },
                     body: formData,
                 });
-                alert("Invitation created successfully!");
+                if (generateResponse.ok) {
+                    alert("Invitation created successfully!");
+                    location.reload();
+                } else {
+                    alert("Failed to create invitation. Please try again.");
+                }
             } catch (error) {
                 alert("Failed to create invitation. Please try again.");
             }
@@ -343,7 +349,7 @@
         async function deleteInvitation(invitationId) {
             const form = document.getElementById(`delete-invitation-${invitationId}`);
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
-
+            console.log("Invitation ID: ", invitationId);
             try {
                 const response = await fetch("{% url 'delete-invitation' 0 %}".replace("0", invitationId), {
                     method: 'POST',
