@@ -1,16 +1,14 @@
 import logging
 
-from django.core.exceptions import BadRequest
 from nc_py_api import NextcloudException
 
 from accounts.models import ObservatoryUser, UserPermission
 from nextcloud.nextcloud_manager import (
     generate_observation_path,
-    initialize_connection,
-    file_exists,
-    delete,
 )
 from observation_data.models import AbstractObservation, ObservationStatus
+
+import nextcloud.nextcloud_manager as nm
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +21,6 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
     :param observation_id: The id of the observation.
     :raises ValueError: If no such observation exists.
     :raises PermissionError: If the user does not have permission to delete the observation.
-    :raises BadRequest: If the user does not have permission to delete the observation.
-
     """
 
     try:
@@ -43,23 +39,40 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
         )
 
     if obs.project_status == ObservationStatus.UPLOADED:
-        raise BadRequest(
-            f"Observation {observation_id} cannot be deleted as this may interfer with NINA scheduling"
-        )
-
-    try:
-        initialize_connection()
-    except NextcloudException as e:
-        logger.warning(
-            f"Could not connect to Nextcloud. Cannot check if observation is uploaded. Got {e}"
-        )
-    else:
-        nc_path = generate_observation_path(obs)
-        if file_exists(nc_path):
-            delete(nc_path)
-            logger.info(f"Observation {obs.id} deleted successfully from Nextcloud.")
-        else:
-            logger.info(f"Observation {observation_id} does not exist in Nextcloud.")
+        obs.project_status = ObservationStatus.PENDING_DELETE
+        logger.info(f"Status of observation {obs.id} set to {obs.project_status}")
+        obs.save()
+        return
 
     obs.delete()
     logger.info(f"Observation {obs.id} deleted successfully from database.")
+
+
+def update_deletion():
+    """
+    Deletes all observations with status PENDING_DELETE from database and if existent from nextcloud.
+    """
+    try:
+        nm.initialize_connection()
+    except NextcloudException:
+        logger.error(
+            "Could not connect to Nextcloud. Observations with status PENDING_DELETE where not deleted"
+        )
+        return
+
+    for obs in AbstractObservation.objects.filter(
+        project_status=ObservationStatus.PENDING_DELETE
+    ):
+        nc_path = generate_observation_path(obs)
+        if nm.file_exists(nc_path):
+            nm.delete(nc_path)
+            logger.info(f"Observation {obs.id} deleted successfully from Nextcloud.")
+        else:
+            logger.info(f"Observation {obs.id} does not exist in Nextcloud.")
+
+        obs.delete()
+        logger.info(f"Observation {obs.id} deleted successfully from database.")
+    logger.info("All observations with status PENDING_DELETE deleted successfully.")
+
+    for user in ObservatoryUser.objects.filter(is_active=False):
+        user.delete()
