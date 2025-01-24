@@ -141,6 +141,12 @@ def convert_query_dict(qdict, model: AbstractObservation):
 @require_POST
 @api_view(["POST"])
 def delete_observation(request):
+    """
+        Deletes the observation with the passed id.
+        User must be the owner of the observation or admin to delete the observation.
+        :param request: HTTP request with observation data
+        :return: HTTP response success or error with error message
+    """
     user = request.user
     if not user.is_authenticated:
         return Response(
