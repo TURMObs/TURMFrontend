@@ -55,19 +55,9 @@
     }
     </style>
     <script>
-    function delete_observatories() {
-        if (confirm("This will delete all observations!")) {
-            window.location.href = '/delete-observations/'
-        }
-    }
     </script>
 {% endblock %}
 {% block content %}
-    <div>
-    <button onclick="delete_observatories()">delete all observations</button>
-    <button onclick="window.location.href = '/upload-observations/'">upload observations</button>
-    <button onclick="window.location.href = '/update-observations/'">update observations</button>
-    </div>
     <div class="container">
         <div class="content_wrapper">
             {% if observations|length == 0 %}
