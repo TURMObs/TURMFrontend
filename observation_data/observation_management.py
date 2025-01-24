@@ -22,6 +22,7 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
     :param observation_id: The id of the observation.
     :raises ValueError: If no such observation exists.
     :raises PermissionError: If the user does not have permission to delete the observation.
+    :raises BadRequest: If the observation is already marked for deletion.
     """
 
     try:
@@ -40,7 +41,7 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
             f"User {user.get_username()} does not have permission to delete observation {observation_id}."
         )
 
-    if obs.project_status == ObservationStatus.PENDING:
+    if obs.project_status == ObservationStatus.PENDING_DELETE:
         raise BadRequest(f"Observation {obs.id} is already marked for deletion.")
 
     if obs.project_status == ObservationStatus.UPLOADED:
