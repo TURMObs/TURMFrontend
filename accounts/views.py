@@ -267,8 +267,17 @@ def delete_user(request, user_id):
             },
             status=403,
         )
-    user_data.delete_user(user)
-    logger.info(f"User {user} deleted their account.")
+    if not isinstance(user, ObservatoryUser):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "You cannot delete this user.",
+            },
+            status=400,
+        )
+    user.deletion_pending = True
+    user.save()
+    logger.info(f"User {user} marked their account for deletion")
     return JsonResponse({"status": "success"}, status=200)
 
 

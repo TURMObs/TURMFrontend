@@ -212,23 +212,25 @@
                 </thead>
                 <tbody>
                     {% for user in users %}
-                        <tr id="user-{{ user.id }}"
-                            class="{% if user.id == current_user_id %}highlight{% endif %}">
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.role }}</td>
-                            <td>{{ user.quota }}</td>
-                            <td>{{ user.lifetime }}</td>
-                            <td>{{ user.date_joined }}</td>
-                            <td>
-                                <form id="delete-user-{{ user.id }}" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="button"
-                                            class="delete-button"
-                                            onclick="deleteUser({{ user.id }})">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
+                        {% if user.deletion_pending == False %}
+                            <tr id="user-{{ user.id }}"
+                                class="{% if user.id == current_user_id %}highlight{% endif %}">
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.role }}</td>
+                                <td>{{ user.quota }}</td>
+                                <td>{{ user.lifetime }}</td>
+                                <td>{{ user.date_joined }}</td>
+                                <td>
+                                    <form id="delete-user-{{ user.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="delete-button"
+                                                onclick="deleteUser({{ user.id }})">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -259,7 +261,7 @@
         }
 
         async function deleteUser(userId) {
-            if (!confirm("Are you sure you want to delete this user?")) {
+            if (!confirm("Are you sure you want to mark this user for deletion?")) {
                 return;  // If the user cancels, do nothing
             }
 
@@ -278,10 +280,10 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message || "User deleted successfully!");
+                    alert(data.message || "User marked for deletion!");
                     form.closest('tr').remove(); // Remove the row from the table
                 } else {
-                    alert(data.error || "An error occurred while deleting the user.");
+                    alert(data.error || "An error occurred while marking the user for deletion.");
                 }
             } catch (error) {
                 alert("Failed to delete the user. Please try again.");

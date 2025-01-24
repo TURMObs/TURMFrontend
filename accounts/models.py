@@ -44,6 +44,7 @@ class InvitationToken(models.Model):
 class ObservatoryUser(AbstractUser):
     quota = models.IntegerField(null=True)
     lifetime = models.DateField(null=True)
+    deletion_pending = models.BooleanField(default=False)
 
     def has_perm(self, perm: UserPermission, obj=None):
         """
