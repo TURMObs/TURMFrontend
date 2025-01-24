@@ -162,7 +162,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert("User data has been successfully deleted.");
+                    alert("Your request was successful. It can take up to 24 hours until your data is deleted entirely.");
                     window.location.href = '/';
                 } else {
                     alert("An error occurred while deleting the data.");

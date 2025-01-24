@@ -6,14 +6,13 @@ from unittest import skipIf
 
 import django.test
 from django.contrib.auth.models import Permission
-from django.core.exceptions import BadRequest
 from django.core.management import call_command
 from django.conf import settings
 from dotenv import load_dotenv
 
 from accounts.models import ObservatoryUser, UserPermission
 from nextcloud.nextcloud_manager import generate_observation_path
-from nextcloud.nextcloud_sync import upload_observations
+from nextcloud.nextcloud_sync import upload_observations, update_observations
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
@@ -1027,15 +1026,22 @@ class ObservationManagementTestCase(django.test.TestCase):
         delete_observation(user=self.user, observation_id=obs_id)
         self.assertEqual(0, AbstractObservation.objects.count())
 
-    def test_bad_request(self):
+    def test_currently_uploaded(self):
         # simulates the situation where a user tries to delete an observation, that currently might be used by NINA and therefore cannot be deleted
         obs_id = 42
         self.create_test_observation(obs_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
         obs.project_status = ObservationStatus.UPLOADED
         obs.save()
-        with self.assertRaises(BadRequest):
-            delete_observation(user=self.user, observation_id=obs_id)
+
+        delete_observation(user=self.user, observation_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING_DELETE)
+
+        update_observations()
+        self.assertEqual(
+            0, AbstractObservation.objects.count()
+        )  # obs does not exist anymore
 
     def test_bad_id(self):
         # simulates the situation where a user tries to delete a non-existing observation
@@ -1054,16 +1060,15 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.create_test_observation(obs_id=obs_id)
         self.assertEqual(1, AbstractObservation.objects.count())
+
         obs = AbstractObservation.objects.get(id=obs_id)
         upload_observations()
-        obs.observation_status = (
-            ObservationStatus.PENDING
-        )  # upload sets status, but this prevents deletion, therefore set manually
-        obs.save()
+        delete_observation(user=self.user, observation_id=obs_id)
 
         self.assertTrue(nm.file_exists(generate_observation_path(obs)))
 
         delete_observation(user=self.user, observation_id=obs_id)
+        update_observations()
 
         self.assertEqual(0, AbstractObservation.objects.count())
         self.assertFalse(nm.file_exists(generate_observation_path(obs)))

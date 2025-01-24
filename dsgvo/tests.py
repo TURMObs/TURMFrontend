@@ -3,7 +3,6 @@ import unittest
 
 import django.test
 from django.core.management import call_command
-from nc_py_api import NextcloudException
 
 from accounts.models import ObservatoryUser
 from nextcloud import nextcloud_manager
@@ -14,10 +13,9 @@ from nextcloud.nextcloud_manager import (
     delete,
     initialize_connection,
 )
-from nextcloud.nextcloud_sync import upload_observations
+from nextcloud.nextcloud_sync import upload_observations, update_observations
 from observation_data.models import (
     ObservationType,
-    AbstractObservation,
     ImagingObservation,
     VariableObservation,
 )
@@ -37,7 +35,6 @@ class DSGVOUserDataTestCase(django.test.TestCase):
 
     def setUp(self):
         initialize_connection()
-        self._clear_data()
         self.user = ObservatoryUser.objects.create_user(
             username="testuser", password="testpassword", is_superuser=True
         )
@@ -104,13 +101,6 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self._create_observation(data, user)
         return VariableObservation.objects.get(target__name=target_name)
 
-    def _clear_data(self):
-        AbstractObservation.objects.all().delete()
-        try:
-            delete("TURMX")
-        except NextcloudException:
-            pass
-
     def test_data_download(self):
         self._create_imaging_observation("M51")
         self._create_variable_observation("M42")
@@ -142,6 +132,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         )
         response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)
+        update_observations()
         self.assertFalse(ObservatoryUser.objects.filter(username="testuser").exists())
         self.assertFalse(VariableObservation.objects.exists())
         self.assertEqual(ImagingObservation.objects.count(), 1)
@@ -168,6 +159,8 @@ class DSGVOUserDataTestCase(django.test.TestCase):
             self.assertTrue(file_exists(file))
         response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)
+
+        update_observations()
         self.assertFalse(file_exists(file_im1))
         self.assertTrue(file_exists(file_im2))
         self.assertFalse(file_exists(file_var1))
