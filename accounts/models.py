@@ -114,3 +114,30 @@ def generate_invitation_link(
 
     invitation_link = f"{base_url}/{invitation_token.token}"
     return invitation_link
+
+
+def is_allowed_password(string: str) -> bool:
+    """
+    Check if a all characters in a string are allowed to be used in a password.
+
+    Allowed characters: All alphanumeric, so (A-Z), (a-z), (0-9) and all characters in SPECIAL_CHARACTERS.
+
+    :param string: The string to check.
+
+    :return: True if the string is allowed, False otherwise.
+    """
+    SPECIAL_CHARACTERS = ["!", "#", "$", "%", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "[", "]", "^", "_", "{", "|", "}", "~"]
+
+    return string.isalnum() or _any_char_in_list(string, SPECIAL_CHARACTERS)
+
+
+def _any_char_in_list(string: str, char_list: list) -> bool:
+    """
+    Check if any character in a string is in a list of characters.
+
+    :param string: The string to check.
+    :param char_list: The list of characters to check.
+
+    :return: True if any character in the string is in the list, False otherwise.
+    """
+    return any(char in char_list for char in string)

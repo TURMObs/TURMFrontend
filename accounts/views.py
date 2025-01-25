@@ -17,6 +17,7 @@ from .models import (
     ObservatoryUser,
     UserPermission,
     UserGroup,
+    is_allowed_password
 )
 
 logger = logging.getLogger(__name__)
@@ -93,6 +94,8 @@ class SetPasswordForm(forms.Form):
         password2 = cleaned_data.get("new_password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords do not match")
+        if is_allowed_password(password1) is False:
+            raise forms.ValidationError("Password uses invalid characters")
         return cleaned_data
 
 
@@ -218,9 +221,8 @@ def register_user(request, token):
         return register_from_invitation_template(
             request,
             token,
-            form=SetPasswordForm(),
+            form=form,
             email=invitation.email,
-            error="Invalid password",
         )
 
     invitation.delete()
@@ -260,12 +262,12 @@ def generate_invitation_template(request, error=None, link=None, form=None):
 
 
 def register_from_invitation_template(
-    request, token, error=None, email=None, form=None
+    request, token, email=None, form=None
 ):
     return render(
         request,
         "authentication/register_from_invitation.html",
-        {"error": error, "form": form, "email": email, "token": token},
+        {"form": form, "email": email, "token": token},
     )
 
 

@@ -29,7 +29,13 @@
                         {{ form.new_password2 }}
                         <i class='bx bxs-lock-alt'></i>
                     </div>
-                    {% if error %}<p class="error-message">{{ error }}</p>{% endif %}
+                    {% if form.errors %}
+                        {% for error in form.errors.as_data.values %}
+                            {% for error in error.0 %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
                     <button type="submit" class= "btn">Register</button>
                 </form>
             </div>
