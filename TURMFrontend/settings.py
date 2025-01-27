@@ -35,6 +35,7 @@ SECRET_KEY = "django-insecure-k$b$^f#%axr_@sur%@5u9ru2sau$xddv7%wb@kr(vp^y5ad!vu
 # SECURITY WARNING: don't run with debug turned on in production!
 load_dotenv()
 DEBUG = os.getenv("DEBUG", "True") == "True"
+FORCE_SCRIPT_NAME = os.getenv("SUBPATH", None)
 
 ALLOWED_HOSTS = ['localhost']
 

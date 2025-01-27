@@ -23,6 +23,8 @@
     | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **YES**      | `http://localhost:8080`, when testing locally. `http://turmfrontend-nextcloud:80` when run in Docker                                |
     | `NC_PREFIX`              | Top level folders in the nextcloud to store the observations in . Entered as string (without "" or leading/following '/' for multiple folders)                | **No**.      | `test`, default/non-existing: root directory of nextcloud,                                  |
     | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**.      | default/non-existing `True`                                 |
+    | `SUBPATH`                | Subpath the website is being deployed on                                                                                  | **No**.      | /tom                              |
+
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
