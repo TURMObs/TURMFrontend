@@ -30,7 +30,6 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
     except AbstractObservation.DoesNotExist:
         raise ValueError(f"Could not find observation with id {observation_id}")
 
-
     if not user == obs.user and not user.has_perm(
         UserPermission.CAN_DELETE_ALL_OBSERVATIONS
     ):
@@ -41,11 +40,14 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
             f"User {user.get_username()} does not have permission to delete observation {observation_id}."
         )
 
-    if obs.project_status == ObservationStatus.PENDING_DELETE:
+    if obs.project_status == ObservationStatus.PENDING_DELETION:
         raise BadRequest(f"Observation {obs.id} is already marked for deletion.")
 
-    if obs.project_status == ObservationStatus.UPLOADED or obs.project_status == ObservationStatus.ERROR: # to prevent mix-up during NINA-Scheduling these observations are deleted in the morning
-        obs.project_status = ObservationStatus.PENDING_DELETE
+    if (
+        obs.project_status == ObservationStatus.UPLOADED
+        or obs.project_status == ObservationStatus.ERROR
+    ):  # to prevent mix-up during NINA-Scheduling these observations are deleted in the morning
+        obs.project_status = ObservationStatus.PENDING_DELETION
         logger.info(f"Status of observation {obs.id} set to {obs.project_status}")
         obs.save()
         return
@@ -54,9 +56,10 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
     logger.info(f"Observation {obs.id} deleted successfully from database.")
 
 
-def update_deletion():
+def process_pending_deletion():
     """
     Deletes all observations with status PENDING_DELETE from database and if existent from nextcloud.
+    Also deletes all users with status
     """
     try:
         nm.initialize_connection()
@@ -67,7 +70,7 @@ def update_deletion():
         return
 
     for obs in AbstractObservation.objects.filter(
-        project_status=ObservationStatus.PENDING_DELETE
+        project_status=ObservationStatus.PENDING_DELETION
     ):
         nc_path = generate_observation_path(obs)
         if nm.file_exists(nc_path):
@@ -80,5 +83,5 @@ def update_deletion():
         logger.info(f"Observation {obs.id} deleted successfully from database.")
     logger.info("All observations with status PENDING_DELETE deleted successfully.")
 
-    for user in ObservatoryUser.objects.filter(is_active=False):
+    for user in ObservatoryUser.objects.filter(deletion_pending=True):
         user.delete()

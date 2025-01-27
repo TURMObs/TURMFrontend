@@ -212,7 +212,7 @@ def update_observations(today: datetime = timezone.now()):
 
     :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
     """
-    observation_management.update_deletion()
+    observation_management.process_pending_deletion()
     update_non_scheduled_observations()
     update_scheduled_observations(today)
 

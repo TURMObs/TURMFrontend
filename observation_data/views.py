@@ -8,12 +8,18 @@ from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.status import HTTP_401_UNAUTHORIZED, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
+from rest_framework.status import (
+    HTTP_401_UNAUTHORIZED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_403_FORBIDDEN,
+)
 
 from observation_data.models import ObservationType, AbstractObservation
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
-from observation_data.observation_management import delete_observation as delete_observation_command
+from observation_data.observation_management import (
+    delete_observation as delete_observation_command,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -138,14 +144,15 @@ def convert_query_dict(qdict, model: AbstractObservation):
 
     return converted_dict
 
+
 @require_POST
 @api_view(["POST"])
 def delete_observation(request):
     """
-        Deletes the observation with the passed id.
-        User must be the owner of the observation or admin to delete the observation.
-        :param request: HTTP request with observation data
-        :return: HTTP response success or error with error message
+    Deletes the observation with the passed id.
+    User must be the owner of the observation or admin to delete the observation.
+    :param request: HTTP request with observation data
+    :return: HTTP response success or error with error message
     """
     user = request.user
     if not user.is_authenticated:
@@ -177,9 +184,6 @@ def delete_observation(request):
                 error_status = HTTP_403_FORBIDDEN
             case _:
                 error_status = HTTP_400_BAD_REQUEST
-        return Response(
-            {"error": str(error)},
-            status=error_status
-        )
+        return Response({"error": str(error)}, status=error_status)
 
     return Response(status=status.HTTP_202_ACCEPTED)

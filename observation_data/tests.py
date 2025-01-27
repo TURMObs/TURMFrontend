@@ -1038,7 +1038,7 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         delete_observation(user=self.user, observation_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
-        self.assertEqual(obs.project_status, ObservationStatus.PENDING_DELETE)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING_DELETION)
 
         update_observations()
         self.assertEqual(

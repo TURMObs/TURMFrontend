@@ -20,7 +20,7 @@ def delete_user(user: AbstractBaseUser):
         delete_observation(
             user=ObservatoryUser.objects.get(id=user.id), observation_id=request.id
         )
-    user.is_active = False  # cannot be deleted right away because we have to wait until the morning to delete the users observations and afterward the user itself
+    user.deletion_pending = True  # cannot be deleted right away because we have to wait until the morning to delete the users observations and afterward the user itself
     user.save()
 
 
