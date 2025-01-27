@@ -25,6 +25,7 @@
     | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**.      | default/non-existing `True`                                 |
     | `SUBPATH`                | Subpath the website is being deployed on                                                                                  | **No**.      | /tom                              |
     | `SECRET_KEY`              | Secret Django Key. Keep private!                                                                               | **Yes**.      | See https://djecrety.ir/                           |
+   | `BASE_URL`              | Base Website URL                                                                              | **Yes**.      | https://turm.physik.tu-darmstadt.de                      |
 
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:

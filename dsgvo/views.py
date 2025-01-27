@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
@@ -7,7 +8,7 @@ from dsgvo import user_data
 
 
 def index(request):
-    return render(request, "dsgvo/index.html")
+    return render(request, "dsgvo/index.html", {"subpath": settings.SUBPATH})
 
 
 @require_http_methods(["DELETE"])

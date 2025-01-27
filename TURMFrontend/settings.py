@@ -33,7 +33,8 @@ load_dotenv()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True") == "True"
-FORCE_SCRIPT_NAME = os.getenv("SUBPATH", None)
+SUBPATH = os.getenv("SUBPATH", "")
+FORCE_SCRIPT_NAME = None if SUBPATH == "" else SUBPATH
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if DEBUG:
@@ -44,7 +45,13 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY not set")
 
 
-ALLOWED_HOSTS = ['localhost']
+if DEBUG:
+    ALLOWED_HOSTS = []
+else:
+    ALLOWED_HOSTS = ['127.0.0.1']
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = [BASE_URL]
 
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
