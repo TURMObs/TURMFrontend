@@ -1,6 +1,8 @@
 import json
 import os
 from datetime import datetime, timezone, timedelta
+
+from django.core.exceptions import BadRequest
 from django.utils import timezone as tz
 from unittest import skipIf
 
@@ -1067,7 +1069,9 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.assertTrue(nm.file_exists(generate_observation_path(obs)))
 
-        delete_observation(user=self.user, observation_id=obs_id)
+        with self.assertRaises(BadRequest):
+            delete_observation(user=self.user, observation_id=obs_id)
+
         update_observations()
 
         self.assertEqual(0, AbstractObservation.objects.count())

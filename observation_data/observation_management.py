@@ -44,7 +44,7 @@ def delete_observation(user: ObservatoryUser, observation_id: int):
     if obs.project_status == ObservationStatus.PENDING_DELETE:
         raise BadRequest(f"Observation {obs.id} is already marked for deletion.")
 
-    if obs.project_status == ObservationStatus.UPLOADED:
+    if obs.project_status == ObservationStatus.UPLOADED or obs.project_status == ObservationStatus.ERROR: # to prevent mix-up during NINA-Scheduling these observations are deleted in the morning
         obs.project_status = ObservationStatus.PENDING_DELETE
         logger.info(f"Status of observation {obs.id} set to {obs.project_status}")
         obs.save()
@@ -62,7 +62,7 @@ def update_deletion():
         nm.initialize_connection()
     except NextcloudException:
         logger.error(
-            "Could not connect to Nextcloud. Observations with status PENDING_DELETE where not deleted"
+            "Could not connect to Nextcloud. Observations with status PENDING_DELETE were not deleted"
         )
         return
 
