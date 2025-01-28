@@ -115,7 +115,6 @@ def login(request):
 def login_user(request):
     form = LoginForm(request.POST)
     if not form.is_valid():
-        print(form.errors)
         return index_template(
             request, form=LoginForm(), error="Invalid username or password"
         )
