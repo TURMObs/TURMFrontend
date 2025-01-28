@@ -31,16 +31,33 @@
             margin-bottom: 20px;
         }
 
-        .delete-button {
-            background-color: transparent;
-            color: red;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
+        /* Table cell styling */
+        td {
+            padding: 10px; /* Ensure consistent padding for table cells */
+            border: 1px solid #444444; /* Ensure consistent borders on table cells */
         }
 
-        .delete-button:hover {
-            color: darkred;
+        /* Button styles */
+        .delete-button, .copy-button {
+            background-color: transparent;
+            color: white; /* Keep text color white */
+            border: 2px solid white; /* Set white border */
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 15px;
+            transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+        }
+
+        /* Hover state */
+        .delete-button:hover, .copy-button:hover {
+            background-color: #da190b; /* Red for delete */
+            color: white; /* Ensure text stays white */
+            border-color: white; /* Keep border white */
+        }
+
+        /* Copy button hover state */
+        .copy-button:hover {
+            background-color: #45a049; /* Green for copy */
         }
 
         #modal {
@@ -95,10 +112,31 @@
             color: white;
         }
 
-        tr:hover {
-            background-color: #333333;
-            cursor: pointer;
+
+        .tables-background {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
         }
+
+        .tables-background table {
+            background-color: #1e1e1e;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .tables-background table th, .tables-background table td {
+            border: 1px solid #444444;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .tables-background table th {
+            background-color: #222222;
+            color: white;
+        }
+
 
         .styled-select {
             background-color: #333333;
@@ -125,31 +163,6 @@
         }
 
 
-        .generatebutton {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .generatebutton:hover {
-            background-color: #45a049;
-        }
-
-        .delete-button {
-            background-color: #f44336;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .delete-button:hover {
-            background-color: #da190b;
-        }
     </style>
 {% endblock %}
 {% block content %}
