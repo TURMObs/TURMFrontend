@@ -115,7 +115,35 @@ def generate_invitation_link(
     invitation_link = f"{base_url}/{invitation_token.token}"
     return invitation_link
 
-SPECIAL_CHARACTERS = ["!", "#", "$", "%", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "[", "]", "^", "_", "{", "|", "}", "~"]
+
+SPECIAL_CHARACTERS = [
+    "!",
+    "#",
+    "$",
+    "%",
+    "(",
+    ")",
+    "*",
+    "+",
+    ",",
+    "-",
+    ".",
+    "/",
+    ":",
+    ";",
+    "=",
+    "?",
+    "@",
+    "[",
+    "]",
+    "^",
+    "_",
+    "{",
+    "|",
+    "}",
+    "~",
+]
+
 
 def is_allowed_password(string: str) -> bool:
     """
@@ -128,7 +156,7 @@ def is_allowed_password(string: str) -> bool:
     :return: True if the string is allowed, False otherwise.
     """
 
-    return (string.isalnum() or _any_char_in_list(string, SPECIAL_CHARACTERS))
+    return string.isalnum() or _any_char_in_list(string, SPECIAL_CHARACTERS)
 
 
 def _any_char_in_list(string: str, char_list: list) -> bool:
