@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import datetime, timedelta
 
@@ -36,7 +35,10 @@ class LoginForm(forms.Form):
 
 class GenerateInvitationForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
-    username = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "User Alias (optional)"}), required=False)
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={"placeholder": "User Alias (optional)"}),
+        required=False,
+    )
     quota = forms.IntegerField(
         widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
         min_value=1,
@@ -133,6 +135,12 @@ def login_user(request):
         return index_template(
             request, form=LoginForm(), error="Invalid username or password"
         )
+    if not isinstance(user, ObservatoryUser):
+        return index_template(request, form=LoginForm(), error="Invalid user")
+    if user.deletion_pending:
+        return index_template(
+            request, form=LoginForm(), error="This account has been marked for deletion"
+        )
     auth.login(request, user)
     logger.info(f"User {username} logged in successfully")
     return redirect(settings.LOGIN_REDIRECT_URL)
@@ -165,6 +173,9 @@ def generate_user_invitation(request):
     role = form.cleaned_data["role"]
     expert = form.cleaned_data["expert"]
 
+    if username is None or username == "":
+        username = email
+
     if role == UserGroup.ADMIN and not request.user.has_perm(
         UserPermission.CAN_INVITE_ADMINS
     ):
@@ -184,9 +195,20 @@ def generate_user_invitation(request):
         )
 
     base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
-    link = generate_invitation_link(base_url=base_url, email=email, username=username, quota=quota, lifetime=lifetime, role=role, expert=expert)
+    link = generate_invitation_link(
+        base_url=base_url,
+        email=email,
+        username=username,
+        quota=quota,
+        lifetime=lifetime,
+        role=role,
+        expert=expert,
+    )
     if link is None:
-        return JsonResponse({"status": "error", "message": "User with this email already exists"}, status=400)
+        return JsonResponse(
+            {"status": "error", "error": "User with this email already exists"},
+            status=400,
+        )
     logger.info(f"Invitation generated for email {email} by {request.user.username}")
     return JsonResponse({"status": "success", "link": link}, status=200)
 
@@ -225,8 +247,6 @@ def register_user(request, token):
             email=invitation.email,
             error="Invalid password",
         )
-
-    invitation.delete()
     user = ObservatoryUser.objects.create_user(
         username=invitation.username,
         email=invitation.email,
@@ -242,12 +262,13 @@ def register_user(request, token):
             )
         )
     user.save()
-    invitation.save()
+    invitation.delete()
     auth.login(request, user)
     logger.info(
         f"Created new {invitation.role} account for {user.username} with quota {user.quota} and lifetime {user.lifetime} (expert: {invitation.expert})"
     )
     return redirect(settings.LOGIN_REDIRECT_URL)
+
 
 @api_view(["POST"])
 def has_invitation(request):
@@ -255,6 +276,7 @@ def has_invitation(request):
     print(email)
     exists = InvitationToken.objects.filter(email=email).exists()
     return JsonResponse({"has_invitation": exists}, status=200)
+
 
 @require_POST
 def delete_invitation(request, invitation_id):
@@ -265,8 +287,10 @@ def delete_invitation(request, invitation_id):
 
 @require_POST
 def delete_user(request, user_id):
-    user = request.user
-    if user_id != user.id and not user.has_perm(UserPermission.CAN_DELETE_USERS):
+    request_user = request.user
+    if user_id != request_user.id and not request_user.has_perm(
+        UserPermission.CAN_DELETE_USERS
+    ):
         return JsonResponse(
             {
                 "status": "error",
@@ -274,7 +298,16 @@ def delete_user(request, user_id):
             },
             status=403,
         )
-    if not isinstance(user, ObservatoryUser):
+    target_user = ObservatoryUser.objects.get(id=user_id)
+    if not target_user:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User does not exist.",
+            },
+            status=400,
+        )
+    if not isinstance(target_user, ObservatoryUser):
         return JsonResponse(
             {
                 "status": "error",
@@ -282,9 +315,9 @@ def delete_user(request, user_id):
             },
             status=400,
         )
-    user.deletion_pending = True
-    user.save()
-    logger.info(f"User {user} marked their account for deletion")
+    target_user.deletion_pending = True
+    target_user.save()
+    logger.info(f"{target_user} has been marked for deletion by {request_user}")
     return JsonResponse({"status": "success"}, status=200)
 
 

@@ -12,7 +12,8 @@ from accounts.views import (
     delete_user,
     get_user_data,
     dsgvo_options,
-    delete_invitation, has_invitation,
+    delete_invitation,
+    has_invitation,
 )
 
 urlpatterns = [

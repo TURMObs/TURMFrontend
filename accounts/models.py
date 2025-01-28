@@ -39,6 +39,7 @@ class InvitationToken(models.Model):
     )
     expert = models.BooleanField(default=False)
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    link = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -127,8 +128,15 @@ def generate_invitation_link(
         invitation_token.save()
     else:
         invitation_token = InvitationToken.objects.create(
-            email=email, username=username, quota=quota, lifetime=lifetime, role=role, expert=expert
+            email=email,
+            username=username,
+            quota=quota,
+            lifetime=lifetime,
+            role=role,
+            expert=expert,
         )
 
     invitation_link = f"{base_url}/{invitation_token.token}"
+    invitation_token.link = invitation_link
+    invitation_token.save()
     return invitation_link
