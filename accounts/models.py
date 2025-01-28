@@ -115,6 +115,7 @@ def generate_invitation_link(
     invitation_link = f"{base_url}/{invitation_token.token}"
     return invitation_link
 
+SPECIAL_CHARACTERS = ["!", "#", "$", "%", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "[", "]", "^", "_", "{", "|", "}", "~"]
 
 def is_allowed_password(string: str) -> bool:
     """
@@ -126,9 +127,8 @@ def is_allowed_password(string: str) -> bool:
 
     :return: True if the string is allowed, False otherwise.
     """
-    SPECIAL_CHARACTERS = ["!", "#", "$", "%", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "[", "]", "^", "_", "{", "|", "}", "~"]
 
-    return string.isalnum() or _any_char_in_list(string, SPECIAL_CHARACTERS)
+    return (string.isalnum() or _any_char_in_list(string, SPECIAL_CHARACTERS))
 
 
 def _any_char_in_list(string: str, char_list: list) -> bool:
@@ -141,3 +141,29 @@ def _any_char_in_list(string: str, char_list: list) -> bool:
     :return: True if any character in the string is in the list, False otherwise.
     """
     return any(char in char_list for char in string)
+
+
+def password_length_ok(string: str) -> bool:
+    """
+    Check if the length of a string is at least 8 characters and at most 64 characters.
+
+    :param string: The string to check.
+
+    :return: True if the string is at least 8 characters long and at most 64 characters long, False otherwise.
+    """
+    return len(string) >= 8 and len(string) <= 64
+
+
+def password_requirements_met(password: str) -> bool:
+    """
+    Check if a password meets the requirements for a password. The password must contain at least one letter, one number and one special character.
+
+    :param password: The password to check.
+
+    :return: True if the password meets the requirements, False otherwise.
+    """
+    has_letter = any(char.isalpha() for char in password)
+    has_number = any(char.isdigit() for char in password)
+    has_special = _any_char_in_list(password, SPECIAL_CHARACTERS)
+
+    return has_letter and has_number and has_special and password_length_ok(password)
