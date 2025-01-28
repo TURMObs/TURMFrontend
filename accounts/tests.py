@@ -74,7 +74,7 @@ class PasswordRequirementsTest(TestCase):
 
         # check if empty password is not allowed
         self.assertFalse(password_length_ok(""))
-        
+
     def test_password_requirements_met(self):
         # check if password meets the requirements for a password
         self.assertTrue(password_requirements_met("password1!"))

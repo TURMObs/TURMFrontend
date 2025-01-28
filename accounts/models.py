@@ -116,8 +116,34 @@ def generate_invitation_link(
     return invitation_link
 
 
+SPECIAL_CHARACTERS = [
+    "!",
+    "#",
+    "$",
+    "%",
+    "(",
+    ")",
+    "*",
+    "+",
+    ",",
+    "-",
+    ".",
+    "/",
+    ":",
+    ";",
+    "=",
+    "?",
+    "@",
+    "[",
+    "]",
+    "^",
+    "_",
+    "{",
+    "|",
+    "}",
+    "~",
+]
 
-SPECIAL_CHARACTERS = ["!", "#", "$", "%", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "[", "]", "^", "_", "{", "|", "}", "~"]
 
 def is_allowed_password(string: str) -> bool:
     """
@@ -130,7 +156,9 @@ def is_allowed_password(string: str) -> bool:
     :return: True if the string is allowed, False otherwise.
     """
 
-    return all(char.isalnum() or char in SPECIAL_CHARACTERS and char != " " for char in string)
+    return all(
+        char.isalnum() or char in SPECIAL_CHARACTERS and char != " " for char in string
+    )
 
 
 def password_length_ok(string: str) -> bool:
