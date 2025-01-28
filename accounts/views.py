@@ -177,7 +177,6 @@ def generate_user_invitation(request):
             error="You do not have permission to invite group leaders",
         )
 
-
     url = settings.BASE_URL
     subpath = settings.SUBPATH
     if subpath:

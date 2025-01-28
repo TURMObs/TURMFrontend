@@ -6,176 +6,380 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AbstractObservation',
+            name="AbstractObservation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField()),
-                ('observation_type', models.CharField(choices=[('Imaging', 'Imaging'), ('Exoplanet', 'Exoplanet'), ('Variable', 'Variable'), ('Monitor', 'Monitoring'), ('Expert', 'Expert')], db_column='type')),
-                ('project_status', models.CharField(choices=[('Pending Upload', 'Pending'), ('Uploaded', 'Uploaded'), ('Error', 'Error'), ('Completed', 'Completed')])),
-                ('project_completion', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('priority', models.IntegerField()),
-                ('exposure_time', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('polymorphic_ctype', models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='polymorphic_%(app_label)s.%(class)s_set+', to='contenttypes.contenttype')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField()),
+                (
+                    "observation_type",
+                    models.CharField(
+                        choices=[
+                            ("Imaging", "Imaging"),
+                            ("Exoplanet", "Exoplanet"),
+                            ("Variable", "Variable"),
+                            ("Monitor", "Monitoring"),
+                            ("Expert", "Expert"),
+                        ],
+                        db_column="type",
+                    ),
+                ),
+                (
+                    "project_status",
+                    models.CharField(
+                        choices=[
+                            ("Pending Upload", "Pending"),
+                            ("Uploaded", "Uploaded"),
+                            ("Error", "Error"),
+                            ("Completed", "Completed"),
+                        ]
+                    ),
+                ),
+                (
+                    "project_completion",
+                    models.DecimalField(decimal_places=2, max_digits=5),
+                ),
+                ("priority", models.IntegerField()),
+                ("exposure_time", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "polymorphic_ctype",
+                    models.ForeignKey(
+                        editable=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="polymorphic_%(app_label)s.%(class)s_set+",
+                        to="contenttypes.contenttype",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
-                'base_manager_name': 'objects',
+                "abstract": False,
+                "base_manager_name": "objects",
             },
         ),
         migrations.CreateModel(
-            name='CelestialTarget',
+            name="CelestialTarget",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('catalog_id', models.CharField(blank=True, max_length=100)),
-                ('ra', models.CharField(max_length=25)),
-                ('dec', models.CharField(max_length=25)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("catalog_id", models.CharField(blank=True, max_length=100)),
+                ("ra", models.CharField(max_length=25)),
+                ("dec", models.CharField(max_length=25)),
             ],
         ),
         migrations.CreateModel(
-            name='ExposureSettings',
+            name="ExposureSettings",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('gain', models.IntegerField()),
-                ('offset', models.IntegerField()),
-                ('binning', models.IntegerField()),
-                ('subFrame', models.DecimalField(decimal_places=4, max_digits=10)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("gain", models.IntegerField()),
+                ("offset", models.IntegerField()),
+                ("binning", models.IntegerField()),
+                ("subFrame", models.DecimalField(decimal_places=4, max_digits=10)),
             ],
         ),
         migrations.CreateModel(
-            name='Filter',
+            name="Filter",
             fields=[
-                ('filter_type', models.CharField(choices=[('L', 'Luminance'), ('R', 'Red'), ('G', 'Green'), ('B', 'Blue'), ('H', 'Hydrogen'), ('O', 'Oxygen'), ('S', 'Sulfur'), ('SR', 'Sloan R'), ('SG', 'Sloan G'), ('SI', 'Sloan I')], db_column='type', max_length=2, primary_key=True, serialize=False)),
-                ('moon_separation_angle', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('moon_separation_width', models.IntegerField()),
+                (
+                    "filter_type",
+                    models.CharField(
+                        choices=[
+                            ("L", "Luminance"),
+                            ("R", "Red"),
+                            ("G", "Green"),
+                            ("B", "Blue"),
+                            ("H", "Hydrogen"),
+                            ("O", "Oxygen"),
+                            ("S", "Sulfur"),
+                            ("SR", "Sloan R"),
+                            ("SG", "Sloan G"),
+                            ("SI", "Sloan I"),
+                        ],
+                        db_column="type",
+                        max_length=2,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "moon_separation_angle",
+                    models.DecimalField(decimal_places=2, max_digits=5),
+                ),
+                ("moon_separation_width", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='ExoplanetObservation',
+            name="ExoplanetObservation",
             fields=[
-                ('abstractobservation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='observation_data.abstractobservation')),
-                ('start_observation', models.DateTimeField()),
-                ('end_observation', models.DateTimeField()),
+                (
+                    "abstractobservation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="observation_data.abstractobservation",
+                    ),
+                ),
+                ("start_observation", models.DateTimeField()),
+                ("end_observation", models.DateTimeField()),
             ],
             options={
-                'abstract': False,
-                'base_manager_name': 'objects',
+                "abstract": False,
+                "base_manager_name": "objects",
             },
-            bases=('observation_data.abstractobservation',),
+            bases=("observation_data.abstractobservation",),
         ),
         migrations.CreateModel(
-            name='ExpertObservation',
+            name="ExpertObservation",
             fields=[
-                ('abstractobservation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='observation_data.abstractobservation')),
-                ('start_scheduling', models.DateTimeField()),
-                ('end_scheduling', models.DateTimeField()),
-                ('next_upload', models.DateTimeField()),
-                ('cadence', models.IntegerField()),
-                ('frames_per_filter', models.IntegerField()),
-                ('dither_every', models.IntegerField()),
-                ('binning', models.IntegerField()),
-                ('gain', models.IntegerField()),
-                ('offset', models.IntegerField()),
-                ('start_observation', models.DateTimeField()),
-                ('end_observation', models.DateTimeField()),
-                ('moon_separation_angle', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('moon_separation_width', models.IntegerField()),
-                ('minimum_altitude', models.DecimalField(decimal_places=2, max_digits=5)),
+                (
+                    "abstractobservation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="observation_data.abstractobservation",
+                    ),
+                ),
+                ("start_scheduling", models.DateTimeField()),
+                ("end_scheduling", models.DateTimeField()),
+                ("next_upload", models.DateTimeField()),
+                ("cadence", models.IntegerField()),
+                ("frames_per_filter", models.IntegerField()),
+                ("dither_every", models.IntegerField()),
+                ("binning", models.IntegerField()),
+                ("gain", models.IntegerField()),
+                ("offset", models.IntegerField()),
+                ("start_observation", models.DateTimeField()),
+                ("end_observation", models.DateTimeField()),
+                (
+                    "moon_separation_angle",
+                    models.DecimalField(decimal_places=2, max_digits=5),
+                ),
+                ("moon_separation_width", models.IntegerField()),
+                (
+                    "minimum_altitude",
+                    models.DecimalField(decimal_places=2, max_digits=5),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('observation_data.abstractobservation',),
+            bases=("observation_data.abstractobservation",),
         ),
         migrations.CreateModel(
-            name='ImagingObservation',
+            name="ImagingObservation",
             fields=[
-                ('abstractobservation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='observation_data.abstractobservation')),
-                ('frames_per_filter', models.IntegerField()),
+                (
+                    "abstractobservation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="observation_data.abstractobservation",
+                    ),
+                ),
+                ("frames_per_filter", models.IntegerField()),
             ],
             options={
-                'abstract': False,
-                'base_manager_name': 'objects',
+                "abstract": False,
+                "base_manager_name": "objects",
             },
-            bases=('observation_data.abstractobservation',),
+            bases=("observation_data.abstractobservation",),
         ),
         migrations.CreateModel(
-            name='MonitoringObservation',
+            name="MonitoringObservation",
             fields=[
-                ('abstractobservation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='observation_data.abstractobservation')),
-                ('start_scheduling', models.DateTimeField()),
-                ('end_scheduling', models.DateTimeField()),
-                ('next_upload', models.DateTimeField()),
-                ('cadence', models.IntegerField()),
-                ('frames_per_filter', models.IntegerField()),
+                (
+                    "abstractobservation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="observation_data.abstractobservation",
+                    ),
+                ),
+                ("start_scheduling", models.DateTimeField()),
+                ("end_scheduling", models.DateTimeField()),
+                ("next_upload", models.DateTimeField()),
+                ("cadence", models.IntegerField()),
+                ("frames_per_filter", models.IntegerField()),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('observation_data.abstractobservation',),
+            bases=("observation_data.abstractobservation",),
         ),
         migrations.CreateModel(
-            name='VariableObservation',
+            name="VariableObservation",
             fields=[
-                ('abstractobservation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='observation_data.abstractobservation')),
-                ('minimum_altitude', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('frames_per_filter', models.IntegerField()),
+                (
+                    "abstractobservation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="observation_data.abstractobservation",
+                    ),
+                ),
+                (
+                    "minimum_altitude",
+                    models.DecimalField(decimal_places=2, max_digits=5),
+                ),
+                ("frames_per_filter", models.IntegerField()),
             ],
             options={
-                'abstract': False,
-                'base_manager_name': 'objects',
+                "abstract": False,
+                "base_manager_name": "objects",
             },
-            bases=('observation_data.abstractobservation',),
+            bases=("observation_data.abstractobservation",),
         ),
         migrations.AddField(
-            model_name='abstractobservation',
-            name='target',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='observation_data.celestialtarget'),
+            model_name="abstractobservation",
+            name="target",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="+",
+                to="observation_data.celestialtarget",
+            ),
         ),
         migrations.AddField(
-            model_name='abstractobservation',
-            name='filter_set',
-            field=models.ManyToManyField(related_name='observations', to='observation_data.filter'),
+            model_name="abstractobservation",
+            name="filter_set",
+            field=models.ManyToManyField(
+                related_name="observations", to="observation_data.filter"
+            ),
         ),
         migrations.CreateModel(
-            name='Observatory',
+            name="Observatory",
             fields=[
-                ('name', models.CharField(max_length=100, primary_key=True, serialize=False)),
-                ('horizon_offset', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('min_stars', models.IntegerField()),
-                ('max_HFR', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('max_guide_error', models.DecimalField(decimal_places=2, max_digits=15)),
-                ('filter_set', models.ManyToManyField(related_name='observatories', to='observation_data.filter')),
+                (
+                    "name",
+                    models.CharField(max_length=100, primary_key=True, serialize=False),
+                ),
+                ("horizon_offset", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("min_stars", models.IntegerField()),
+                ("max_HFR", models.DecimalField(decimal_places=2, max_digits=5)),
+                (
+                    "max_guide_error",
+                    models.DecimalField(decimal_places=2, max_digits=15),
+                ),
+                (
+                    "filter_set",
+                    models.ManyToManyField(
+                        related_name="observatories", to="observation_data.filter"
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='abstractobservation',
-            name='observatory',
-            field=models.ForeignKey(db_column='observatory', on_delete=django.db.models.deletion.PROTECT, related_name='+', to='observation_data.observatory'),
+            model_name="abstractobservation",
+            name="observatory",
+            field=models.ForeignKey(
+                db_column="observatory",
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="+",
+                to="observation_data.observatory",
+            ),
         ),
         migrations.CreateModel(
-            name='ObservatoryExposureSettings',
+            name="ObservatoryExposureSettings",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('observation_type', models.CharField(choices=[('Imaging', 'Imaging'), ('Exoplanet', 'Exoplanet'), ('Variable', 'Variable'), ('Monitor', 'Monitoring'), ('Expert', 'Expert')], db_column='type')),
-                ('exposure_settings', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='observation_data.exposuresettings')),
-                ('observatory', models.ForeignKey(db_column='observatory', on_delete=django.db.models.deletion.DO_NOTHING, to='observation_data.observatory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "observation_type",
+                    models.CharField(
+                        choices=[
+                            ("Imaging", "Imaging"),
+                            ("Exoplanet", "Exoplanet"),
+                            ("Variable", "Variable"),
+                            ("Monitor", "Monitoring"),
+                            ("Expert", "Expert"),
+                        ],
+                        db_column="type",
+                    ),
+                ),
+                (
+                    "exposure_settings",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="observation_data.exposuresettings",
+                    ),
+                ),
+                (
+                    "observatory",
+                    models.ForeignKey(
+                        db_column="observatory",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="observation_data.observatory",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='observatory',
-            name='exposure_settings',
-            field=models.ManyToManyField(related_name='observatories', through='observation_data.ObservatoryExposureSettings', to='observation_data.exposuresettings'),
+            model_name="observatory",
+            name="exposure_settings",
+            field=models.ManyToManyField(
+                related_name="observatories",
+                through="observation_data.ObservatoryExposureSettings",
+                to="observation_data.exposuresettings",
+            ),
         ),
     ]

@@ -1,10 +1,6 @@
-import os
-from datetime import timedelta
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
-import nextcloud.nextcloud_manager as nm
 import logging
 
 from observation_data.models import AbstractObservation
