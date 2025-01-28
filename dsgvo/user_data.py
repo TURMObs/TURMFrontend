@@ -1,6 +1,5 @@
 import logging
 
-from django.contrib.auth.base_user import AbstractBaseUser
 from django.forms.models import model_to_dict
 
 from accounts.models import ObservatoryUser
@@ -10,7 +9,7 @@ from observation_data.observation_management import delete_observation
 logger = logging.getLogger(__name__)
 
 
-def delete_user(user: AbstractBaseUser):
+def delete_user(user: ObservatoryUser):
     """
     Deletes all data associated with a user. This includes all observation requests and uploaded files.
     :param user: The user to delete
@@ -24,7 +23,7 @@ def delete_user(user: AbstractBaseUser):
     user.save()
 
 
-def get_all_data(user: AbstractBaseUser):
+def get_all_data(user: ObservatoryUser):
     """
     Get all data associated with a user. This includes all observation requests.
     :param user: The user to get the data from

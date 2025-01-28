@@ -1,4 +1,3 @@
-import builtins
 import logging
 
 from django.core.exceptions import FieldDoesNotExist, BadRequest
@@ -14,12 +13,15 @@ from rest_framework.status import (
     HTTP_403_FORBIDDEN,
 )
 
-from observation_data.models import ObservationType, AbstractObservation
+from observation_data import observation_management
+from observation_data.models import (
+    ObservationType,
+    AbstractObservation,
+    ObservationStatus,
+)
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
-from observation_data.observation_management import (
-    delete_observation as delete_observation_command,
-)
+from observation_data.observation_management import delete_observation
 
 
 logger = logging.getLogger(__name__)
@@ -176,14 +178,28 @@ def delete_observation(request):
             status=HTTP_400_BAD_REQUEST,
         )
 
+    obs = AbstractObservation.objects.get(id=observation_id)
+    if not user == obs.user and not user.has_perm(
+        UserPermission.CAN_DELETE_ALL_OBSERVATIONS
+    ):
+        logger.info(
+            f"User {user.get_username()} does not have permission to delete observation {observation_id}."
+        )
+        return Response(
+            {
+                f"User {user.get_username()} does not have permission to delete observation {observation_id}."
+            },
+            status=HTTP_401_UNAUTHORIZED,
+        )
+
     try:
-        delete_observation_command(user, observation_id)
-    except (ValueError, PermissionError, BadRequest) as error:
-        match type(error):
-            case builtins.PermissionError:
-                error_status = HTTP_403_FORBIDDEN
-            case _:
-                error_status = HTTP_400_BAD_REQUEST
-        return Response({"error": str(error)}, status=error_status)
+        observation_management.delete_observation(observation_id)
+    except ValueError as e:
+        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
+        logger.error(response)
+        return Response({response}, status=HTTP_403_FORBIDDEN)
+    except BadRequest as e:
+        response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
+        return Response({response}, status=HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_202_ACCEPTED)
