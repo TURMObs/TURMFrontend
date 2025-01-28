@@ -162,7 +162,6 @@
             color: #f1f1f1; /* Keeping the text light */
         }
 
-
     </style>
 {% endblock %}
 {% block content %}
@@ -223,7 +222,8 @@
                         <div class="form-group">
                             <button type="button"
                                     class="generate-invitation-button"
-                                    onclick="createInvitation()">Generate</button>
+                                    onclick="createInvitation()">Generate
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -232,11 +232,12 @@
                 <button class="copybutton" onclick="copyLink()">Copy Link</button>
             {% endif %}
         </div>
-        <!-- Open Invitations -->
-        <div class="open-invitations">
-            <h3>Open Invitations</h3>
-            <table>
-                <thead>
+        <div class="tables-background">
+            <!-- Open Invitations -->
+            <div class="open-invitations">
+                <h3>Open Invitations</h3>
+                <table>
+                    <thead>
                     <tr>
                         <th>Email</th>
                         <th>Alias</th>
@@ -246,8 +247,8 @@
                         <th>Invitation Link</th>
                         <th>Actions</th>
                     </tr>
-                </thead>
-                <tbody>
+                    </thead>
+                    <tbody>
                     {% if invitations %}
                         {% for invitation in invitations %}
                             <tr>
@@ -273,7 +274,8 @@
                                         {% csrf_token %}
                                         <button type="button"
                                                 class="delete-button"
-                                                onclick="deleteInvitation({{ invitation.id }})">Delete</button>
+                                                onclick="deleteInvitation({{ invitation.id }})">Delete
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -283,14 +285,16 @@
                             <td colspan="7">No open invitations found.</td>
                         </tr>
                     {% endif %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <!-- All Users -->
-        <div class="all-users">
-            <h3>All Users</h3>
-            <table>
-                <thead>
+        <div class="tables-background">
+            <!-- All Users -->
+            <div class="all-users">
+                <h3>All Users</h3>
+                <table>
+                    <thead>
                     <tr>
                         <th>Email</th>
                         <th>Alias</th>
@@ -300,8 +304,8 @@
                         <th>Date Joined</th>
                         <th>Actions</th>
                     </tr>
-                </thead>
-                <tbody>
+                    </thead>
+                    <tbody>
                     {% for target_user in users %}
                         {% if target_user.deletion_pending == False %}
                             <tr id="user-{{ target_user.id }}"
@@ -321,14 +325,16 @@
                                         {% csrf_token %}
                                         <button type="button"
                                                 class="delete-button"
-                                                onclick="deleteUser({{ target_user.id }})">Delete</button>
+                                                onclick="deleteUser({{ target_user.id }})">Delete
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
                         {% endif %}
                     {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div id="modal">
