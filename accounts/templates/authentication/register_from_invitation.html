@@ -31,9 +31,7 @@
                     </div>
                     {% if form.errors %}
                         {% for error in form.errors.as_data.values %}
-                            {% for error in error.0 %}
-                                <div class="error-message">{{ error }}</div>
-                            {% endfor %}
+                            {% for error in error.0 %}<div class="error-message">{{ error }}</div>{% endfor %}
                         {% endfor %}
                     {% endif %}
                     <button type="submit" class= "btn">Register</button>
