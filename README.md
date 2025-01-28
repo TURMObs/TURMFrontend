@@ -53,7 +53,8 @@ Prettier is used to format JS and CSS files, you can install it [here](https://p
 
 Run the server using `docker-compose up`.
 
-To format the code, run `scripts/format.sh`.
+Our CI enforces properly formatted code. To format the code, run `scripts/format.sh`.
+Alternatively, you can comment `/format` on any pull request to automatically run the formatting script and commit the changes.
 
 To run the tests, run `python manage.py test` or `docker exec turmfrontend-web python manage.py test` to run the tests inside Docker.
 
