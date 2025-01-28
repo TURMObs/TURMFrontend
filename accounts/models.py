@@ -26,6 +26,7 @@ class UserPermission:
 
 class InvitationToken(models.Model):
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=150)
     quota = models.IntegerField(null=True)
     lifetime = models.DateField(null=True)
     role = models.CharField(
@@ -66,6 +67,13 @@ class ObservatoryUser(AbstractUser):
     def has_lifetime_left(self) -> bool:
         return self.lifetime is None or self.lifetime > datetime.now().date()
 
+    def get_role(self) -> str:
+        if self.groups.filter(name=UserGroup.ADMIN).exists():
+            return UserGroup.ADMIN
+        if self.groups.filter(name=UserGroup.GROUP_LEADER).exists():
+            return UserGroup.GROUP_LEADER
+        return UserGroup.USER
+
     class Meta:
         permissions = [
             (UserPermission.CAN_GENERATE_INVITATION, "Can generate invitation links"),
@@ -82,6 +90,7 @@ class ObservatoryUser(AbstractUser):
 def generate_invitation_link(
     base_url: str,
     email: str,
+    username: Optional[str] = None,
     quota: Optional[int] = None,
     lifetime: Optional[datetime] = None,
     role: UserGroup = UserGroup.USER,
@@ -92,6 +101,7 @@ def generate_invitation_link(
 
     :param base_url: The base URL for the invitation link (e.g. http://localhost:8000/invite)
     :param email: The email address of the user to invite
+    :param username: The username of the user to invite. Can be None if the user has no username/alias.
     :param quota: The quota for the user. Can be None if the user has unlimited quota.
     :param lifetime: User lifetime. Can be None if the user has unlimited lifetime.
     :param role: The role of the user. Can be one of "admin", "group_leader", or "user".
@@ -104,8 +114,12 @@ def generate_invitation_link(
     if ObservatoryUser.objects.filter(email=email).exists():
         return None
 
+    if username is None:
+        username = ""
+
     if InvitationToken.objects.filter(email=email).exists():
         invitation_token = InvitationToken.objects.get(email=email)
+        invitation_token.username = username
         invitation_token.quota = quota
         invitation_token.lifetime = lifetime
         invitation_token.role = role
@@ -113,7 +127,7 @@ def generate_invitation_link(
         invitation_token.save()
     else:
         invitation_token = InvitationToken.objects.create(
-            email=email, quota=quota, lifetime=lifetime, role=role, expert=expert
+            email=email, username=username, quota=quota, lifetime=lifetime, role=role, expert=expert
         )
 
     invitation_link = f"{base_url}/{invitation_token.token}"

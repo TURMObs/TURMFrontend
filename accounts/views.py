@@ -36,6 +36,7 @@ class LoginForm(forms.Form):
 
 class GenerateInvitationForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    username = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "User Alias (optional)"}), required=False)
     quota = forms.IntegerField(
         widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
         min_value=1,
@@ -158,6 +159,7 @@ def generate_user_invitation(request):
         )
 
     email = form.cleaned_data["email"]
+    username = form.cleaned_data["username"]
     quota = form.cleaned_data["quota"]
     lifetime = form.cleaned_data["lifetime"]
     role = form.cleaned_data["role"]
@@ -182,15 +184,11 @@ def generate_user_invitation(request):
         )
 
     base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
-    link = generate_invitation_link(base_url, email, quota, lifetime, role, expert)
+    link = generate_invitation_link(base_url=base_url, email=email, username=username, quota=quota, lifetime=lifetime, role=role, expert=expert)
     if link is None:
-        return generate_invitation_template(
-            request,
-            form=GenerateInvitationForm(request.user),
-            error="Email already registered",
-        )
+        return JsonResponse({"status": "error", "message": "User with this email already exists"}, status=400)
     logger.info(f"Invitation generated for email {email} by {request.user.username}")
-    return generate_invitation_template(request, link=link)
+    return JsonResponse({"status": "success", "link": link}, status=200)
 
 
 @require_GET
@@ -230,7 +228,7 @@ def register_user(request, token):
 
     invitation.delete()
     user = ObservatoryUser.objects.create_user(
-        username=invitation.email,
+        username=invitation.username,
         email=invitation.email,
         quota=invitation.quota,
         lifetime=invitation.lifetime,
@@ -308,7 +306,7 @@ def index_template(request, error=None, form=None):
 def generate_invitation_template(request, error=None, link=None, form=None):
     return render(
         request,
-        "accounts/generate_invitation.html",
+        "accounts/user_management.html",
         {
             "error": error,
             "form": form,

@@ -31,7 +31,7 @@ class GenerateInvitationLinkTest(TestCase):
         self.email = "test@example.com"
 
     def test_generate_invitation_link_new_email(self):
-        link = generate_invitation_link(self.base_url, self.email)
+        link = generate_invitation_link(base_url=self.base_url, email=self.email)
         self.assertIsNotNone(link)
         self.assertTrue(link.startswith(self.base_url))
 

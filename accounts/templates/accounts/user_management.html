@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
 {% load static %}
-{% block title %}Dashboard - Invitations & Users{% endblock %}
+{% block title %}User Management{% endblock %}
 {% block style %}
     <link rel="stylesheet" href="{% static "/css/generate_invitation.css" %}">
     <style>
@@ -26,6 +26,54 @@
             padding: 20px;
             font-size: 18px;
         }
+
+        .input-field {
+            margin-bottom: 20px;
+        }
+
+        .delete-button {
+            background-color: transparent;
+            color: red;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            color: darkred;
+        }
+
+        #modal {
+            display: none; /* Ensures the modal is hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modal div {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        #modal h3 {
+            color: black; /* Make the heading text black for visibility */
+        }
+
+        #modal p {
+            color: black; /* Ensure the link text is visible */
+            word-wrap: break-word;
+            margin-bottom: 20px;
+        }
+
 
         table {
             margin: 20px 0;
@@ -118,42 +166,47 @@
                             {{ form.email }}
                             <i class="bx bx-envelope"></i>
                         </div>
-                    </div>
-                    <div class="form-group">
                         <div class="input-field">
-                            <select name="role" id="id_role" class="styled-select">
-                                {% for value, label in form.role.field.choices %}
-                                    <option value="{{ value }}"
-                                            {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.username }}
                             <i class="bx bx-user"></i>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-field">
-                            <input type="checkbox"
-                                   id="id_expert"
-                                   name="expert"
-                                   {% if form.expert.value %}checked{% endif %}>
-                            <label for="id_expert">Expert</label>
+                        <div class="form-group">
+                            <div class="input-field">
+                                <select name="role" id="id_role" class="styled-select">
+                                    {% for value, label in form.role.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="bx bx-user"></i>
+                            </div>
                         </div>
-                        <div class="checkbox-field">
-                            <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
-                            <label for="enableQuota">Max. Simultaneous Requests</label>
+                        <div class="form-group">
+                            <div class="checkbox-field">
+                                <input type="checkbox"
+                                       id="id_expert"
+                                       name="expert"
+                                       {% if form.expert.value %}checked{% endif %}>
+                                <label for="id_expert">Expert</label>
+                            </div>
+                            <div class="checkbox-field">
+                                <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
+                                <label for="enableQuota">Max. Simultaneous Requests</label>
+                            </div>
+                            <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
+                            <div class="checkbox-field">
+                                <input type="checkbox"
+                                       id="enableLifetime"
+                                       onclick="toggleInput('lifetimeField')">
+                                <label for="enableLifetime">Limited Usage Time</label>
+                            </div>
+                            <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
                         </div>
-                        <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
-                        <div class="checkbox-field">
-                            <input type="checkbox"
-                                   id="enableLifetime"
-                                   onclick="toggleInput('lifetimeField')">
-                            <label for="enableLifetime">Limited Usage Time</label>
+                        <div class="form-group">
+                            <button type="button" class="generate-invitation-button" onclick="createInvitation()">
+                                Generate
+                            </button>
                         </div>
-                        <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
-                    </div>
-                    <div class="form-group">
-                        <button type="button" class="generate-invitation-button" onclick="createInvitation()">Generate
-                        </button>
                     </div>
                 </form>
             {% else %}
@@ -168,7 +221,10 @@
                 <thead>
                 <tr>
                     <th>Email</th>
+                    <th>Alias</th>
                     <th>Role</th>
+                    <th>Quota</th>
+                    <th>Lifetime</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -177,13 +233,15 @@
                     {% for invitation in invitations %}
                         <tr>
                             <td>{{ invitation.email }}</td>
+                            <td>{{ invitation.username }}</td>
                             <td>{{ invitation.role }}</td>
+                            <td>{{ invitation.quota }}</td>
+                            <td>{{ invitation.lifetime }}</td>
                             <td>
                                 <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
                                     {% csrf_token %}
-                                    <button type="button"
-                                            class="delete-button"
-                                            onclick="deleteInvitation({{ invitation.id }})">Delete
+                                    <button type="button" class="delete-button"
+                                            onclick="deleteInvitation({{ invitation.id }})">✖
                                     </button>
                                 </form>
                             </td>
@@ -203,8 +261,8 @@
             <table>
                 <thead>
                 <tr>
-                    <th>Username</th>
                     <th>Email</th>
+                    <th>Alias</th>
                     <th>Role</th>
                     <th>Quota</th>
                     <th>Lifetime</th>
@@ -217,9 +275,9 @@
                     {% if user.deletion_pending == False %}
                         <tr id="user-{{ user.id }}"
                             class="{% if user.id == current_user_id %}highlight{% endif %}">
-                            <td>{{ user.username }}</td>
                             <td>{{ user.email }}</td>
-                            <td>{{ user.role }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.get_role }}</td>
                             <td>{{ user.quota }}</td>
                             <td>{{ user.lifetime }}</td>
                             <td>{{ user.date_joined }}</td>
@@ -239,6 +297,23 @@
             </table>
         </div>
     </div>
+    <div id="modal">
+        <div>
+            <h3>Invitation Link</h3>
+            <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
+            <button onclick="copyToClipboard()"
+                    style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Copy Link
+            </button>
+            <button onclick="closeModal()"
+                    style="padding: 10px 20px; background-color: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Close
+            </button>
+        </div>
+    </div>
+
+
+
 {% endblock %}
 {% block scripts %}
     <script>
@@ -247,15 +322,6 @@
             field.style.display = field.style.display === 'none' ? 'block' : 'none';
         }
 
-        document.getElementById('invitationForm')?.addEventListener('submit', function () {
-            if (document.getElementById('quotaField').style.display === 'none') {
-                document.getElementById('id_quota')?.remove();
-            }
-            if (document.getElementById('lifetimeField').style.display === 'none') {
-                document.getElementById('id_lifetime')?.remove();
-            }
-            createInvitation(document.getElementById('email').value);
-        });
 
         function copyLink() {
             var linkText = document.getElementById("invitationLink").textContent;
@@ -269,16 +335,15 @@
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
             const email = form.querySelector('input[name="email"]').value;
 
-            if (form.querySelector('input[name="quota"]').value === "") {
-                form.querySelector('input[name="quota"]').value = null;
+            if (document.getElementById('quotaField').style.display === 'none') {
+                document.getElementById('id_quota')?.remove();
             }
-            if (form.querySelector('input[name="lifetime"]').value === "") {
-                form.querySelector('input[name="lifetime"]').value = null;
+            if (document.getElementById('lifetimeField').style.display === 'none') {
+                document.getElementById('id_lifetime')?.remove();
             }
 
             const formData = new FormData(form);
 
-            let data;
             try {
                 const response = await fetch("{%  url 'has-invitation' %}", {
                     method: 'POST',
@@ -289,9 +354,8 @@
                     body: JSON.stringify({
                         email: email,
                     }),
-                })
-                data = await response.json();
-                console.log(data['has_invitation']);
+                });
+                let data = await response.json();
                 if (data['has_invitation'] === true) {
                     if (!confirm("An invitation already exists for this email. Do you want to override the invitation?")) {
                         return;
@@ -304,15 +368,37 @@
                     },
                     body: formData,
                 });
+                let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
-                    alert("Invitation created successfully!");
-                    location.reload();
+                    document.getElementById('modal-link').textContent = linkData['link'];
+                    document.getElementById('modal').style.display = 'flex'; // Show the modal
                 } else {
-                    alert("Failed to create invitation. Please try again.");
+                    if (linkData['errors']) {
+                        alert("Failed to create invitation: " + linkData['errors']);
+                    } else {
+                        alert("Failed to create invitation. Please try again.");
+                    }
                 }
             } catch (error) {
                 alert("Failed to create invitation. Please try again.");
             }
+        }
+
+
+        function copyToClipboard() {
+            const link = document.getElementById('modal-link').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+
+            // Clear form inputs
+            const form = document.getElementById('invitationForm');
+            form.reset();
+            location.reload();
         }
 
         async function deleteUser(userId) {
