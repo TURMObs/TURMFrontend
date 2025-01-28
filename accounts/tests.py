@@ -47,9 +47,14 @@ class PasswordRequirementsTest(TestCase):
         # check if password with special characters is allowed
         self.assertTrue(is_allowed_password("!#$%()*+,-./:;=?@[]^_{|}~"))
 
-        # check if empty password is not allowed
-        self.assertFalse(is_allowed_password(""))
+        # check if password with spaces is not allowed
         self.assertFalse(is_allowed_password(" "))
+        self.assertFalse(is_allowed_password("Test Password"))
+
+        # check if password with uncommon special characters is not allowed
+        self.assertFalse(is_allowed_password("password!€"))
+        self.assertFalse(is_allowed_password("password!∞"))
+        self.assertFalse(is_allowed_password("password!😊"))
 
 
     def test_password_length_ok(self):
@@ -58,6 +63,9 @@ class PasswordRequirementsTest(TestCase):
         self.assertFalse(password_length_ok("test123"))
         self.assertFalse(password_length_ok("testpasswordtestpasswordtestpasswordtestpasswordtestpassword12345"))
 
+        # check if empty password is not allowed
+        self.assertFalse(password_length_ok(""))
+        
     def test_password_requirements_met(self):
 
         # check if password meets the requirements for a password

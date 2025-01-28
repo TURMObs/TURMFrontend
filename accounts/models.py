@@ -115,6 +115,8 @@ def generate_invitation_link(
     invitation_link = f"{base_url}/{invitation_token.token}"
     return invitation_link
 
+
+
 SPECIAL_CHARACTERS = ["!", "#", "$", "%", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "[", "]", "^", "_", "{", "|", "}", "~"]
 
 def is_allowed_password(string: str) -> bool:
@@ -128,19 +130,7 @@ def is_allowed_password(string: str) -> bool:
     :return: True if the string is allowed, False otherwise.
     """
 
-    return (string.isalnum() or _any_char_in_list(string, SPECIAL_CHARACTERS))
-
-
-def _any_char_in_list(string: str, char_list: list) -> bool:
-    """
-    Check if any character in a string is in a list of characters.
-
-    :param string: The string to check.
-    :param char_list: The list of characters to check.
-
-    :return: True if any character in the string is in the list, False otherwise.
-    """
-    return any(char in char_list for char in string)
+    return all(char.isalnum() or char in SPECIAL_CHARACTERS and char != " " for char in string)
 
 
 def password_length_ok(string: str) -> bool:
@@ -164,6 +154,6 @@ def password_requirements_met(password: str) -> bool:
     """
     has_letter = any(char.isalpha() for char in password)
     has_number = any(char.isdigit() for char in password)
-    has_special = _any_char_in_list(password, SPECIAL_CHARACTERS)
+    has_special = any(char in SPECIAL_CHARACTERS for char in password)
 
     return has_letter and has_number and has_special and password_length_ok(password)
