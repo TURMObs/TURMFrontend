@@ -58,7 +58,8 @@ def get_all_data(user: AbstractBaseUser):
     for field in empty_fields:
         data["user"].pop(field)
 
-    data["user"]["groups"] = [str(group) for group in data["user"]["groups"]]
+    if "groups" in data["user"]:
+        data["user"]["groups"] = [str(group) for group in data["user"]["groups"]]
     return data
 
 

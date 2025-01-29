@@ -138,7 +138,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
     def test_data_download(self):
         self._create_imaging_observation("M51")
         self._create_variable_observation("M42")
-        response = self.client.get("/dsgvo/get-user-data/")
+        response = self.client.get("/accounts/get-user-data")
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("observation_requests", data)
@@ -164,7 +164,8 @@ class DSGVOUserDataTestCase(django.test.TestCase):
                 username="testuser2", password="testpassword"
             ),
         )
-        response = self.client.delete("/dsgvo/delete-user/")
+        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
+        call_command("clean_up_users")
         self.assertEqual(response.status_code, 200)
         self.assertFalse(ObservatoryUser.objects.filter(username="testuser").exists())
         self.assertFalse(VariableObservation.objects.exists())
@@ -190,7 +191,8 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         for file in [file_im1, file_var1, file_im2]:
             self.assertIsNotNone(file)
             self.assertTrue(file_exists(file))
-        response = self.client.delete("/dsgvo/delete-user/")
+        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
+        call_command("clean_up_users")
         self.assertEqual(response.status_code, 200)
         self.assertFalse(file_exists(file_im1))
         self.assertTrue(file_exists(file_im2))
