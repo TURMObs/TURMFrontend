@@ -176,8 +176,12 @@ def generate_user_invitation(request):
             error="You do not have permission to invite group leaders",
         )
 
-    base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
-    link = generate_invitation_link(base_url, email, quota, lifetime, role, expert)
+    url = settings.BASE_URL
+    subpath = settings.SUBPATH
+    if subpath:
+        url += subpath
+    url += "/accounts/register"
+    link = generate_invitation_link(url, email, quota, lifetime, role, expert)
     if link is None:
         return generate_invitation_template(
             request,
