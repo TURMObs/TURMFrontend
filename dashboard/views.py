@@ -1,5 +1,4 @@
-from django.core.management import call_command
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from observation_data.models import AbstractObservation
 
 

@@ -54,8 +54,7 @@
         cursor: pointer;
     }
     </style>
-    <script>
-    </script>
+    <script></script>
 {% endblock %}
 {% block content %}
     <div class="container">
@@ -87,9 +86,9 @@
                                 <td class="left-align">{{ observation.target.name }}</td>
                                 <td class="left-align">{{ observation.observation_type }}</td>
                                 <td>
-                                <div class="filter_set_container">
-                                    {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
-                                </div>
+                                    <div class="filter_set_container">
+                                        {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
+                                    </div>
                                 </td>
                                 <td class="right-align">{{ observation.exposure_time }}</td>
                                 {% if request.user.is_superuser %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
