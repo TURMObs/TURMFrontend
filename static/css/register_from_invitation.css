@@ -98,7 +98,7 @@ body {
 .error-message {
   color: #e74c3c;
   margin-left: 10px;
-  margin-top: -10px;
+  margin-top: 10px;
   margin-bottom: 20px;
   font-size: 14px;
 }
