@@ -31,35 +31,14 @@ class Dependency(Enum):
 
 
 class CelestialTargetForm(forms.Form):
-    name = TURMField.init_from_model(CelestialTarget._meta.get_field('name'))
+    name = TURMField.init_from_model(CelestialTarget._meta.get_field('name')).add_attrs({"placeholder": "OrionNebula"})
     target_widgets = [
         (TURMCharInput("catalog_id"), "Catalog ID"),
         (TURMButtonInput("Fetch", "fetch_coordinates()"), ""),
     ]
     catalog_id = TURMGridField(target_widgets, (2, 1))
-    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra"))
-    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec"))
-
-
-class _CelestialTargetForm(forms.ModelForm):
-    """
-    Form for specifying a celestial target.
-    """
-
-    class Meta:
-        model = CelestialTarget
-        fields = ["name", "catalog_id", "ra", "dec"]
-
-    def __init__(self, *args, **kwargs):
-        super(_CelestialTargetForm, self).__init__(*args, **kwargs)
-        self.label_suffix = ""
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({"class": "input_text"})
-        self.fields["name"].widget.attrs.update({"placeholder": "OrionNebula"})
-        self.fields["catalog_id"].widget.attrs.update({"placeholder": "M42"})
-        self.fields["ra"].widget.attrs.update({"placeholder": "hh mm ss"})
-        self.fields["dec"].widget.attrs.update({"placeholder": "dd mm ss"})
-
+    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra")).add_attrs({"placeholder": "hh mm ss"})
+    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec")).add_attrs({"placeholder": "dd mm ss"})
 
 class TURMProjectForm(forms.Form):
     """

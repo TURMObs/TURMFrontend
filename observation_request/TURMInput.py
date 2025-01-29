@@ -67,6 +67,7 @@ class TURMButtonInput(_TURMInput):
     ):
         super().__init__(name, *args, **kwargs)
         self.attrs["onclick"] = onclick
+        self.attrs["type"] = "button"
 
     def render(self, name, value, attrs=None, renderer=None):
         html_render = f"<button {self._render_attrs(attrs)}>{name}</button>"
