@@ -23,6 +23,10 @@
     | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **YES**      | `http://localhost:8080`, when testing locally. `http://turmfrontend-nextcloud:80` when run in Docker                                |
     | `NC_PREFIX`              | Top level folders in the nextcloud to store the observations in . Entered as string (without "" or leading/following '/' for multiple folders)                | **No**.      | `test`, default/non-existing: root directory of nextcloud,                                  |
     | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**.      | default/non-existing `True`                                 |
+    | `SUBPATH`                | Subpath the website is being deployed on                                                                                  | **No**.      | /tom                              |
+    | `SECRET_KEY`              | Secret Django Key. Keep private!                                                                               | **Yes**.      | See https://djecrety.ir/                           |
+   | `BASE_URL`              | Base Website URL                                                                              | **Yes**.      | https://turm.physik.tu-darmstadt.de                      |
+
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
 ```.env
@@ -49,7 +53,8 @@ Prettier is used to format JS and CSS files, you can install it [here](https://p
 
 Run the server using `docker-compose up`.
 
-To format the code, run `scripts/format.sh`.
+Our CI enforces properly formatted code. To format the code, run `scripts/format.sh`.
+Alternatively, you can comment `/format` on any pull request to automatically run the formatting script and commit the changes.
 
 To run the tests, run `python manage.py test` or `docker exec turmfrontend-web python manage.py test` to run the tests inside Docker.
 
