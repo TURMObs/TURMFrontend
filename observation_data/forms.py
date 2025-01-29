@@ -12,6 +12,7 @@ from observation_request.TURMField import (
     TURMDateDuration,
     TURMDateTimeDuration,
 )
+from observation_request.TURMInput import TURMCharInput, TURMButtonInput
 from .models import (
     CelestialTarget,
     ExpertObservation,
@@ -29,7 +30,18 @@ class Dependency(Enum):
     observatory = "observatory_dependent"
 
 
-class CelestialTargetForm(forms.ModelForm):
+class CelestialTargetForm(forms.Form):
+    name = TURMField.init_from_model(CelestialTarget._meta.get_field('name'))
+    target_widgets = [
+        (TURMCharInput("catalog_id"), "Catalog ID"),
+        (TURMButtonInput("Fetch", "fetch_coordinates()"), ""),
+    ]
+    catalog_id = TURMGridField(target_widgets, (2, 1))
+    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra"))
+    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec"))
+
+
+class _CelestialTargetForm(forms.ModelForm):
     """
     Form for specifying a celestial target.
     """
@@ -39,7 +51,7 @@ class CelestialTargetForm(forms.ModelForm):
         fields = ["name", "catalog_id", "ra", "dec"]
 
     def __init__(self, *args, **kwargs):
-        super(CelestialTargetForm, self).__init__(*args, **kwargs)
+        super(_CelestialTargetForm, self).__init__(*args, **kwargs)
         self.label_suffix = ""
         for field in self.fields:
             self.fields[field].widget.attrs.update({"class": "input_text"})
@@ -145,7 +157,9 @@ class ExposureSettingsForm(forms.Form):
             (ExposureSettings._meta.get_field("offset"), "offset"),
         ]
 
-        exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
+        exposure = TURMGridField.init_from_model(
+            exposure_settings, (2, 3)
+        ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
         # imaging
@@ -222,7 +236,7 @@ class ExposureSettingsForm(forms.Form):
             ),
         ]
 
-        moon_separation = TURMGridField(
+        moon_separation = TURMGridField.init_from_model(
             moon_separation_settings, (2, 1)
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}

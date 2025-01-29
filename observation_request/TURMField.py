@@ -10,7 +10,7 @@ from observation_request.TURMInput import (
     TURMGridInput,
     TURMDateTimeInput,
     TURMDateInput,
-    _TURMChoiceInput,
+    _TURMChoiceInput, TURMCharInput,
 )
 
 
@@ -26,6 +26,8 @@ class TURMField(Field):
 
     @classmethod
     def model_field_to_input(cls, model_field, measurement_unit=None, *args, **kwargs):
+        print("type: ", type(model_field))
+        print("field: ", model_field)
         match type(model_field):
             case models.DecimalField:
                 return TURMFloatInput(
@@ -65,6 +67,8 @@ class TURMField(Field):
                 return TURMDateTimeInput(name=model_field.name, *args, **kwargs)
             case models.DateField:
                 return TURMDateInput(name=model_field.name, *args, **kwargs)
+            case models.CharField:
+                return TURMCharInput(name=model_field.name, *args, **kwargs)
             case _:
                 raise NotImplementedError(f"{type(model_field)} is not supported yet.")
 
@@ -142,16 +146,27 @@ class TURMGridField(TURMField):
 
     def __init__(
         self,
+        sub_widgets: list[tuple[_TURMInput, str]],
+        grid_dim=None,
+        *args,
+        **kwargs,
+    ):
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim=grid_dim, *args, **kwargs)
+        super().__init__(widget=widget, label_name="", *args, **kwargs)
+
+    @classmethod
+    def init_from_model(
+        cls,
         model_fields: list[tuple[models.Field, str]],
         grid_dim=None,
         *args,
         **kwargs,
     ):
         sub_widgets = [
-            (self.model_field_to_input(field[0]), field[1]) for field in model_fields
+            (TURMField.model_field_to_input(field), name)
+            for field, name in model_fields
         ]
-        widget = TURMGridInput(widgets=sub_widgets, grid_dim=grid_dim, *args, **kwargs)
-        super().__init__(widget=widget, label_name="", *args, **kwargs)
+        return TURMGridField(sub_widgets=sub_widgets, grid_dim=grid_dim,  *args, **kwargs)
 
 
 class TURMDateDuration(TURMField):
