@@ -161,67 +161,59 @@
         <div class="content_wrapper">
             <h2>Generate Invitation</h2>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
-            {% if link is None %}
-                <form method="post"
-                      action="{% url 'generate-user-invitation' %}"
-                      id="invitationForm">
-                    {% csrf_token %}
+            <form method="post"
+                  action="{% url 'generate-user-invitation' %}"
+                  id="invitationForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="input-field">
+                        {{ form.email }}
+                        <i class="bx bx-envelope"></i>
+                    </div>
+                    <div class="input-field">
+                        {{ form.username }}
+                        <i class="bx bx-user"></i>
+                    </div>
                     <div class="form-group">
                         <div class="input-field">
-                            {{ form.email }}
-                            <i class="bx bx-envelope"></i>
-                        </div>
-                        <div class="input-field">
-                            {{ form.username }}
+                            <label for="id_role"></label>
+                            <select name="role" id="id_role" class="styled-select">
+                                {% for value, label in form.role.field.choices %}
+                                    <option value="{{ value }}"
+                                            {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
                             <i class="bx bx-user"></i>
                         </div>
-                        <div class="form-group">
-                            <div class="input-field">
-                                <label for="id_role"></label>
-                                <select name="role" id="id_role" class="styled-select">
-                                    {% for value, label in form.role.field.choices %}
-                                        <option value="{{ value }}"
-                                                {% if form.role.value == value %}selected{% endif %}>
-                                            {{ label }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <i class="bx bx-user"></i>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="checkbox-field">
-                                <input type="checkbox"
-                                       id="id_expert"
-                                       name="expert"
-                                       {% if form.expert.value %}checked{% endif %}>
-                                <label for="id_expert">Expert</label>
-                            </div>
-                            <div class="checkbox-field">
-                                <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
-                                <label for="enableQuota">Max. Simultaneous Requests</label>
-                            </div>
-                            <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
-                            <div class="checkbox-field">
-                                <input type="checkbox"
-                                       id="enableLifetime"
-                                       onclick="toggleInput('lifetimeField')">
-                                <label for="enableLifetime">Limited Usage Time</label>
-                            </div>
-                            <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
-                        </div>
-                        <div class="form-group">
-                            <button type="button"
-                                    class="generate-invitation-button"
-                                    onclick="createInvitation()">Generate
-                            </button>
-                        </div>
                     </div>
-                </form>
-            {% else %}
-                <p id="invitationLink">{{ link }}</p>
-                <button class="copybutton" onclick="copyLink()">Copy Link</button>
-            {% endif %}
+                    <div class="form-group">
+                        <div class="checkbox-field">
+                            <input type="checkbox"
+                                   id="id_expert"
+                                   name="expert"
+                                   {% if form.expert.value %}checked{% endif %}>
+                            <label for="id_expert">Expert</label>
+                        </div>
+                        <div class="checkbox-field">
+                            <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
+                            <label for="enableQuota">Max. Simultaneous Requests</label>
+                        </div>
+                        <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
+                        <div class="checkbox-field">
+                            <input type="checkbox"
+                                   id="enableLifetime"
+                                   onclick="toggleInput('lifetimeField')">
+                            <label for="enableLifetime">Limited Usage Time</label>
+                        </div>
+                        <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button"
+                                class="generate-invitation-button"
+                                onclick="createInvitation()">Generate</button>
+                    </div>
+                </div>
+            </form>
         </div>
         <div class="tables-background">
             <!-- Open Invitations -->
@@ -229,53 +221,53 @@
                 <h3>Open Invitations</h3>
                 <table>
                     <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Alias</th>
-                        <th>Role</th>
-                        <th>Quota</th>
-                        <th>Lifetime</th>
-                        <th>Invitation Link</th>
-                        <th>Actions</th>
-                    </tr>
+                        <tr>
+                            <th>Email</th>
+                            <th>Alias</th>
+                            <th>Role</th>
+                            <th>Quota</th>
+                            <th>Lifetime</th>
+                            <th>Invitation Link</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {% if invitations %}
-                        {% for invitation in invitations %}
-                            <tr>
-                                <td>{{ invitation.email }}</td>
-                                {% if invitation.username != invitation.email %}
-                                    <td>{{ invitation.username }}</td>
-                                {% else %}
-                                    <td></td>
-                                {% endif %}
-                                <td>{{ invitation.role }}</td>
-                                <td>{{ invitation.quota }}</td>
-                                <td>{{ invitation.lifetime }}</td>
-                                <td>{{ invitation.link }}</td>
-                                <td>
-                                    {% if invitation.link != "" %}
-                                        <button type="button"
-                                                class="copy-button"
-                                                onclick="copyLinkToClipboard('{{ invitation.link }}')">
-                                            Copy Link
-                                        </button>
+                        {% if invitations %}
+                            {% for invitation in invitations %}
+                                <tr>
+                                    <td>{{ invitation.email }}</td>
+                                    {% if invitation.username != invitation.email %}
+                                        <td>{{ invitation.username }}</td>
+                                    {% else %}
+                                        <td></td>
                                     {% endif %}
-                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button"
-                                                class="delete-button"
-                                                onclick="deleteInvitation({{ invitation.id }})">Delete
-                                        </button>
-                                    </form>
-                                </td>
+                                    <td>{{ invitation.role }}</td>
+                                    <td>{{ invitation.quota }}</td>
+                                    <td>{{ invitation.lifetime }}</td>
+                                    <td>{{ invitation.link }}</td>
+                                    <td>
+                                        {% if invitation.link != "" %}
+                                            <button id="copy-invitation-action-{{ invitation.id }}"
+                                                    type="button"
+                                                    class="copy-button"
+                                                    onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
+                                                Copy Link
+                                            </button>
+                                        {% endif %}
+                                        <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button"
+                                                    class="delete-button"
+                                                    onclick="deleteInvitation({{ invitation.id }})">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7">No open invitations found.</td>
                             </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="7">No open invitations found.</td>
-                        </tr>
-                    {% endif %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -286,43 +278,42 @@
                 <h3>All Users</h3>
                 <table>
                     <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Alias</th>
-                        <th>Role</th>
-                        <th>Quota</th>
-                        <th>Lifetime</th>
-                        <th>Date Joined</th>
-                        <th>Actions</th>
-                    </tr>
+                        <tr>
+                            <th>Email</th>
+                            <th>Alias</th>
+                            <th>Role</th>
+                            <th>Quota</th>
+                            <th>Lifetime</th>
+                            <th>Date Joined</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {% for target_user in users %}
-                        {% if target_user.deletion_pending == False %}
-                            <tr id="user-{{ target_user.id }}"
-                                class="{% if target_user.id == current_user_id %}highlight{% endif %}">
-                                <td>{{ target_user.email }}</td>
-                                {% if invitation.username != invitation.email %}
-                                    <td>{{ invitation.username }}</td>
-                                {% else %}
-                                    <td></td>
-                                {% endif %}
-                                <td>{{ target_user.get_role }}</td>
-                                <td>{{ target_user.quota }}</td>
-                                <td>{{ target_user.lifetime }}</td>
-                                <td>{{ target_user.date_joined }}</td>
-                                <td>
-                                    <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button"
-                                                class="delete-button"
-                                                onclick="deleteUser({{ target_user.id }})">Delete
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
+                        {% for target_user in users %}
+                            {% if target_user.deletion_pending == False %}
+                                <tr id="user-{{ target_user.id }}"
+                                    class="{% if target_user.id == current_user_id %}highlight{% endif %}">
+                                    <td>{{ target_user.email }}</td>
+                                    {% if invitation.username != invitation.email %}
+                                        <td>{{ invitation.username }}</td>
+                                    {% else %}
+                                        <td></td>
+                                    {% endif %}
+                                    <td>{{ target_user.get_role }}</td>
+                                    <td>{{ target_user.quota }}</td>
+                                    <td>{{ target_user.lifetime }}</td>
+                                    <td>{{ target_user.date_joined }}</td>
+                                    <td>
+                                        <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button"
+                                                    class="delete-button"
+                                                    onclick="deleteUser({{ target_user.id }})">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -332,15 +323,14 @@
         <div>
             <h3>Invitation Link</h3>
             <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
-            <button onclick="copyToClipboard()"
-                    id="copyButton"
+            <button onclick="copyLinkToClipboard(document.getElementById('modal-link').textContent, document.getElementById('modalCopyButton'))"
+                    id="modalCopyButton"
                     style="padding: 10px 20px;
                            background-color: #4CAF50;
                            color: white;
                            border: none;
                            border-radius: 5px;
-                           cursor: pointer">Copy Link
-            </button>
+                           cursor: pointer">Copy Link</button>
             <button onclick="closeModal()"
                     style="padding: 10px 20px;
                            background-color: #f44336;
@@ -348,8 +338,7 @@
                            border: none;
                            border-radius: 5px;
                            cursor: pointer;
-                           margin-left: 10px">Close
-            </button>
+                           margin-left: 10px">Close</button>
         </div>
     </div>
 {% endblock %}
@@ -359,6 +348,14 @@
             if (event.key === 'Escape') {
                 closeModal();
             }
+
+            if (event.key === 'Enter') {
+                const focusedElement = document.activeElement;
+
+                if (focusedElement.tagName === 'INPUT' && focusedElement.type === 'text') {
+                    createInvitation();
+                }
+            }
         })
 
         function toggleInput(fieldId) {
@@ -366,27 +363,19 @@
             field.style.display = field.style.display === 'none' ? 'block' : 'none';
         }
 
-
-        function copyLink() {
-            var linkText = document.getElementById("invitationLink").textContent;
-            navigator.clipboard.writeText(linkText).then(() => {
-                alert("Link copied to clipboard!");
-            });
-        }
-
         async function createInvitation() {
             const form = document.getElementById('invitationForm');
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
             const email = form.querySelector('input[name="email"]').value;
 
+            const formData = new FormData(form);
+
             if (document.getElementById('quotaField').style.display === 'none') {
-                document.getElementById('id_quota')?.remove();
+                formData.delete('quota');
             }
             if (document.getElementById('lifetimeField').style.display === 'none') {
-                document.getElementById('id_lifetime')?.remove();
+                formData.delete('lifetime');
             }
-
-            const formData = new FormData(form);
 
             try {
                 const response = await fetch("{%  url 'has-invitation' %}", {
@@ -428,31 +417,20 @@
             }
         }
 
-
-        function copyToClipboard() {
-            const link = document.getElementById('modal-link').textContent;
-            const copyButton = document.getElementById('copyButton');  // Get the button element
-
+        function copyLinkToClipboard(link, copyButton) {
             navigator.clipboard.writeText(link).then(() => {
-                // Save the original button styles
                 const originalBackgroundColor = copyButton.style.backgroundColor;
                 const originalText = copyButton.textContent;
 
                 // Provide feedback by changing the button color and text
-                copyButton.style.backgroundColor = '#45a049';  // Slightly darker green
+                copyButton.style.backgroundColor = '#45a049';
                 copyButton.textContent = 'Link copied!';
 
                 // Reset button color and text after a short delay
                 setTimeout(() => {
-                    copyButton.style.backgroundColor = originalBackgroundColor;  // Restore original color
-                    copyButton.textContent = originalText;   // Restore original text
-                }, 1500); // Feedback stays for 1.5 seconds
-            });
-        }
-
-        function copyLinkToClipboard(link) {
-            navigator.clipboard.writeText(link).then(() => {
-                alert("Link copied to clipboard!");
+                    copyButton.style.backgroundColor = originalBackgroundColor;
+                    copyButton.textContent = originalText;
+                }, 1000);
             });
         }
 
@@ -468,7 +446,7 @@
 
         async function deleteUser(userId) {
             if (!confirm("Are you sure you want to mark this user for deletion?")) {
-                return;  // If the user cancels, do nothing
+                return;
             }
 
             const form = document.getElementById(`delete-user-${userId}`);

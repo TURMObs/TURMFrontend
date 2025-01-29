@@ -343,7 +343,6 @@ def generate_invitation_template(request, error=None, link=None, form=None):
         {
             "error": error,
             "form": form,
-            "link": link,
             "UserGroups": UserGroup,
             "invitations": InvitationToken.objects.all(),
             "users": ObservatoryUser.objects.all(),
