@@ -333,7 +333,7 @@ def get_user_data(request):
 
 @require_GET
 def dsgvo_options(request):
-    return render(request, "accounts/dsgvo.html")
+    return render(request, "accounts/dsgvo.html", {"subpath": settings.SUBPATH})
 
 
 def index_template(request, error=None, form=None):
