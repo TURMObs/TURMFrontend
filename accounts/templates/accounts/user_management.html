@@ -294,10 +294,10 @@
                                 <tr id="user-{{ target_user.id }}"
                                     class="{% if target_user.id == current_user_id %}highlight{% endif %}">
                                     <td>{{ target_user.email }}</td>
-                                    {% if invitation.username != invitation.email %}
-                                        <td>{{ invitation.username }}</td>
+                                    {% if target_user.username != target_user.email %}
+                                        <td>{{ target_user.username }}</td>
                                     {% else %}
-                                        <td></td>
+                                        <td>N/A</td>
                                     {% endif %}
                                     <td>{{ target_user.get_role }}</td>
                                     <td>{{ target_user.quota }}</td>
