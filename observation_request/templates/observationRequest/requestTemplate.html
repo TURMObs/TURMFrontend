@@ -65,7 +65,7 @@
              If we reach this point, the simbad response has the following pattern (this is m42)
              05 35 16.8, -05 23 15
              */
-            const split_res= response.split(",")
+            const split_res= response.replace(/\+/g, "").split(",")
             const ra = split_res[0].trim()
             const dec = split_res[1].trim()
 
