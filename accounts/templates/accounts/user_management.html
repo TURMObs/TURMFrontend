@@ -15,12 +15,6 @@
             margin-bottom: 20px;
         }
 
-        .empty-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
         .empty-text p {
             text-align: center;
             padding: 20px;
@@ -31,37 +25,33 @@
             margin-bottom: 20px;
         }
 
-        /* Table cell styling */
         td {
-            padding: 10px; /* Ensure consistent padding for table cells */
-            border: 1px solid #444444; /* Ensure consistent borders on table cells */
+            padding: 10px;
+            border: 1px solid #444444
         }
 
-        /* Button styles */
         .delete-button, .copy-button {
             background-color: transparent;
-            color: white; /* Keep text color white */
-            border: 2px solid white; /* Set white border */
+            color: white;
+            border: 2px solid white;
             font-size: 16px;
             cursor: pointer;
             padding: 8px 15px;
             transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
         }
 
-        /* Hover state */
         .delete-button:hover, .copy-button:hover {
-            background-color: #da190b; /* Red for delete */
-            color: white; /* Ensure text stays white */
-            border-color: white; /* Keep border white */
+            background-color: #da190b;
+            color: white;
+            border-color: white;
         }
 
-        /* Copy button hover state */
         .copy-button:hover {
-            background-color: #45a049; /* Green for copy */
+            background-color: #45a049;
         }
 
         #modal {
-            display: none; /* Ensures the modal is hidden by default */
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -82,17 +72,17 @@
         }
 
         #modal h3 {
-            color: black; /* Make the heading text black for visibility */
+            color: black;
         }
 
         #modal p {
-            color: black; /* Ensure the link text is visible */
+            color: black;
             word-wrap: break-word;
             margin-bottom: 20px;
         }
 
         td button {
-            margin-right: 10px; /* Adds space between the buttons */
+            margin-right: 10px;
         }
 
         table {
@@ -157,9 +147,9 @@
         }
 
         .highlight {
-            background-color: #555; /* A more muted gray */
+            background-color: #555;
             font-weight: normal;
-            color: #f1f1f1; /* Keeping the text light */
+            color: #f1f1f1;
         }
 
     </style>
@@ -223,7 +213,8 @@
                         <div class="form-group">
                             <button type="button"
                                     class="generate-invitation-button"
-                                    onclick="createInvitation()">Generate</button>
+                                    onclick="createInvitation()">Generate
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -238,52 +229,53 @@
                 <h3>Open Invitations</h3>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Invitation Link</th>
-                            <th>Actions</th>
-                        </tr>
+                    <tr>
+                        <th>Email</th>
+                        <th>Alias</th>
+                        <th>Role</th>
+                        <th>Quota</th>
+                        <th>Lifetime</th>
+                        <th>Invitation Link</th>
+                        <th>Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% if invitations %}
-                            {% for invitation in invitations %}
-                                <tr>
-                                    <td>{{ invitation.email }}</td>
-                                    {% if invitation.username != invitation.email %}
-                                        <td>{{ invitation.username }}</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                    <td>{{ invitation.role }}</td>
-                                    <td>{{ invitation.quota }}</td>
-                                    <td>{{ invitation.lifetime }}</td>
-                                    <td>{{ invitation.link }}</td>
-                                    <td>
-                                        {% if invitation.link != "" %}
-                                            <button type="button"
-                                                    class="copy-button"
-                                                    onclick="copyLinkToClipboard('{{ invitation.link }}')">
-                                                Copy Link
-                                            </button>
-                                        {% endif %}
-                                        <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="button"
-                                                    class="delete-button"
-                                                    onclick="deleteInvitation({{ invitation.id }})">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
+                    {% if invitations %}
+                        {% for invitation in invitations %}
                             <tr>
-                                <td colspan="7">No open invitations found.</td>
+                                <td>{{ invitation.email }}</td>
+                                {% if invitation.username != invitation.email %}
+                                    <td>{{ invitation.username }}</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                                <td>{{ invitation.role }}</td>
+                                <td>{{ invitation.quota }}</td>
+                                <td>{{ invitation.lifetime }}</td>
+                                <td>{{ invitation.link }}</td>
+                                <td>
+                                    {% if invitation.link != "" %}
+                                        <button type="button"
+                                                class="copy-button"
+                                                onclick="copyLinkToClipboard('{{ invitation.link }}')">
+                                            Copy Link
+                                        </button>
+                                    {% endif %}
+                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="delete-button"
+                                                onclick="deleteInvitation({{ invitation.id }})">Delete
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
-                        {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7">No open invitations found.</td>
+                        </tr>
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -294,42 +286,43 @@
                 <h3>All Users</h3>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Date Joined</th>
-                            <th>Actions</th>
-                        </tr>
+                    <tr>
+                        <th>Email</th>
+                        <th>Alias</th>
+                        <th>Role</th>
+                        <th>Quota</th>
+                        <th>Lifetime</th>
+                        <th>Date Joined</th>
+                        <th>Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for target_user in users %}
-                            {% if target_user.deletion_pending == False %}
-                                <tr id="user-{{ target_user.id }}"
-                                    class="{% if target_user.id == current_user_id %}highlight{% endif %}">
-                                    <td>{{ target_user.email }}</td>
-                                    {% if invitation.username != invitation.email %}
-                                        <td>{{ invitation.username }}</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                    <td>{{ target_user.get_role }}</td>
-                                    <td>{{ target_user.quota }}</td>
-                                    <td>{{ target_user.lifetime }}</td>
-                                    <td>{{ target_user.date_joined }}</td>
-                                    <td>
-                                        <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="button"
-                                                    class="delete-button"
-                                                    onclick="deleteUser({{ target_user.id }})">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
+                    {% for target_user in users %}
+                        {% if target_user.deletion_pending == False %}
+                            <tr id="user-{{ target_user.id }}"
+                                class="{% if target_user.id == current_user_id %}highlight{% endif %}">
+                                <td>{{ target_user.email }}</td>
+                                {% if invitation.username != invitation.email %}
+                                    <td>{{ invitation.username }}</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                                <td>{{ target_user.get_role }}</td>
+                                <td>{{ target_user.quota }}</td>
+                                <td>{{ target_user.lifetime }}</td>
+                                <td>{{ target_user.date_joined }}</td>
+                                <td>
+                                    <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="delete-button"
+                                                onclick="deleteUser({{ target_user.id }})">Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -346,7 +339,8 @@
                            color: white;
                            border: none;
                            border-radius: 5px;
-                           cursor: pointer">Copy Link</button>
+                           cursor: pointer">Copy Link
+            </button>
             <button onclick="closeModal()"
                     style="padding: 10px 20px;
                            background-color: #f44336;
@@ -354,10 +348,179 @@
                            border: none;
                            border-radius: 5px;
                            cursor: pointer;
-                           margin-left: 10px">Close</button>
+                           margin-left: 10px">Close
+            </button>
         </div>
     </div>
 {% endblock %}
 {% block scripts %}
-    <script src="{% static '/js/usermanagment.js' %}"></script>
+    <script>
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        })
+
+        function toggleInput(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.style.display = field.style.display === 'none' ? 'block' : 'none';
+        }
+
+
+        function copyLink() {
+            var linkText = document.getElementById("invitationLink").textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+
+        async function createInvitation() {
+            const form = document.getElementById('invitationForm');
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const email = form.querySelector('input[name="email"]').value;
+
+            if (document.getElementById('quotaField').style.display === 'none') {
+                document.getElementById('id_quota')?.remove();
+            }
+            if (document.getElementById('lifetimeField').style.display === 'none') {
+                document.getElementById('id_lifetime')?.remove();
+            }
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch("{%  url 'has-invitation' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                    }),
+                });
+                let data = await response.json();
+                if (data['has_invitation'] === true) {
+                    if (!confirm("An invitation already exists for this email. Do you want to override the invitation?")) {
+                        return;
+                    }
+                }
+                const generateResponse = await fetch("{% url 'generate-user-invitation' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData,
+                });
+                let linkData = await generateResponse.json();
+                if (generateResponse.ok) {
+                    document.getElementById('modal-link').textContent = linkData['link'];
+                    document.getElementById('modal').style.display = 'flex'; // Show the modal
+                } else {
+                    if (linkData['error']) {
+                        alert("Failed to create invitation: " + linkData['error']);
+                    } else {
+                        alert("Failed to create invitation. Please try again.");
+                    }
+                }
+            } catch (error) {
+                alert("Failed to create invitation. Please try again.");
+            }
+        }
+
+
+        function copyToClipboard() {
+            const link = document.getElementById('modal-link').textContent;
+            const copyButton = document.getElementById('copyButton');  // Get the button element
+
+            navigator.clipboard.writeText(link).then(() => {
+                // Save the original button styles
+                const originalBackgroundColor = copyButton.style.backgroundColor;
+                const originalText = copyButton.textContent;
+
+                // Provide feedback by changing the button color and text
+                copyButton.style.backgroundColor = '#45a049';  // Slightly darker green
+                copyButton.textContent = 'Link copied!';
+
+                // Reset button color and text after a short delay
+                setTimeout(() => {
+                    copyButton.style.backgroundColor = originalBackgroundColor;  // Restore original color
+                    copyButton.textContent = originalText;   // Restore original text
+                }, 1500); // Feedback stays for 1.5 seconds
+            });
+        }
+
+        function copyLinkToClipboard(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+
+            // Clear form inputs
+            const form = document.getElementById('invitationForm');
+            form.reset();
+            location.reload();
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm("Are you sure you want to mark this user for deletion?")) {
+                return;  // If the user cancels, do nothing
+            }
+
+            const form = document.getElementById(`delete-user-${userId}`);
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            try {
+                const response = await fetch("{% url 'delete-user' 0 %}".replace("0", userId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || "User marked for deletion!");
+                    form.closest('tr').remove(); // Remove the row from the table
+                } else {
+                    alert(data.error || "An error occurred while marking the user for deletion.");
+                }
+            } catch (error) {
+                alert("Failed to delete the user. Please try again.");
+            }
+        }
+
+
+        async function deleteInvitation(invitationId) {
+            const form = document.getElementById(`delete-invitation-${invitationId}`);
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            console.log("Invitation ID: ", invitationId);
+            try {
+                const response = await fetch("{% url 'delete-invitation' 0 %}".replace("0", invitationId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || "Invitation deleted successfully!");
+                    location.reload();
+                } else {
+                    alert(data.error || "An error occurred while deleting the invitation.");
+                }
+            } catch (error) {
+                alert("Failed to delete the invitation. Please try again.");
+            }
+        }
+    </script>
 {% endblock %}
