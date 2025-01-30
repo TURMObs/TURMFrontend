@@ -11,14 +11,14 @@ from observation_data.models import AbstractObservation, ObservationStatus
 
 class UserGroup:
     ADMIN = "admin"
-    GROUP_MANAGER = "group_manager"
+    OPERATOR = "operator"
     USER = "user"
 
 
 class UserPermission:
     CAN_GENERATE_INVITATION = "can_generate_invitation"
     CAN_INVITE_ADMINS = "can_invite_admins"
-    CAN_INVITE_GROUP_MANAGER = "can_invite_group_manager"
+    CAN_INVITE_OPERATORS = "can_invite_operators"
     CAN_CREATE_EXPERT_OBSERVATION = "can_create_expert_observation"
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
     CAN_DELETE_USERS = "can_delete_users"
@@ -34,7 +34,7 @@ class InvitationToken(models.Model):
         null=True,
         choices=[
             (UserGroup.ADMIN, "Admin"),
-            (UserGroup.GROUP_MANAGER, "Group Manager"),
+            (UserGroup.OPERATOR, "Operator"),
         ],
     )
     expert = models.BooleanField(default=False)
@@ -71,15 +71,15 @@ class ObservatoryUser(AbstractUser):
     def get_role(self) -> str:
         if self.groups.filter(name=UserGroup.ADMIN).exists():
             return UserGroup.ADMIN
-        if self.groups.filter(name=UserGroup.GROUP_MANAGER).exists():
-            return UserGroup.GROUP_MANAGER
+        if self.groups.filter(name=UserGroup.OPERATOR).exists():
+            return UserGroup.OPERATOR
         return UserGroup.USER
 
     class Meta:
         permissions = [
             (UserPermission.CAN_GENERATE_INVITATION, "Can generate invitation links"),
             (UserPermission.CAN_INVITE_ADMINS, "Can invite new admin users"),
-            (UserPermission.CAN_INVITE_GROUP_MANAGER, "Can invite new group leaders"),
+            (UserPermission.CAN_INVITE_OPERATORS, "Can invite new operators"),
             (
                 UserPermission.CAN_CREATE_EXPERT_OBSERVATION,
                 "Can create expert observation",

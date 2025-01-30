@@ -145,5 +145,7 @@ data
 .DS_Store
 app.log
 /nextcloud/test_data
+!nextcloud/test_data/upload_dict.json
+!nextcloud/test_data/upload_file.json
 package.json
 package-lock.json

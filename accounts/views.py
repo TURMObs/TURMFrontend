@@ -73,8 +73,8 @@ class GenerateInvitationForm(forms.Form):
         if user:
             if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
                 choices.append((UserGroup.ADMIN, "Admin"))
-            if user.has_perm(UserPermission.CAN_INVITE_GROUP_MANAGER):
-                choices.append((UserGroup.GROUP_MANAGER, "Group Manager"))
+            if user.has_perm(UserPermission.CAN_INVITE_OPERATORS):
+                choices.append((UserGroup.OPERATOR, "Operator"))
 
         self.fields["role"].choices = choices
 
@@ -185,13 +185,13 @@ def generate_user_invitation(request):
             error="You do not have permission to invite admins",
         )
 
-    if role == UserGroup.GROUP_MANAGER and not request.user.has_perm(
-        UserPermission.CAN_INVITE_GROUP_MANAGER
+    if role == UserGroup.OPERATOR and not request.user.has_perm(
+        UserPermission.CAN_INVITE_OPERATORS
     ):
         return generate_invitation_template(
             request,
             form=GenerateInvitationForm(request.user),
-            error="You do not have permission to invite group leaders",
+            error="You do not have permission to invite operators",
         )
 
     url = settings.BASE_URL
@@ -275,14 +275,15 @@ def register_user(request, token):
 
 
 @api_view(["POST"])
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
 def has_invitation(request):
     email = request.data.get("email")
-    print(email)
     exists = InvitationToken.objects.filter(email=email).exists()
     return JsonResponse({"has_invitation": exists}, status=200)
 
 
 @require_POST
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
 def delete_invitation(request, invitation_id):
     invitation = InvitationToken.objects.get(id=invitation_id)
     invitation.delete()
@@ -350,7 +351,7 @@ def generate_invitation_template(request, error=None, link=None, form=None):
             "UserGroups": UserGroup,
             "invitations": InvitationToken.objects.all(),
             "users": ObservatoryUser.objects.all(),
-            "current_user_id": request.user.id,
+            "current_user": request.user,
         },
     )
 
