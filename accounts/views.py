@@ -68,13 +68,13 @@ class GenerateInvitationForm(forms.Form):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        choices = [(UserGroup.USER, "Nutzer*in")]
+        choices = [(UserGroup.USER, "User")]
 
         if user:
             if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
                 choices.append((UserGroup.ADMIN, "Admin"))
-            if user.has_perm(UserPermission.CAN_INVITE_GROUP_LEADERS):
-                choices.append((UserGroup.GROUP_LEADER, "Gruppenleiter*in"))
+            if user.has_perm(UserPermission.CAN_INVITE_GROUP_MANAGER):
+                choices.append((UserGroup.GROUP_MANAGER, "Group Manager"))
 
         self.fields["role"].choices = choices
 
@@ -185,8 +185,8 @@ def generate_user_invitation(request):
             error="You do not have permission to invite admins",
         )
 
-    if role == UserGroup.GROUP_LEADER and not request.user.has_perm(
-        UserPermission.CAN_INVITE_GROUP_LEADERS
+    if role == UserGroup.GROUP_MANAGER and not request.user.has_perm(
+        UserPermission.CAN_INVITE_GROUP_MANAGER
     ):
         return generate_invitation_template(
             request,

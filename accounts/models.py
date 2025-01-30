@@ -11,14 +11,14 @@ from observation_data.models import AbstractObservation, ObservationStatus
 
 class UserGroup:
     ADMIN = "admin"
-    GROUP_LEADER = "group_leader"
+    GROUP_MANAGER = "group_manager"
     USER = "user"
 
 
 class UserPermission:
     CAN_GENERATE_INVITATION = "can_generate_invitation"
     CAN_INVITE_ADMINS = "can_invite_admins"
-    CAN_INVITE_GROUP_LEADERS = "can_invite_group_leaders"
+    CAN_INVITE_GROUP_MANAGER = "can_invite_group_manager"
     CAN_CREATE_EXPERT_OBSERVATION = "can_create_expert_observation"
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
     CAN_DELETE_USERS = "can_delete_users"
@@ -34,7 +34,7 @@ class InvitationToken(models.Model):
         null=True,
         choices=[
             (UserGroup.ADMIN, "Admin"),
-            (UserGroup.GROUP_LEADER, "Gruppenleiter"),
+            (UserGroup.GROUP_MANAGER, "Group Manager"),
         ],
     )
     expert = models.BooleanField(default=False)
@@ -71,15 +71,15 @@ class ObservatoryUser(AbstractUser):
     def get_role(self) -> str:
         if self.groups.filter(name=UserGroup.ADMIN).exists():
             return UserGroup.ADMIN
-        if self.groups.filter(name=UserGroup.GROUP_LEADER).exists():
-            return UserGroup.GROUP_LEADER
+        if self.groups.filter(name=UserGroup.GROUP_MANAGER).exists():
+            return UserGroup.GROUP_MANAGER
         return UserGroup.USER
 
     class Meta:
         permissions = [
             (UserPermission.CAN_GENERATE_INVITATION, "Can generate invitation links"),
             (UserPermission.CAN_INVITE_ADMINS, "Can invite new admin users"),
-            (UserPermission.CAN_INVITE_GROUP_LEADERS, "Can invite new group leaders"),
+            (UserPermission.CAN_INVITE_GROUP_MANAGER, "Can invite new group leaders"),
             (
                 UserPermission.CAN_CREATE_EXPERT_OBSERVATION,
                 "Can create expert observation",
@@ -105,7 +105,7 @@ def generate_invitation_link(
     :param username: The username of the user to invite. Can be None if the user has no username/alias.
     :param quota: The quota for the user. Can be None if the user has unlimited quota.
     :param lifetime: User lifetime. Can be None if the user has unlimited lifetime.
-    :param role: The role of the user. Can be one of "admin", "group_leader", or "user".
+    :param role: The role of the user. Can be one of "admin", "group_manager", or "user".
     :param expert: Whether the user is an expert.
 
     :return: The generated invitation link, or None if a user with the given email already exists.

@@ -144,3 +144,6 @@ data
 .zed
 .DS_Store
 app.log
+/nextcloud/test_data
+package.json
+package-lock.json
