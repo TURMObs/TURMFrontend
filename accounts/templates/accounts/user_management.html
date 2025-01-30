@@ -22,16 +22,21 @@
         }
 
         .input-field {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             margin-top: 5px;
         }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
 
         td {
             padding: 10px;
             border: 1px solid #444444
         }
 
-        .delete-button, .copy-button {
+        button {
             background-color: transparent;
             color: white;
             border: 2px solid white;
@@ -39,16 +44,17 @@
             cursor: pointer;
             padding: 8px 15px;
             transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+            margin-right: 10px;
         }
 
-        .delete-button:hover, .copy-button:hover {
+        button:hover {
             background-color: #da190b;
             color: white;
             border-color: white;
         }
 
-        .copy-button:hover {
-            background-color: #45a049;
+        .green-button:hover {
+            background-color: #4CAF50;
         }
 
         #modal {
@@ -82,9 +88,6 @@
             margin-bottom: 20px;
         }
 
-        td button {
-            margin-right: 10px;
-        }
 
         table {
             margin: 20px 0;
@@ -143,10 +146,6 @@
             box-shadow: 0 0 5px #888;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
         .highlight {
             background-color: #555;
             font-weight: normal;
@@ -202,8 +201,9 @@
                     </div>
                     <div class="form-group">
                         <button type="button"
-                                class="generate-invitation-button"
-                                onclick="createInvitation()">Generate</button>
+                                class="generate-invitation-button green-button"
+                                onclick="createInvitation()">Generate
+                        </button>
                     </div>
                 </div>
             </form>
@@ -214,53 +214,54 @@
                 <h3>Open Invitations</h3>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Invitation Link</th>
-                            <th>Actions</th>
-                        </tr>
+                    <tr>
+                        <th>Email</th>
+                        <th>Alias</th>
+                        <th>Role</th>
+                        <th>Quota</th>
+                        <th>Lifetime</th>
+                        <th>Invitation Link</th>
+                        <th>Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% if invitations %}
-                            {% for invitation in invitations %}
-                                <tr>
-                                    <td>{{ invitation.email }}</td>
-                                    {% if invitation.username != invitation.email %}
-                                        <td>{{ invitation.username }}</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                    <td>{{ invitation.role }}</td>
-                                    <td>{{ invitation.quota }}</td>
-                                    <td>{{ invitation.lifetime }}</td>
-                                    <td>{{ invitation.link }}</td>
-                                    <td>
-                                        {% if invitation.link != "" %}
-                                            <button id="copy-invitation-action-{{ invitation.id }}"
-                                                    type="button"
-                                                    class="copy-button"
-                                                    onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
-                                                Copy Link
-                                            </button>
-                                        {% endif %}
-                                        <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="button"
-                                                    class="delete-button"
-                                                    onclick="deleteInvitation({{ invitation.id }})">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
+                    {% if invitations %}
+                        {% for invitation in invitations %}
                             <tr>
-                                <td colspan="7">No open invitations found.</td>
+                                <td>{{ invitation.email }}</td>
+                                {% if invitation.username != invitation.email %}
+                                    <td>{{ invitation.username }}</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                                <td>{{ invitation.role }}</td>
+                                <td>{{ invitation.quota }}</td>
+                                <td>{{ invitation.lifetime }}</td>
+                                <td>{{ invitation.link }}</td>
+                                <td>
+                                    {% if invitation.link != "" %}
+                                        <button id="copy-invitation-action-{{ invitation.id }}"
+                                                type="button"
+                                                class="green-button"
+                                                onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
+                                            Copy Link
+                                        </button>
+                                    {% endif %}
+                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="delete-button"
+                                                onclick="deleteInvitation({{ invitation.id }})">Delete
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
-                        {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7">No open invitations found.</td>
+                        </tr>
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -271,44 +272,46 @@
                 <h3>All Users</h3>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Date Joined</th>
-                            {% if perms.accounts.can_delete_users %}<th>Actions</th>{% endif %}
-                        </tr>
+                    <tr>
+                        <th>Email</th>
+                        <th>Alias</th>
+                        <th>Role</th>
+                        <th>Quota</th>
+                        <th>Lifetime</th>
+                        <th>Date Joined</th>
+                        {% if perms.accounts.can_delete_users %}
+                            <th>Actions</th>{% endif %}
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for target_user in users %}
-                            {% if target_user.deletion_pending == False %}
-                                <tr id="user-{{ target_user.id }}"
-                                    class="{% if target_user.id == current_user.id %}highlight{% endif %}">
-                                    <td>{{ target_user.email }}</td>
-                                    {% if target_user.username != target_user.email %}
-                                        <td>{{ target_user.username }}</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                    <td>{{ target_user.get_role }}</td>
-                                    <td>{{ target_user.quota }}</td>
-                                    <td>{{ target_user.lifetime }}</td>
-                                    <td>{{ target_user.date_joined }}</td>
-                                    {% if perms.accounts.can_delete_users %}
-                                        <td>
-                                            <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="button"
-                                                        class="delete-button"
-                                                        onclick="deleteUser({{ target_user.id }})">Delete</button>
-                                            </form>
-                                        </td>
-                                    {% endif %}
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
+                    {% for target_user in users %}
+                        {% if target_user.deletion_pending == False %}
+                            <tr id="user-{{ target_user.id }}"
+                                class="{% if target_user.id == current_user.id %}highlight{% endif %}">
+                                <td>{{ target_user.email }}</td>
+                                {% if target_user.username != target_user.email %}
+                                    <td>{{ target_user.username }}</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                                <td>{{ target_user.get_role }}</td>
+                                <td>{{ target_user.quota }}</td>
+                                <td>{{ target_user.lifetime }}</td>
+                                <td>{{ target_user.date_joined }}</td>
+                                {% if perms.accounts.can_delete_users %}
+                                    <td>
+                                        <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button"
+                                                    class="delete-button"
+                                                    onclick="deleteUser({{ target_user.id }})">Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -325,7 +328,8 @@
                            color: white;
                            border: none;
                            border-radius: 5px;
-                           cursor: pointer">Copy Link</button>
+                           cursor: pointer">Copy Link
+            </button>
             <button onclick="closeModal()"
                     style="padding: 10px 20px;
                            background-color: #f44336;
@@ -333,7 +337,8 @@
                            border: none;
                            border-radius: 5px;
                            cursor: pointer;
-                           margin-left: 10px">Close</button>
+                           margin-left: 10px">Close
+            </button>
         </div>
     </div>
 {% endblock %}
