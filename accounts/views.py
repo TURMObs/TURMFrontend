@@ -89,21 +89,43 @@ class GenerateInvitationForm(forms.Form):
 
 
 class EditUserForm(forms.Form):
-    user_id = forms.IntegerField(validators=[MinValueValidator(1)])
-    new_alias = forms.CharField(max_length=64, required=False)
-    new_email = forms.EmailField(max_length=64)
-    new_quota = forms.IntegerField(validators=[MinValueValidator(1)], required=False)
-    new_lifetime = forms.DateField(required=False)
-    new_role = forms.ChoiceField(
-        choices=[
-            (UserGroup.USER, "User"),
-            (UserGroup.ADMIN, "Admin"),
-            (UserGroup.GROUP_MANAGER, "Group Manager"),
-        ],
-        required=False,
-    )
-    remove_quota = forms.BooleanField(required=False)
-    remove_lifetime = forms.BooleanField(required=False)
+    class EditUserForm(forms.Form):
+        user_id = forms.IntegerField(
+            validators=[MinValueValidator(1)],
+        )
+        new_alias = forms.CharField(
+            max_length=64, required=False,
+            widget=forms.TextInput(attrs={'class': 'input-field'})
+        )
+        new_email = forms.EmailField(
+            max_length=64,
+            widget=forms.EmailInput(attrs={'class': 'input-field'})
+        )
+        new_quota = forms.IntegerField(
+            validators=[MinValueValidator(1)], required=False,
+            widget=forms.NumberInput(attrs={'class': 'input-field'})
+        )
+        new_lifetime = forms.DateField(
+            required=False,
+            widget=forms.DateInput(attrs={'class': 'input-field', 'type': 'date'})
+        )
+        new_role = forms.ChoiceField(
+            choices=[
+                (UserGroup.USER, "User"),
+                (UserGroup.ADMIN, "Admin"),
+                (UserGroup.OPERATOR, "Operator"),
+            ],
+            required=False,
+            widget=forms.Select(attrs={'class': 'styled-select'})
+        )
+        remove_quota = forms.BooleanField(
+            required=False,
+            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        )
+        remove_lifetime = forms.BooleanField(
+            required=False,
+            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        )
 
     def clean_user_id(self):
         user_id = self.cleaned_data.get("user_id")
@@ -138,6 +160,7 @@ class EditUserForm(forms.Form):
         if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get("new_lifetime"):
             raise forms.ValidationError("Cannot remove lifetime and set a new lifetime at the same time.")
         return self.cleaned_data.get("remove_lifetime")
+
 
 class SetPasswordForm(forms.Form):
     new_password1 = forms.CharField(
@@ -229,7 +252,7 @@ def generate_user_invitation(request):
         username = email
 
     if role == UserGroup.ADMIN and not request.user.has_perm(
-        UserPermission.CAN_INVITE_ADMINS
+            UserPermission.CAN_INVITE_ADMINS
     ):
         return generate_invitation_template(
             request,
@@ -238,7 +261,7 @@ def generate_user_invitation(request):
         )
 
     if role == UserGroup.OPERATOR and not request.user.has_perm(
-        UserPermission.CAN_INVITE_OPERATORS
+            UserPermission.CAN_INVITE_OPERATORS
     ):
         return generate_invitation_template(
             request,
@@ -346,7 +369,7 @@ def delete_invitation(request, invitation_id):
 def delete_user(request, user_id):
     request_user = request.user
     if user_id != request_user.id and not request_user.has_perm(
-        UserPermission.CAN_DELETE_USERS
+            UserPermission.CAN_DELETE_USERS
     ):
         return JsonResponse(
             {
@@ -436,7 +459,7 @@ def generate_invitation_template(request, error=None, link=None, invitation_form
 
 
 def register_from_invitation_template(
-    request, token, error=None, email=None, form=None
+        request, token, error=None, email=None, form=None
 ):
     return render(
         request,

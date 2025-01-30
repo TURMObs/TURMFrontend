@@ -57,7 +57,7 @@
             background-color: #4CAF50;
         }
 
-        #modal {
+        .modal {
             display: none;
             position: fixed;
             top: 0;
@@ -70,7 +70,7 @@
             align-items: center;
         }
 
-        #modal div {
+        .modal div {
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -78,14 +78,22 @@
             position: relative;
         }
 
-        #modal h3 {
+        .modal h3 {
             color: black;
         }
 
-        #modal p {
+        .modal p {
             color: black;
             word-wrap: break-word;
             margin-bottom: 20px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 10px;
+        }
+
+        .modal .submit-button {
+            margin-top: 10px;
         }
 
 
@@ -165,15 +173,15 @@
                   id="invitationForm">
                 {% csrf_token %}
                 <div class="form-group">
-                    <div class="input-field">{{ form.email }}</div>
-                    <div class="input-field">{{ form.username }}</div>
+                    <div class="input-field">{{ invitation_form.email }}</div>
+                    <div class="input-field">{{ invitation_form.username }}</div>
                     <div class="form-group">
                         <div class="input-field">
                             <label for="id_role"></label>
                             <select name="role" id="id_role" class="styled-select">
-                                {% for value, label in form.role.field.choices %}
+                                {% for value, label in invitation_form.role.field.choices %}
                                     <option value="{{ value }}"
-                                            {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                            {% if invitation_form.role.value == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -183,21 +191,23 @@
                             <input type="checkbox"
                                    id="id_expert"
                                    name="expert"
-                                   {% if form.expert.value %}checked{% endif %}>
+                                   {% if invitation_form.expert.value %}checked{% endif %}>
                             <label for="id_expert">Expert</label>
                         </div>
                         <div class="checkbox-field">
                             <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
                             <label for="enableQuota">Max. Simultaneous Requests</label>
                         </div>
-                        <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
+                        <div class="input-field" id="quotaField"
+                             style="display: none;">{{ invitation_form.quota }}</div>
                         <div class="checkbox-field">
                             <input type="checkbox"
                                    id="enableLifetime"
                                    onclick="toggleInput('lifetimeField')">
                             <label for="enableLifetime">Limited Usage Time</label>
                         </div>
-                        <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
+                        <div class="input-field" id="lifetimeField"
+                             style="display: none;">{{ invitation_form.lifetime }}</div>
                     </div>
                     <div class="form-group">
                         <button type="button"
@@ -307,6 +317,19 @@
                                                     onclick="deleteUser({{ target_user.id }})">Delete
                                             </button>
                                         </form>
+                                        {% if perms.accounts.can_edit_users %}
+                                            <form id="edit-user-{{ target_user.id }}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="button"
+                                                        class="edit-button green-button"
+                                                        onclick="editUser({
+                                                                id: {{ target_user.id }},
+                                                                email: '{{ target_user.email }}',
+                                                                username: '{{ target_user.username }}'
+                                                                })">Edit
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </td>
                                 {% endif %}
                             </tr>
@@ -317,7 +340,7 @@
             </div>
         </div>
     </div>
-    <div id="modal">
+    <div id="invitation-link-modal" class="modal">
         <div>
             <h3>Invitation Link</h3>
             <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
@@ -339,6 +362,49 @@
                            cursor: pointer;
                            margin-left: 10px">Close
             </button>
+        </div>
+    </div>
+    <div id="edit-user-modal" class="modal">
+        <div>
+            <h3 id="edit-modal-title">Edit user</h3>
+            <form id="edit-user-form" method="POST" action="{% url 'edit-user' %}">
+                {% csrf_token %}
+                <input type="hidden" id="edit-user-id" name="user_id">
+
+                <div class="form-group">
+                    {{ edit_user_form.new_alias }}
+                </div>
+
+                <div class="form-group">
+                    {{ edit_user_form.new_email }}
+                </div>
+
+                <div class="form-group">
+                    {{ edit_user_form.new_quota }}
+                </div>
+
+                <div class="form-group">
+                    {{ edit_user_form.new_lifetime }}
+                </div>
+
+                <div class="form-group">
+                    {{ edit_user_form.new_role }}
+                </div>
+
+                <div class="form-check">
+                    {{ edit_user_form.remove_quota }}
+                    <label class="form-check-label">Remove Quota</label>
+                </div>
+
+                <div class="form-check">
+                    {{ edit_user_form.remove_lifetime }}
+                    <label class="form-check-label">Remove Lifetime</label>
+                </div>
+
+                <button type="submit" class="submit-button">Save Changes</button>
+                <button type="button" onclick="closeModal()">Close</button>
+            </form>
+
         </div>
     </div>
 {% endblock %}
@@ -404,7 +470,7 @@
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
                     document.getElementById('modal-link').textContent = linkData['link'];
-                    document.getElementById('modal').style.display = 'flex'; // Show the modal
+                    document.getElementById('invitation-link-modal').style.display = 'flex';
                 } else {
                     if (linkData['error']) {
                         alert("Failed to create invitation: " + linkData['error']);
@@ -436,7 +502,8 @@
 
 
         function closeModal() {
-            document.getElementById('modal').style.display = 'none';
+            document.getElementById('invitation-link-modal').style.display = 'none';
+            document.getElementById('edit-user-modal').style.display = 'none';
 
             // Clear form inputs
             const form = document.getElementById('invitationForm');
@@ -472,6 +539,21 @@
             } catch (error) {
                 alert("Failed to delete the user. Please try again.");
             }
+        }
+
+        async function editUser(user) {
+            const id = user.id;
+            const email = user.email;
+            const username = user.username;
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('edit-user-modal').style.display = 'flex';
+            let title;
+            if (username !== email) {
+                title = `Edit user ${username} (${email})`;
+            } else {
+                title = `Edit user ${email}`;
+            }
+            document.getElementById('edit-modal-title').textContent = title;
         }
 
 
