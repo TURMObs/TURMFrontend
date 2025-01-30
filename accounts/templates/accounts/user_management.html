@@ -22,15 +22,21 @@
         }
 
         .input-field {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            margin-top: 5px;
         }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
 
         td {
             padding: 10px;
             border: 1px solid #444444
         }
 
-        .delete-button, .copy-button {
+        button {
             background-color: transparent;
             color: white;
             border: 2px solid white;
@@ -38,19 +44,20 @@
             cursor: pointer;
             padding: 8px 15px;
             transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+            margin-right: 10px;
         }
 
-        .delete-button:hover, .copy-button:hover {
+        button:hover {
             background-color: #da190b;
             color: white;
             border-color: white;
         }
 
-        .copy-button:hover {
-            background-color: #45a049;
+        .green-button:hover {
+            background-color: #4CAF50;
         }
 
-        #copy-link-modal {
+        #modal {
             display: none;
             position: fixed;
             top: 0;
@@ -63,7 +70,7 @@
             align-items: center;
         }
 
-        #copy-link-modal div {
+        #modal div {
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -71,19 +78,16 @@
             position: relative;
         }
 
-        #copy-link-modal h3 {
+        #modal h3 {
             color: black;
         }
 
-        #copy-link-modal p {
+        #modal p {
             color: black;
             word-wrap: break-word;
             margin-bottom: 20px;
         }
 
-        td button {
-            margin-right: 10px;
-        }
 
         table {
             margin: 20px 0;
@@ -142,10 +146,6 @@
             box-shadow: 0 0 5px #888;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
         .highlight {
             background-color: #555;
             font-weight: normal;
@@ -156,34 +156,26 @@
 {% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Dashboard</h1>
         <!-- Invitation Form -->
         <div class="content_wrapper">
-            <h2>Generate Invitation</h2>
+            <h3>Generate Invitation</h3>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             <form method="post"
                   action="{% url 'generate-user-invitation' %}"
                   id="invitationForm">
                 {% csrf_token %}
                 <div class="form-group">
-                    <div class="input-field">
-                        {{ invitation_form.email }}
-                        <i class="bx bx-envelope"></i>
-                    </div>
-                    <div class="input-field">
-                        {{ invitation_form.username }}
-                        <i class="bx bx-user"></i>
-                    </div>
+                    <div class="input-field">{{ form.email }}</div>
+                    <div class="input-field">{{ form.username }}</div>
                     <div class="form-group">
                         <div class="input-field">
                             <label for="id_role"></label>
                             <select name="role" id="id_role" class="styled-select">
-                                {% for value, label in invitation_form.role.field.choices %}
+                                {% for value, label in form.role.field.choices %}
                                     <option value="{{ value }}"
-                                            {% if invitation_form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                            {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
-                            <i class="bx bx-user"></i>
                         </div>
                     </div>
                     <div class="form-group">
@@ -191,25 +183,25 @@
                             <input type="checkbox"
                                    id="id_expert"
                                    name="expert"
-                                   {% if invitation_form.expert.value %}checked{% endif %}>
+                                   {% if form.expert.value %}checked{% endif %}>
                             <label for="id_expert">Expert</label>
                         </div>
                         <div class="checkbox-field">
                             <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
                             <label for="enableQuota">Max. Simultaneous Requests</label>
                         </div>
-                        <div class="input-field" id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
+                        <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
                         <div class="checkbox-field">
                             <input type="checkbox"
                                    id="enableLifetime"
                                    onclick="toggleInput('lifetimeField')">
                             <label for="enableLifetime">Limited Usage Time</label>
                         </div>
-                        <div class="input-field" id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
+                        <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
                     </div>
                     <div class="form-group">
                         <button type="button"
-                                class="generate-invitation-button"
+                                class="generate-invitation-button green-button"
                                 onclick="createInvitation()">Generate
                         </button>
                     </div>
@@ -250,7 +242,7 @@
                                     {% if invitation.link != "" %}
                                         <button id="copy-invitation-action-{{ invitation.id }}"
                                                 type="button"
-                                                class="copy-button"
+                                                class="green-button"
                                                 onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
                                             Copy Link
                                         </button>
@@ -287,38 +279,36 @@
                         <th>Quota</th>
                         <th>Lifetime</th>
                         <th>Date Joined</th>
-                        <th>Actions</th>
+                        {% if perms.accounts.can_delete_users %}
+                            <th>Actions</th>{% endif %}
                     </tr>
                     </thead>
                     <tbody>
                     {% for target_user in users %}
                         {% if target_user.deletion_pending == False %}
                             <tr id="user-{{ target_user.id }}"
-                                class="{% if target_user.id == current_user_id %}highlight{% endif %}">
+                                class="{% if target_user.id == current_user.id %}highlight{% endif %}">
                                 <td>{{ target_user.email }}</td>
                                 {% if target_user.username != target_user.email %}
                                     <td>{{ target_user.username }}</td>
                                 {% else %}
-                                    <td>N/A</td>
+                                    <td></td>
                                 {% endif %}
                                 <td>{{ target_user.get_role }}</td>
                                 <td>{{ target_user.quota }}</td>
                                 <td>{{ target_user.lifetime }}</td>
                                 <td>{{ target_user.date_joined }}</td>
-                                <td>
-                                    <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button"
-                                                class="delete-button"
-                                                onclick="deleteUser({{ target_user.id }})">Delete
-                                        </button>
-                                    </form>
-                                    <form id="edit-user-{{ target_user.id }}" style="display: inline;">
-                                        <button type="button"
-                                                class="edit-button"
-                                                data-user-id="{{ target_user.id }}">Edit
-                                        </button>
-                                </td>
+                                {% if perms.accounts.can_delete_users %}
+                                    <td>
+                                        <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button"
+                                                    class="delete-button"
+                                                    onclick="deleteUser({{ target_user.id }})">Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                {% endif %}
                             </tr>
                         {% endif %}
                     {% endfor %}
@@ -327,7 +317,7 @@
             </div>
         </div>
     </div>
-    <div id="copy-link-modal">
+    <div id="modal">
         <div>
             <h3>Invitation Link</h3>
             <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
@@ -351,16 +341,6 @@
             </button>
         </div>
     </div>
-    <div id="edit-modal" style="display:none;">
-        <h2>Edit User</h2>
-        <form id="edit-form">
-            <input type="hidden" id="user-id" name="user_id">
-            <div class="form-group">
-                <label for="edit-email">Email</label>
-                <input type="text" id="edit-email" name="email">
-        <button id="close-edit-modal">Close</button>
-    </div>
-
 {% endblock %}
 {% block scripts %}
     <script>
@@ -377,29 +357,6 @@
                 }
             }
         })
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const editButtons = document.querySelectorAll('.edit-button');
-            editButtons.forEach(button => button.addEventListener('click', handleEditButtonClick));
-
-            // Attach close modal event listener
-            const closeModalButton = document.getElementById('close-edit-modal');
-            closeModalButton.addEventListener('click', handleCloseEditModalButton);
-            
-        });
-
-        function handleEditButtonClick(event) {
-            document.getElementById('user-id').value = event.target.getAttribute('data-user-id');
-            document.getElementById('edit-modal').style.display = 'block';
-        }
-
-        function handleCloseEditModalButton() {
-            document.getElementById('edit-modal').style.display = 'none';
-        }
-
-        function handleEditFormSubmit(event) {
-
-        }
 
         function toggleInput(fieldId) {
             const field = document.getElementById(fieldId);
@@ -447,7 +404,7 @@
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
                     document.getElementById('modal-link').textContent = linkData['link'];
-                    document.getElementById('copy-link-modal').style.display = 'flex'; // Show the modal
+                    document.getElementById('modal').style.display = 'flex'; // Show the modal
                 } else {
                     if (linkData['error']) {
                         alert("Failed to create invitation: " + linkData['error']);
@@ -479,7 +436,7 @@
 
 
         function closeModal() {
-            document.getElementById('copy-link-modal').style.display = 'none';
+            document.getElementById('modal').style.display = 'none';
 
             // Clear form inputs
             const form = document.getElementById('invitationForm');
