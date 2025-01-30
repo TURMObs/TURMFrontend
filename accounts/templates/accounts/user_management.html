@@ -159,7 +159,7 @@
     <div class="container">
         <!-- Invitation Form -->
         <div class="content_wrapper">
-            <h2>Generate Invitation</h2>
+            <h3>Generate Invitation</h3>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             <form method="post"
                   action="{% url 'generate-user-invitation' %}"
