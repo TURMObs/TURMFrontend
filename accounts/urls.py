@@ -14,6 +14,7 @@ from accounts.views import (
     dsgvo_options,
     delete_invitation,
     has_invitation,
+    edit_user,
 )
 
 urlpatterns = [
@@ -43,6 +44,7 @@ urlpatterns = [
         name="delete-invitation",
     ),
     path("delete-user/<int:user_id>", delete_user, name="delete-user"),
+    path("edit-user", edit_user, name="edit-user"),
     path("get-user-data", get_user_data, name="get-user-data"),
     path("dsgvo", dsgvo_options, name=settings.DSGVO_URL),
 ]

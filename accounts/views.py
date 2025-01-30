@@ -5,6 +5,7 @@ import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
+from django.core.validators import MinValueValidator
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
@@ -87,6 +88,57 @@ class GenerateInvitationForm(forms.Form):
         return expert
 
 
+class EditUserForm(forms.Form):
+    user_id = forms.IntegerField(validators=[MinValueValidator(1)])
+    new_alias = forms.CharField(max_length=64, required=False)
+    new_email = forms.EmailField(max_length=64)
+    new_quota = forms.IntegerField(validators=[MinValueValidator(1)], required=False)
+    new_lifetime = forms.DateField(required=False)
+    new_role = forms.ChoiceField(
+        choices=[
+            (UserGroup.USER, "User"),
+            (UserGroup.ADMIN, "Admin"),
+            (UserGroup.GROUP_MANAGER, "Group Manager"),
+        ],
+        required=False,
+    )
+    remove_quota = forms.BooleanField(required=False)
+    remove_lifetime = forms.BooleanField(required=False)
+
+    def clean_user_id(self):
+        user_id = self.cleaned_data.get("user_id")
+        if not ObservatoryUser.objects.filter(id=user_id).exists():
+            raise forms.ValidationError("User does not exist.")
+        return user_id
+
+    def clean_new_alias(self):
+        new_alias = self.cleaned_data.get("new_alias").strip()
+        if new_alias == "":
+            new_alias = self.cleaned_data.get("new_email")
+        return new_alias
+
+    def clean_new_email(self):
+        new_email = self.cleaned_data.get("new_email").strip()
+        if new_email and new_email == "":
+            raise forms.ValidationError("Email cannot be an empty string.")
+        return new_email
+
+    def clean_new_lifetime(self):
+        new_lifetime = self.cleaned_data.get("new_lifetime")
+        if new_lifetime and new_lifetime <= datetime.now().date():
+            raise forms.ValidationError("Lifetime must be a future date.")
+        return new_lifetime
+
+    def clean_remove_quota(self):
+        if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
+            raise forms.ValidationError("Cannot remove quota and set a new quota at the same time.")
+        return self.cleaned_data.get("remove_quota")
+
+    def clean_remove_lifetime(self):
+        if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get("new_lifetime"):
+            raise forms.ValidationError("Cannot remove lifetime and set a new lifetime at the same time.")
+        return self.cleaned_data.get("remove_lifetime")
+
 class SetPasswordForm(forms.Form):
     new_password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={"placeholder": "Password"})
@@ -150,7 +202,7 @@ def login_user(request):
 @user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
 def generate_invitation(request):
     return generate_invitation_template(
-        request, form=GenerateInvitationForm(user=request.user)
+        request, invitation_form=GenerateInvitationForm(user=request.user)
     )
 
 
@@ -162,7 +214,7 @@ def generate_user_invitation(request):
         logger.warning(f"Invalid form data on account creation: {form.errors}")
         return generate_invitation_template(
             request,
-            form=GenerateInvitationForm(user=request.user),
+            invitation_form=GenerateInvitationForm(user=request.user),
             error="Invalid email",
         )
 
@@ -181,7 +233,7 @@ def generate_user_invitation(request):
     ):
         return generate_invitation_template(
             request,
-            form=GenerateInvitationForm(request.user),
+            invitation_form=GenerateInvitationForm(request.user),
             error="You do not have permission to invite admins",
         )
 
@@ -190,7 +242,7 @@ def generate_user_invitation(request):
     ):
         return generate_invitation_template(
             request,
-            form=GenerateInvitationForm(request.user),
+            invitation_form=GenerateInvitationForm(request.user),
             error="You do not have permission to invite group leaders",
         )
 
@@ -325,6 +377,32 @@ def delete_user(request, user_id):
     return JsonResponse({"status": "success"}, status=200)
 
 
+@require_POST
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_EDIT_USERS))
+def edit_user(request):
+    edit_form = EditUserForm(request.POST)
+    if not edit_form.is_valid():
+        return JsonResponse({"status": "error", "message": edit_form.errors}, status=400)
+    edit_form_data = edit_form.cleaned_data
+    user = ObservatoryUser.objects.get(id=edit_form_data["user_id"])
+    if edit_form_data["new_alias"]:
+        user.username = edit_form_data["new_alias"]
+    if edit_form_data["new_email"]:
+        user.email = edit_form_data["new_email"]
+    if edit_form_data["new_quota"]:
+        user.quota = edit_form_data["new_quota"]
+    if edit_form_data["new_lifetime"]:
+        user.lifetime = edit_form_data["new_lifetime"]
+    if edit_form_data["new_role"]:
+        user.groups.clear()
+        user.groups.add(Group.objects.get(name=edit_form_data["new_role"]))
+    if edit_form_data["remove_quota"]:
+        user.quota = None
+    if edit_form_data["remove_lifetime"]:
+        user.lifetime = None
+    user.save()
+
+
 @require_GET
 def get_user_data(request):
     data = user_data.get_all_data(request.user)
@@ -340,13 +418,14 @@ def index_template(request, error=None, form=None):
     return render(request, "accounts/index.html", {"error": error, "form": form})
 
 
-def generate_invitation_template(request, error=None, link=None, form=None):
+def generate_invitation_template(request, error=None, link=None, invitation_form=None):
     return render(
         request,
         "accounts/user_management.html",
         {
             "error": error,
-            "form": form,
+            "invitation_form": invitation_form,
+            "edit_user_form": EditUserForm(),
             "UserGroups": UserGroup,
             "invitations": InvitationToken.objects.all(),
             "users": ObservatoryUser.objects.all(),

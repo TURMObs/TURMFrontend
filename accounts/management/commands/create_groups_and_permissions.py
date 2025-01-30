@@ -9,7 +9,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         admin_group, _ = Group.objects.get_or_create(name=UserGroup.ADMIN)
-        group_manager_group, _ = Group.objects.get_or_create(name=UserGroup.GROUP_MANAGER)
+        group_manager_group, _ = Group.objects.get_or_create(
+            name=UserGroup.GROUP_MANAGER
+        )
         user_group, _ = Group.objects.get_or_create(name=UserGroup.USER)
         content_type = ContentType.objects.get_for_model(ObservatoryUser)
 
@@ -23,6 +25,7 @@ class Command(BaseCommand):
             ),
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
             (UserPermission.CAN_DELETE_USERS, "Can delete users"),
+            (UserPermission.CAN_EDIT_USERS, "Can edit users"),
         ]
 
         # Create permissions if they don't exist
@@ -50,6 +53,9 @@ class Command(BaseCommand):
         can_delete_users = Permission.objects.get(
             codename=UserPermission.CAN_DELETE_USERS, content_type=content_type
         )
+        can_edit_users = Permission.objects.get(
+            codename=UserPermission.CAN_EDIT_USERS, content_type=content_type
+        )
 
         # Assign permissions to groups
         admin_group.permissions.add(
@@ -59,6 +65,7 @@ class Command(BaseCommand):
             can_create_expert_observation,
             can_see_all_observations,
             can_delete_users,
+            can_edit_users,
         )
         group_manager_group.permissions.add(can_generate_invitation)
 
