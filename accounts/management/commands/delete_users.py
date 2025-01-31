@@ -22,4 +22,3 @@ class Command(BaseCommand):
         ):
             user_data.delete_user(user)
         process_pending_deletion_users()
-

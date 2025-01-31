@@ -7,7 +7,6 @@ from django.utils import timezone
 from nc_py_api import NextcloudException
 
 from nextcloud.nextcloud_manager import generate_observation_path
-from observation_data import observation_management
 from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
