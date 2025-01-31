@@ -1,8 +1,15 @@
 from django.urls import path
 
-from observation_request.views import simple_request, test_request
+from observation_request.views import (
+    create_observation_request,
+    edit_observation_request,
+)
 
 urlpatterns = [
-    path("", simple_request, name="observation-request"),
-    path("test/", test_request),
+    path("create", create_observation_request, name="create-observation-request"),
+    path(
+        "edit/<int:observation_id>",
+        edit_observation_request,
+        name="edit-observation-request",
+    ),
 ]

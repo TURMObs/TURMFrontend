@@ -1,0 +1,40 @@
+{% extends "base_template.html" %}
+{% block title %}Edit Observation{% endblock %}
+{% block style %}
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
+    <link rel='stylesheet'
+          href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
+    <style></style>
+{% endblock %}
+<!-- {% block scripts %}
+    <script src="{% static '/js/turminputs.js' %}"></script>
+    <script> onload = _ => {
+        check_radio_if_none_selected()
+    };
+</script>
+{% endblock %} -->
+{% block content %}
+    <div class="content_wrapper form_wrapper">
+        <header class="form_body">
+            <div class="container_center">
+                <h1>Edit Observation</h1>
+            </div>
+        </header>
+        <form class="input_form" id="form">
+            <!-- onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')" -->
+            {% for name, form in forms %}
+                <article class="form_body">
+                    <h2 class="sub_form_heading">{{ name }}</h2>
+                    <div class="form_center">{{ form }}</div>
+                </article>
+            {% endfor %}
+            {% csrf_token %}
+            <input type="submit" class="base_button">
+        </form>
+    </div>
+{% endblock %}
