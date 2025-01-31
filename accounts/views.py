@@ -14,6 +14,7 @@ import os
 
 from rest_framework.decorators import api_view
 
+from observation_data.models import AbstractObservation, ObservationStatus
 from . import user_data
 from .models import (
     InvitationToken,
@@ -322,6 +323,11 @@ def delete_user(request, user_id):
         )
     target_user.deletion_pending = True
     target_user.save()
+
+    for obs in AbstractObservation.objects.filter(user=target_user):
+        obs.project_status = ObservationStatus.PENDING_DELETION
+        obs.save()
+
     logger.info(f"{target_user} has been marked for deletion by {request_user}")
     return JsonResponse({"status": "success"}, status=200)
 
@@ -332,6 +338,7 @@ def get_user_data(request):
     return JsonResponse(data)
 
 
+@require_GET
 @require_GET
 def dsgvo_options(request):
     return render(request, "accounts/dsgvo.html", {"subpath": settings.SUBPATH})

@@ -19,14 +19,10 @@ def delete_observation(observation_id: int):
     This function can be used to delete an observation from the database (and if existent from the nextcloud).
 
     :param observation_id: The id of the observation.
-    :raises ValueError: If no such observation exists.
     :raises BadRequest: If the observation is already marked for deletion.
     """
 
-    try:
-        obs = AbstractObservation.objects.get(id=observation_id)
-    except AbstractObservation.DoesNotExist:
-        raise ValueError(f"Could not find observation with id {observation_id}")
+    obs = AbstractObservation.objects.get(id=observation_id)
 
     if obs.project_status == ObservationStatus.PENDING_DELETION:
         raise BadRequest(f"Observation {obs.id} is already marked for deletion.")
@@ -44,12 +40,14 @@ def delete_observation(observation_id: int):
     logger.info(f"Observation {obs.id} deleted successfully from database.")
 
 
-def process_pending_deletion(delete_user: bool = True):
+def process_pending_deletion():
+    process_pending_deletion_observations()
+    process_pending_deletion_users()
+
+
+def process_pending_deletion_observations():
     """
     Deletes all observations with status PENDING_DELETE from database and if existent from nextcloud.
-    Also deletes all users with status
-
-    :param delete_user: If true, deletes all users with status PENDING_DELETION. Not wanted for deletion command
     """
     try:
         nm.initialize_connection()
@@ -73,6 +71,10 @@ def process_pending_deletion(delete_user: bool = True):
         logger.info(f"Observation {obs.id} deleted successfully from database.")
     logger.info("All observations with status PENDING_DELETE deleted successfully.")
 
-    if delete_user:
-        for user in ObservatoryUser.objects.filter(deletion_pending=True):
-            user.delete()
+
+def process_pending_deletion_users():
+    """
+    Also deletes all users with status deletion_pending=True
+    """
+    for user in ObservatoryUser.objects.filter(deletion_pending=True):
+        user.delete()

@@ -162,7 +162,13 @@ def delete_observation(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    obs = AbstractObservation.objects.get(id=observation_id)
+    try:
+        obs = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist as e:
+        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
+        logger.error(response)
+        return Response({response}, status=status.HTTP_403_FORBIDDEN)
+
     if not user == obs.user and not user.has_perm(
         UserPermission.CAN_DELETE_ALL_OBSERVATIONS
     ):
@@ -178,10 +184,6 @@ def delete_observation(request):
 
     try:
         observation_management.delete_observation(observation_id)
-    except ValueError as e:
-        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
-        logger.error(response)
-        return Response({response}, status=status.HTTP_403_FORBIDDEN)
     except BadRequest as e:
         response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
         return Response({response}, status=status.HTTP_400_BAD_REQUEST)

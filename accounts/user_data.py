@@ -16,9 +16,7 @@ def delete_user(user: ObservatoryUser):
     """
     observation_requests = AbstractObservation.objects.filter(user=user.id)
     for request in observation_requests:
-        delete_observation(
-            user=ObservatoryUser.objects.get(id=user.id), observation_id=request.id
-        )
+        delete_observation(observation_id=request.id)
     user.deletion_pending = True  # cannot be deleted right away because we have to wait until the morning to delete the users observations and afterward the user itself
     user.save()
 

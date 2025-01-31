@@ -2,7 +2,6 @@ import json
 import os
 from datetime import datetime, timezone, timedelta
 
-from django.core.exceptions import BadRequest
 from django.utils import timezone as tz
 from unittest import skipIf
 
@@ -14,7 +13,7 @@ from dotenv import load_dotenv
 
 from accounts.models import ObservatoryUser, UserPermission
 from nextcloud.nextcloud_manager import generate_observation_path
-from nextcloud.nextcloud_sync import upload_observations, update_observations
+from nextcloud.nextcloud_sync import upload_observations
 from observation_data.models import (
     ImagingObservation,
     ObservationType,
@@ -24,7 +23,9 @@ from observation_data.models import (
     Observatory,
     CelestialTarget,
 )
-from observation_data.observation_management import delete_observation
+from observation_data.observation_management import (
+    process_pending_deletion,
+)
 from observation_data.serializers import (
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
@@ -949,14 +950,14 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.old_prefix = self.prefix
         nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
         self.prefix = f"{self.nc_prefix}{self.prefix}"
-
-        self.user = None
-        self.client = django.test.Client()
-        _create_user_and_login(self)
         call_command("populate_observatories")
 
-        nm.initialize_connection()
+        self.user = None
         self.maxDiff = None
+        self.client = django.test.Client()
+        _create_user_and_login(self)
+
+        nm.initialize_connection()
 
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix
@@ -990,14 +991,25 @@ class ObservationManagementTestCase(django.test.TestCase):
 
     def test_delete_no_permission(self):
         # simulates the situation where a user without delete-all-permissions tries to delete an observation of another user
-        id = 42
+        obs_id = 42
 
-        self.create_test_observation(obs_id=id)
+        self.create_test_observation(obs_id=obs_id)
         self.assertEqual(1, AbstractObservation.objects.count())
 
         other_user = ObservatoryUser.objects.create_user(username="Max Mustermann")
-        with self.assertRaises(PermissionError):
-            delete_observation(user=other_user, observation_id=id)
+        other_test_instance = django.test.Client()
+        other_test_instance.user = ObservatoryUser.objects.get(
+            username="Max Mustermann"
+        )
+        other_test_instance.force_login(other_test_instance.user)
+
+        response = other_test_instance.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+
         self.assertEqual(1, AbstractObservation.objects.count())
 
     def test_delete_non_admin(self):
@@ -1006,12 +1018,22 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.create_test_observation(obs_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
-        other_user = ObservatoryUser.objects.create_user(username="Max Mustermann")
-        obs.user = other_user
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        obs.user = ObservatoryUser.objects.get(username="Max Mustermann")
         obs.save()
-        self.assertEqual(1, AbstractObservation.objects.count())
 
-        delete_observation(user=other_user, observation_id=obs_id)
+        other_test_instance = django.test.Client()
+        other_test_instance.user = ObservatoryUser.objects.get(
+            username="Max Mustermann"
+        )
+        other_test_instance.force_login(other_test_instance.user)
+
+        response = other_test_instance.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
         self.assertEqual(0, AbstractObservation.objects.count())
 
     def test_delete_admin(self):
@@ -1025,7 +1047,12 @@ class ObservationManagementTestCase(django.test.TestCase):
         obs.save()
         self.assertEqual(1, AbstractObservation.objects.count())
 
-        delete_observation(user=self.user, observation_id=obs_id)
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
         self.assertEqual(0, AbstractObservation.objects.count())
 
     def test_currently_uploaded(self):
@@ -1036,19 +1063,28 @@ class ObservationManagementTestCase(django.test.TestCase):
         obs.project_status = ObservationStatus.UPLOADED
         obs.save()
 
-        delete_observation(user=self.user, observation_id=obs_id)
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
         obs = AbstractObservation.objects.get(id=obs_id)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING_DELETION)
 
-        update_observations()
+        process_pending_deletion()
         self.assertEqual(
             0, AbstractObservation.objects.count()
         )  # obs does not exist anymore
 
     def test_bad_id(self):
         # simulates the situation where a user tries to delete a non-existing observation
-        with self.assertRaises(ValueError):
-            delete_observation(user=self.user, observation_id=12345)
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": 12345}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
 
     @skipIf(
         not run_nc_test,
@@ -1065,14 +1101,24 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         obs = AbstractObservation.objects.get(id=obs_id)
         upload_observations()
-        delete_observation(user=self.user, observation_id=obs_id)
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
 
         self.assertTrue(nm.file_exists(generate_observation_path(obs)))
 
-        with self.assertRaises(BadRequest):
-            delete_observation(user=self.user, observation_id=obs_id)
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
 
-        update_observations()
+        process_pending_deletion()
 
         self.assertEqual(0, AbstractObservation.objects.count())
         self.assertFalse(nm.file_exists(generate_observation_path(obs)))
@@ -1085,5 +1131,10 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.create_test_observation(obs_id=obs_id)
         self.assertEqual(1, AbstractObservation.objects.count())
 
-        delete_observation(user=self.user, observation_id=obs_id)
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
         self.assertEqual(0, AbstractObservation.objects.count())
