@@ -91,6 +91,80 @@ def create_observation(request):
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+@require_POST
+@api_view(["POST"])
+def edit_observation(request, observation_id):
+    """
+    Edit an observation which is identified by the observation id.
+    The passed data must satisfy the is_valid() method of the corresponding serializer and include all necessary fields.
+    Note that the user must be authenticated to create an observation and staff to create an expert observation.
+    :param request: HTTP request with observation data
+    :return: HTTP response with the created observation data or error message
+    """
+
+    user = request.user
+
+    if not isinstance(user, ObservatoryUser):
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    observation = AbstractObservation.objects.get(id=observation_id)
+    if observation is None:
+        return Response(
+            {"error": "Observation not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Either the user can edit all observations or the observation request is owned by the user
+    can_edit = observation.user.id == user.id or user.has_perm(
+        UserPermission.CAN_EDIT_ALL_OBSERVATIONS
+    )
+    if not can_edit:
+        return Response(
+            {"error": "Permission denied"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    request_data = request.data.copy()
+    observation_type = request_data.get("observation_type")
+
+    serializer_class = get_serializer(observation_type)
+    if not serializer_class:
+        return Response(
+            {"error": f"Invalid observation type: {observation_type}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if isinstance(request.data, QueryDict):
+        request_data = convert_query_dict(
+            request.data.copy(), serializer_class.Meta.model
+        )
+
+    observation_type = request_data.get("observation_type")
+    request_data["user"] = request.user.id
+
+    if "name" in request_data and isinstance(request_data["name"], str):
+        request_data = _nest_observation_request(
+            request_data,
+            {
+                "ra": "target.ra",
+                "dec": "target.dec",
+                "name": "target.name",
+                "catalog_id": "target.catalog_id",
+            },
+        )
+
+    serializer = serializer_class(data=request_data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # TODO: Actually apply the changes
+
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 def _nest_observation_request(data, mappings):
     """
     Convert flat dictionary to nested structure based on mappings.

@@ -1,6 +1,8 @@
 {% extends "base_template.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block style %}
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+          rel='stylesheet'>
     <style>
     .container {
         margin: 30px;
@@ -76,6 +78,7 @@
                             <th class="right-align">Project status</th>
                             <th class="right-align">Project completion</th>
                             <th class="right-align">Priority</th>
+                            <td></td>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,7 +97,12 @@
                                 <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
-                                <td class="right-align">{{ observation.priority }}</td>
+                                {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
+                                <td>
+                                    <a href="{% url 'edit-observation-request' observation.id %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                </td>
                             </tr>
                             <tr class="expander-row"
                                 id="expander-{{ observation.id }}"
@@ -146,6 +154,11 @@
 
             rows.forEach(row => {
                 row.addEventListener('click', function() {
+                    // Do not expand the row if the user clicked on the edit icon
+                    if (event.target.classList.contains('bx-edit') || event.target.closest('a')) {
+                        return;
+                    }
+
                     const id = this.getAttribute('data-id');
                     const expander = document.getElementById(`expander-${id}`);
 
