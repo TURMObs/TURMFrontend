@@ -52,7 +52,9 @@ def edit_observation_request(request, observation_id):
                 ExposureSettingsForm(),
             ),
         ],
-        "edit_form_url": settings.SUBPATH + "/observation-data/edit/",
+        "edit_form_url": settings.SUBPATH
+        + "/observation-data/edit/"
+        + str(observation_id),
         "existing_request": json.dumps(existing_request),
     }
     return render(

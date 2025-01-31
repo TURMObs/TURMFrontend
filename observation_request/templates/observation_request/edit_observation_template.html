@@ -82,8 +82,9 @@
                 <h1>Edit Observation</h1>
             </div>
         </header>
-        <form class="input_form" id="form">
-            <!-- onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')" -->
+        <form class="input_form"
+              id="form"
+              onsubmit="submitForm(event, this, '{{ edit_form_url }}', '{% url "dashboard" %}')">
             {% for name, form in forms %}
                 <article>
                     <h2 class="form-heading">{{ name }}</h2>
