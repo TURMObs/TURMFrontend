@@ -89,77 +89,85 @@ class GenerateInvitationForm(forms.Form):
 
 
 class EditUserForm(forms.Form):
-    class EditUserForm(forms.Form):
-        user_id = forms.IntegerField(
-            validators=[MinValueValidator(1)],
-        )
-        new_alias = forms.CharField(
-            max_length=64, required=False,
-            widget=forms.TextInput(attrs={'class': 'input-field'})
-        )
-        new_email = forms.EmailField(
-            max_length=64,
-            widget=forms.EmailInput(attrs={'class': 'input-field'})
-        )
-        new_quota = forms.IntegerField(
-            validators=[MinValueValidator(1)], required=False,
-            widget=forms.NumberInput(attrs={'class': 'input-field'})
-        )
-        new_lifetime = forms.DateField(
-            required=False,
-            widget=forms.DateInput(attrs={'class': 'input-field', 'type': 'date'})
-        )
-        new_role = forms.ChoiceField(
-            choices=[
-                (UserGroup.USER, "User"),
-                (UserGroup.ADMIN, "Admin"),
-                (UserGroup.OPERATOR, "Operator"),
-            ],
-            required=False,
-            widget=forms.Select(attrs={'class': 'styled-select'})
-        )
-        remove_quota = forms.BooleanField(
-            required=False,
-            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-        )
-        remove_lifetime = forms.BooleanField(
-            required=False,
-            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-        )
+    user_id = forms.IntegerField(
+        validators=[MinValueValidator(1)],
+    )
+    new_alias = forms.CharField(
+        max_length=64,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "New User Alias"}),
+    )
+    new_email = forms.EmailField(
+        required=False,
+        max_length=64,
+        widget=forms.EmailInput(attrs={"placeholder": "New Email"}),
+    )
+    new_quota = forms.IntegerField(
+        validators=[MinValueValidator(1)],
+        required=False,
+        widget=forms.NumberInput(attrs={"placeholder": "New Quota"}),
+    )
+    new_lifetime = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"placeholder": "New Lifetime", "type": "date"}),
+    )
+    new_role = forms.ChoiceField(
+        choices=[
+            (UserGroup.USER, "User"),
+            (UserGroup.ADMIN, "Admin"),
+            (UserGroup.OPERATOR, "Operator"),
+        ],
+        required=False,
+        widget=forms.Select(),
+    )
+    remove_quota = forms.BooleanField(required=False, widget=forms.CheckboxInput())
+    remove_lifetime = forms.BooleanField(required=False, widget=forms.CheckboxInput())
 
-    def clean_user_id(self):
-        user_id = self.cleaned_data.get("user_id")
-        if not ObservatoryUser.objects.filter(id=user_id).exists():
-            raise forms.ValidationError("User does not exist.")
-        return user_id
 
-    def clean_new_alias(self):
-        new_alias = self.cleaned_data.get("new_alias").strip()
-        if new_alias == "":
-            new_alias = self.cleaned_data.get("new_email")
-        return new_alias
+def clean_user_id(self):
+    user_id = self.cleaned_data.get("user_id")
+    if not ObservatoryUser.objects.filter(id=user_id).exists():
+        raise forms.ValidationError("User does not exist.")
+    return user_id
 
-    def clean_new_email(self):
-        new_email = self.cleaned_data.get("new_email").strip()
-        if new_email and new_email == "":
-            raise forms.ValidationError("Email cannot be an empty string.")
-        return new_email
 
-    def clean_new_lifetime(self):
-        new_lifetime = self.cleaned_data.get("new_lifetime")
-        if new_lifetime and new_lifetime <= datetime.now().date():
-            raise forms.ValidationError("Lifetime must be a future date.")
-        return new_lifetime
+def clean_new_alias(self):
+    new_alias = self.cleaned_data.get("new_alias").strip()
+    if new_alias == "":
+        new_alias = self.cleaned_data.get("new_email")
+    return new_alias
 
-    def clean_remove_quota(self):
-        if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
-            raise forms.ValidationError("Cannot remove quota and set a new quota at the same time.")
-        return self.cleaned_data.get("remove_quota")
 
-    def clean_remove_lifetime(self):
-        if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get("new_lifetime"):
-            raise forms.ValidationError("Cannot remove lifetime and set a new lifetime at the same time.")
-        return self.cleaned_data.get("remove_lifetime")
+def clean_new_email(self):
+    new_email = self.cleaned_data.get("new_email").strip()
+    if new_email and new_email == "":
+        raise forms.ValidationError("Email cannot be an empty string.")
+    return new_email
+
+
+def clean_new_lifetime(self):
+    new_lifetime = self.cleaned_data.get("new_lifetime")
+    if new_lifetime and new_lifetime <= datetime.now().date():
+        raise forms.ValidationError("Lifetime must be a future date.")
+    return new_lifetime
+
+
+def clean_remove_quota(self):
+    if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
+        raise forms.ValidationError(
+            "Cannot remove quota and set a new quota at the same time."
+        )
+    return self.cleaned_data.get("remove_quota")
+
+
+def clean_remove_lifetime(self):
+    if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get(
+        "new_lifetime"
+    ):
+        raise forms.ValidationError(
+            "Cannot remove lifetime and set a new lifetime at the same time."
+        )
+    return self.cleaned_data.get("remove_lifetime")
 
 
 class SetPasswordForm(forms.Form):
@@ -252,7 +260,7 @@ def generate_user_invitation(request):
         username = email
 
     if role == UserGroup.ADMIN and not request.user.has_perm(
-            UserPermission.CAN_INVITE_ADMINS
+        UserPermission.CAN_INVITE_ADMINS
     ):
         return generate_invitation_template(
             request,
@@ -261,7 +269,7 @@ def generate_user_invitation(request):
         )
 
     if role == UserGroup.OPERATOR and not request.user.has_perm(
-            UserPermission.CAN_INVITE_OPERATORS
+        UserPermission.CAN_INVITE_OPERATORS
     ):
         return generate_invitation_template(
             request,
@@ -369,7 +377,7 @@ def delete_invitation(request, invitation_id):
 def delete_user(request, user_id):
     request_user = request.user
     if user_id != request_user.id and not request_user.has_perm(
-            UserPermission.CAN_DELETE_USERS
+        UserPermission.CAN_DELETE_USERS
     ):
         return JsonResponse(
             {
@@ -406,7 +414,9 @@ def delete_user(request, user_id):
 def edit_user(request):
     edit_form = EditUserForm(request.POST)
     if not edit_form.is_valid():
-        return JsonResponse({"status": "error", "message": edit_form.errors}, status=400)
+        return JsonResponse(
+            {"status": "error", "message": edit_form.errors}, status=400
+        )
     edit_form_data = edit_form.cleaned_data
     user = ObservatoryUser.objects.get(id=edit_form_data["user_id"])
     if edit_form_data["new_alias"]:
@@ -425,6 +435,7 @@ def edit_user(request):
     if edit_form_data["remove_lifetime"]:
         user.lifetime = None
     user.save()
+    return JsonResponse({"status": "success"}, status=200)
 
 
 @require_GET
@@ -459,7 +470,7 @@ def generate_invitation_template(request, error=None, link=None, invitation_form
 
 
 def register_from_invitation_template(
-        request, token, error=None, email=None, form=None
+    request, token, error=None, email=None, form=None
 ):
     return render(
         request,

@@ -70,8 +70,16 @@
             align-items: center;
         }
 
-        .modal div {
+        #invitation-link-modal div {
             background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        #edit-user-modal div {
+            background: #444444;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
@@ -160,6 +168,7 @@
             color: #f1f1f1;
         }
 
+
     </style>
 {% endblock %}
 {% block content %}
@@ -175,16 +184,14 @@
                 <div class="form-group">
                     <div class="input-field">{{ invitation_form.email }}</div>
                     <div class="input-field">{{ invitation_form.username }}</div>
-                    <div class="form-group">
-                        <div class="input-field">
-                            <label for="id_role"></label>
-                            <select name="role" id="id_role" class="styled-select">
-                                {% for value, label in invitation_form.role.field.choices %}
-                                    <option value="{{ value }}"
-                                            {% if invitation_form.role.value == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="input-field">
+                        <label for="id_role"></label>
+                        <select name="role" id="id_role" class="styled-select">
+                            {% for value, label in invitation_form.role.field.choices %}
+                                <option value="{{ value }}"
+                                        {% if invitation_form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="form-group">
                         <div class="checkbox-field">
@@ -365,43 +372,17 @@
         </div>
     </div>
     <div id="edit-user-modal" class="modal">
-        <div>
+        <div class="content_wrapper">
             <h3 id="edit-modal-title">Edit user</h3>
-            <form id="edit-user-form" method="POST" action="{% url 'edit-user' %}">
+            <form id="editUserForm" method="POST" action="{% url 'edit-user' %}">
                 {% csrf_token %}
+                <div class="form-group">
+                    <div class="input-field">{{ edit_user_form.new_email }}</div>
+                    <div class="input-field" id="id_remove_quota">{{ edit_user_form.remove_quota }}</div>
+                </div>
                 <input type="hidden" id="edit-user-id" name="user_id">
 
-                <div class="form-group">
-                    {{ edit_user_form.new_alias }}
-                </div>
-
-                <div class="form-group">
-                    {{ edit_user_form.new_email }}
-                </div>
-
-                <div class="form-group">
-                    {{ edit_user_form.new_quota }}
-                </div>
-
-                <div class="form-group">
-                    {{ edit_user_form.new_lifetime }}
-                </div>
-
-                <div class="form-group">
-                    {{ edit_user_form.new_role }}
-                </div>
-
-                <div class="form-check">
-                    {{ edit_user_form.remove_quota }}
-                    <label class="form-check-label">Remove Quota</label>
-                </div>
-
-                <div class="form-check">
-                    {{ edit_user_form.remove_lifetime }}
-                    <label class="form-check-label">Remove Lifetime</label>
-                </div>
-
-                <button type="submit" class="submit-button">Save Changes</button>
+                <button type="button" class="green-button" onclick=submitEditUser()>Save Changes</button>
                 <button type="button" onclick="closeModal()">Close</button>
             </form>
 
@@ -554,6 +535,14 @@
                 title = `Edit user ${email}`;
             }
             document.getElementById('edit-modal-title').textContent = title;
+            const modalContent = document.querySelector('#edit-user-modal > div');
+            modalContent.style.display = 'flex';
+            modalContent.style.flexDirection = 'column';
+            modalContent.style.alignItems = 'center';
+        }
+
+        async function submitEditUser() {
+
         }
 
 
