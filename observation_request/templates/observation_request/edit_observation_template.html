@@ -17,6 +17,10 @@
             align-items: center;
             gap: 16px;
         }
+
+        .form-heading {
+            margin-bottom: 8px;
+        }
     </style>
 {% endblock %}
 {% block scripts %}
@@ -35,14 +39,37 @@
             markInputAsChecked(query, value, (val) => val == value)
         }
 
-        const existingRequest = JSON.parse('{{ existing_request|escapejs }}');
+        function fillInput(query, value) {
+            const queryString = `input[id^="${query}"]`;
+            for (const input of document.querySelectorAll(queryString)) {
+                input.value = value;
+            }
+        }
+
+        const existingRequest = JSON.parse('{{ existing_request | escapejs }}');
 
         markInputAsCheckedIfEqual("id_observatory", existingRequest.observatory);
         markInputAsCheckedIfEqual("id_observation_type", existingRequest.observation_type);
         markInputAsChecked("id_filter_set", existingRequest.filter_set, (val) => existingRequest.filter_set.includes(val));
         markInputAsCheckedIfEqual("id_exposure_time", existingRequest.exposure_time);
-        markInputAsCheckedIfEqual("id_start_observation", existingRequest.start_observation);
-        markInputAsCheckedIfEqual("id_end_observation", existingRequest.end_observation);
+
+        fillInput("id_frames_per_filter", existingRequest.frames_per_filter);
+        fillInput("id_start_observation", existingRequest.start_observation);
+        fillInput("id_end_observation", existingRequest.end_observation);
+        fillInput("id_minimum_altitude", existingRequest.minimum_altitude);
+        fillInput("id_start_scheduling", existingRequest.start_scheduling);
+        fillInput("id_end_scheduling", existingRequest.end_scheduling);
+        fillInput("id_cadence", existingRequest.cadence);
+
+        fillInput("id_priority", existingRequest.priority);
+        fillInput("id_exposure_time_expert", existingRequest.exposure_time);
+        fillInput("id_dither_every", existingRequest.dither_every);
+        fillInput("id_binning", existingRequest.binning);
+        fillInput("id_gain", existingRequest.gain);
+        fillInput("id_offset", existingRequest.offset);
+        fillInput("id_moon_separation_angle", existingRequest.moon_separation_angle);
+        fillInput("id_moon_separation_width", existingRequest.moon_separation_width);
+        fillInput("id_minimum_altitude", existingRequest.minimum_altitude);
 
         check_radio_if_none_selected()
     };
@@ -50,7 +77,7 @@
 {% endblock %}
 {% block content %}
     <div class="content_wrapper form_wrapper">
-        <header class="form_body">
+        <header>
             <div class="container_center">
                 <h1>Edit Observation</h1>
             </div>
@@ -58,9 +85,9 @@
         <form class="input_form" id="form">
             <!-- onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')" -->
             {% for name, form in forms %}
-                <article class="form_body">
-                    <h2 class="sub_form_heading">{{ name }}</h2>
-                    <div class="form_center">{{ form }}</div>
+                <article>
+                    <h2 class="form-heading">{{ name }}</h2>
+                    <div>{{ form }}</div>
                 </article>
             {% endfor %}
             {% csrf_token %}

@@ -72,6 +72,7 @@ def build_observation_data(observation: AbstractObservation):
         ObservationType.EXOPLANET,
         ObservationType.VARIABLE,
         ObservationType.MONITORING,
+        ObservationType.EXPERT,
     ]:
         content["exposure_time"] = float(observation.exposure_time)
 
@@ -83,17 +84,29 @@ def build_observation_data(observation: AbstractObservation):
     ]:
         content["frames_per_filter"] = observation.frames_per_filter
 
+    if observation.observation_type in [
+        ObservationType.EXOPLANET,
+        ObservationType.EXPERT,
+    ]:
+        content["start_observation"] = (
+            str(observation.start_observation.replace(tzinfo=None)).strip(),
+        )
+        content["end_observation"] = (
+            str(observation.end_observation.replace(tzinfo=None)).strip(),
+        )
+
     match observation.observation_type:
-        case ObservationType.IMAGING:
-            content["frames_per_filter"] = observation.frames_per_filter
-        case ObservationType.EXOPLANET:
-            content["start_observation"] = (
-                str(observation.start_observation.replace(tzinfo=None)).strip(),
-            )
-            content["end_observation"] = (
-                str(observation.end_observation.replace(tzinfo=None)).strip(),
-            )
         case ObservationType.VARIABLE:
+            content["minimum_altitude"] = float(observation.minimum_altitude)
+
+        case ObservationType.EXPERT:
+            content["priority"] = observation.priority
+            content["dither_every"] = observation.dither_every
+            content["binning"] = observation.binning
+            content["gain"] = observation.gain
+            content["offset"] = observation.offset
+            content["moon_separation_angle"] = float(observation.moon_separation_angle)
+            content["moon_separation_width"] = observation.moon_separation_width
             content["minimum_altitude"] = float(observation.minimum_altitude)
 
     if observation.observation_type in [

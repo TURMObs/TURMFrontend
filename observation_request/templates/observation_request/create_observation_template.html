@@ -17,6 +17,9 @@
         align-items: center;
         gap: 16px;
     }
+    .form-heading {
+        margin-bottom: 8px;
+    }
     </style>
 {% endblock %}
 {% block scripts %}
@@ -28,7 +31,7 @@
 {% endblock %}
 {% block content %}
     <div class="content_wrapper form_wrapper">
-        <header class="form_body">
+        <header>
             <div class="container_center">
                 <h1>Create New Observation</h1>
             </div>
@@ -37,9 +40,9 @@
               id="form"
               onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
             {% for name, form in forms %}
-                <article class="form_body">
-                    <h2 class="sub_form_heading">{{ name }}</h2>
-                    <div class="form_center">{{ form }}</div>
+                <article>
+                    <h2 class="form-heading">{{ name }}</h2>
+                    <div>{{ form }}</div>
                 </article>
             {% endfor %}
             {% csrf_token %}
