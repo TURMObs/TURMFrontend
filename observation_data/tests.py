@@ -154,6 +154,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["target"].pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_imaging_insert_no_catalog_id_flat(self):
         data = self._get_flat_base_request()
@@ -162,6 +164,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data.pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_exoplanet_insert(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
