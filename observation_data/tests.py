@@ -126,7 +126,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def _test_observation_insert(
-        self, observation_type, additional_data=None, flat=False
+            self, observation_type, additional_data=None, flat=False
     ):
         data = self.base_request.copy() if not flat else self._get_flat_base_request()
         data["observation_type"] = observation_type
@@ -154,6 +154,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["target"].pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_imaging_insert_no_catalog_id_flat(self):
         data = self._get_flat_base_request()
@@ -162,6 +164,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data.pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_exoplanet_insert(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -319,14 +323,14 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def _test_exoplanet_overlap(
-        self,
-        start1,
-        end1,
-        start2,
-        end2,
-        expected_status_code,
-        obs1="TURMX",
-        obs2="TURMX",
+            self,
+            start1,
+            end1,
+            start2,
+            end2,
+            expected_status_code,
+            obs1="TURMX",
+            obs2="TURMX",
     ):
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.EXOPLANET
@@ -876,7 +880,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         return errors
 
     def _test_serialization(
-        self, target_name, serializer_class, file_name, remove_start_end=False
+            self, target_name, serializer_class, file_name, remove_start_end=False
     ):
         serializer = serializer_class(
             serializer_class.Meta.model.objects.get(target__name=target_name)
