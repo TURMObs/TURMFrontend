@@ -97,7 +97,7 @@
                                 <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
-                                <td class="right-align">{{ observation.priority }}</td>
+                                {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
                                 <td>
                                     <a href="{% url 'edit-observation-request' observation.id %}">
                                         <i class="bx bx-edit"></i>
