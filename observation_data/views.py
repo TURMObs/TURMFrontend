@@ -16,7 +16,6 @@ from observation_data.models import (
 )
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
-from observation_data.observation_management import delete_observation
 
 
 logger = logging.getLogger(__name__)
@@ -182,7 +181,7 @@ def delete_observation(request):
     except ValueError as e:
         response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
         logger.error(response)
-        return Response({response}, status=HTTP_403_FORBIDDEN)
+        return Response({response}, status=status.HTTP_403_FORBIDDEN)
     except BadRequest as e:
         response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
         return Response({response}, status=status.HTTP_400_BAD_REQUEST)

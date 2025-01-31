@@ -1,165 +1,165 @@
 div:has(> input) {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
 input[type="text"],
 input[type="date"],
 input[type="datetime-local"] {
-    width: 100%;
-    background: transparent;
-    outline: none;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 2em;
-    font-size: 16px;
-    color: #fff;
-    padding: 0.75em 1.5em;
+  width: 100%;
+  background: transparent;
+  outline: none;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2em;
+  font-size: 16px;
+  color: #fff;
+  padding: 0.75em 1.5em;
 }
 
 .radio_input_div,
 .checkbox_input_div {
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
 }
 
 .radio_input_div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
 }
 
 .radio_input_div input[type="radio"] {
-    display: none;
+  display: none;
 }
 
 .radio_input_div label {
-    display: inline-block;
+  display: inline-block;
 
-    flex: 1;
-    text-align: center;
-    vertical-align: middle;
-    font-weight: bold;
+  flex: 1;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
 
-    margin: auto 0;
+  margin: auto 0;
 
-    padding: 0.5em;
-    font-size: 16px;
-    color: #fff;
+  padding: 0.5em;
+  font-size: 16px;
+  color: #fff;
 
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-right: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-right: 0;
 }
 
 .radio_input_div label:hover {
-    background-color: var(--tom-light-grey);
+  background-color: var(--tom-light-grey);
 }
 .radio_input_div label:nth-child(2) {
-    /* label all the way on the left */
-    padding: 0.5em 0.5em 0.5em 0.75em;
-    -moz-border-radius-topleft: var(--tom-corner-radius-input);
-    -webkit-border-top-left-radius: var(--tom-corner-radius-input);
-    -moz-border-radius-bottomleft: var(--tom-corner-radius-input);
-    -webkit-border-bottom-left-radius: var(--tom-corner-radius-input);
+  /* label all the way on the left */
+  padding: 0.5em 0.5em 0.5em 0.75em;
+  -moz-border-radius-topleft: var(--tom-corner-radius-input);
+  -webkit-border-top-left-radius: var(--tom-corner-radius-input);
+  -moz-border-radius-bottomleft: var(--tom-corner-radius-input);
+  -webkit-border-bottom-left-radius: var(--tom-corner-radius-input);
 }
 .radio_input_div label:last-child {
-    /* label all the way on the right */
-    border: 2px solid rgba(255, 255, 255, 0.2);
+  /* label all the way on the right */
+  border: 2px solid rgba(255, 255, 255, 0.2);
 
-    padding: 0.5em 0.75em 0.5em 0.5em;
+  padding: 0.5em 0.75em 0.5em 0.5em;
 
-    -moz-border-radius-topright: var(--tom-corner-radius-input);
-    -webkit-border-top-right-radius: var(--tom-corner-radius-input);
-    -moz-border-radius-bottomright: var(--tom-corner-radius-input);
-    -webkit-border-bottom-right-radius: var(--tom-corner-radius-input);
+  -moz-border-radius-topright: var(--tom-corner-radius-input);
+  -webkit-border-top-right-radius: var(--tom-corner-radius-input);
+  -moz-border-radius-bottomright: var(--tom-corner-radius-input);
+  -webkit-border-bottom-right-radius: var(--tom-corner-radius-input);
 }
 
 .radio_input_div input[type="radio"]:checked + label {
-    background-color: var(--tom-primary-color);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+  background-color: var(--tom-primary-color);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .radio_input_div input[type="radio"]:checked + label + input + label {
-    border-left: 0;
+  border-left: 0;
 }
 
 .radio_input_div input:checked + label:hover {
-    background-color: var(--tom-primary-color-dark);
+  background-color: var(--tom-primary-color-dark);
 }
 
 .measurement_unit {
-    margin-left: -100%;
+  margin-left: -100%;
 }
 
 .grid_input_div {
-    display: grid;
-    column-gap: 2em;
+  display: grid;
+  column-gap: 2em;
 }
 
 .checkbox_input_div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    padding: 0.75em 1.5em;
+  padding: 0.75em 1.5em;
 
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--tom-corner-radius-input);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--tom-corner-radius-input);
 
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
 .checkbox_input_div div {
-    display: flex;
-    gap: 0.5em;
+  display: flex;
+  gap: 0.5em;
 
-    font-weight: bold;
-    margin-bottom: 0;
+  font-weight: bold;
+  margin-bottom: 0;
 }
 
 .tooltip {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 /* Tooltip text */
 .tooltip .tooltiptext {
-    visibility: hidden;
-    width: 140px;
-    background-color: var(--tom-light-grey);
-    color: #fff;
-    text-align: center;
-    padding: 5px 0;
-    border-radius: 6px;
+  visibility: hidden;
+  width: 140px;
+  background-color: var(--tom-light-grey);
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
 
-    position: absolute;
-    z-index: 1;
+  position: absolute;
+  z-index: 1;
 
-    bottom: 100%;
-    left: 50%;
-    margin-left: -70px;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -70px;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover input:disabled ~ .tooltiptext {
-    visibility: visible;
+  visibility: visible;
 }
 /*--- --- */
 
 .error_msg {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 
-    background-color: var(--tom-info-error);
+  background-color: var(--tom-info-error);
 
-    padding: 0.75em 1.5em;
-    margin-top: 1em;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--tom-corner-radius-input);
+  padding: 0.75em 1.5em;
+  margin-top: 1em;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--tom-corner-radius-input);
 }
 
 .grid_input_div + .error_msg {
-    margin-top: 0;
-    margin-bottom: 1em;
+  margin-top: 0;
+  margin-bottom: 1em;
 }
