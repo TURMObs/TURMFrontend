@@ -7,7 +7,6 @@ from collections import OrderedDict
 from decimal import Decimal
 
 from django.utils import timezone
-from django.utils.translation.trans_real import catalog
 from rest_framework import serializers
 
 from .data_verification import (
@@ -60,7 +59,7 @@ def _create_observation(validated_data, observation_type, model):
     catalog_id = target_data.get("catalog_id")
     if not catalog_id:
         target_data["catalog_id"] = ""
-        
+
     created_target, created = CelestialTarget.objects.get_or_create(
         name=target_data.get("name"),
         catalog_id=target_data.get("catalog_id"),
