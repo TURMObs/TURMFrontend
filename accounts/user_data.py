@@ -42,9 +42,12 @@ def get_all_data(user: ObservatoryUser):
     for key, value in data["user"].items():
         if value is None or value == "" or value == []:
             empty_fields.append(key)
+
     for field in empty_fields:
         data["user"].pop(field)
 
+    if "groups" in data["user"]:
+        data["user"]["groups"] = [str(group) for group in data["user"]["groups"]]
     return data
 
 

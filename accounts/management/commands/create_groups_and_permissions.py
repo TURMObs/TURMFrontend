@@ -9,18 +9,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         admin_group, _ = Group.objects.get_or_create(name=UserGroup.ADMIN)
-        group_leader_group, _ = Group.objects.get_or_create(name=UserGroup.GROUP_LEADER)
+        operator_group, _ = Group.objects.get_or_create(name=UserGroup.OPERATOR)
         user_group, _ = Group.objects.get_or_create(name=UserGroup.USER)
         content_type = ContentType.objects.get_for_model(ObservatoryUser)
 
         permissions = [
             (UserPermission.CAN_GENERATE_INVITATION, "Can generate invitation links"),
             (UserPermission.CAN_INVITE_ADMINS, "Can invite new admin users"),
-            (UserPermission.CAN_INVITE_GROUP_LEADERS, "Can invite new group leaders"),
+            (UserPermission.CAN_INVITE_OPERATORS, "Can invite new operators"),
             (
                 UserPermission.CAN_CREATE_EXPERT_OBSERVATION,
                 "Can create expert observation",
             ),
+            (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
+            (UserPermission.CAN_DELETE_USERS, "Can delete users"),
             (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
         ]
 
@@ -36,12 +38,18 @@ class Command(BaseCommand):
         can_invite_admins = Permission.objects.get(
             codename=UserPermission.CAN_INVITE_ADMINS, content_type=content_type
         )
-        can_invite_group_leaders = Permission.objects.get(
-            codename=UserPermission.CAN_INVITE_GROUP_LEADERS, content_type=content_type
+        can_invite_operators = Permission.objects.get(
+            codename=UserPermission.CAN_INVITE_OPERATORS, content_type=content_type
         )
         can_create_expert_observation = Permission.objects.get(
             codename=UserPermission.CAN_CREATE_EXPERT_OBSERVATION,
             content_type=content_type,
+        )
+        can_see_all_observations = Permission.objects.get(
+            codename=UserPermission.CAN_SEE_ALL_OBSERVATIONS, content_type=content_type
+        )
+        can_delete_users = Permission.objects.get(
+            codename=UserPermission.CAN_DELETE_USERS, content_type=content_type
         )
         can_delete_all_observations = Permission.objects.get(
             codename=UserPermission.CAN_DELETE_ALL_OBSERVATIONS,
@@ -52,11 +60,13 @@ class Command(BaseCommand):
         admin_group.permissions.add(
             can_generate_invitation,
             can_invite_admins,
-            can_invite_group_leaders,
+            can_invite_operators,
             can_create_expert_observation,
+            can_see_all_observations,
+            can_delete_users,
             can_delete_all_observations,
         )
-        group_leader_group.permissions.add(can_generate_invitation)
+        operator_group.permissions.add(can_generate_invitation)
 
         admin_group.save()
-        group_leader_group.save()
+        operator_group.save()

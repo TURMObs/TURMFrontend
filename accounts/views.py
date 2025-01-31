@@ -5,12 +5,16 @@ import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
 
+from rest_framework.decorators import api_view
+
+from . import user_data
 from .models import (
     InvitationToken,
     generate_invitation_link,
@@ -31,6 +35,10 @@ class LoginForm(forms.Form):
 
 class GenerateInvitationForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={"placeholder": "User Alias (optional)"}),
+        required=False,
+    )
     quota = forms.IntegerField(
         widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
         min_value=1,
@@ -60,13 +68,13 @@ class GenerateInvitationForm(forms.Form):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        choices = [(UserGroup.USER, "Nutzer*in")]
+        choices = [(UserGroup.USER, "User")]
 
         if user:
             if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
                 choices.append((UserGroup.ADMIN, "Admin"))
-            if user.has_perm(UserPermission.CAN_INVITE_GROUP_LEADERS):
-                choices.append((UserGroup.GROUP_LEADER, "Gruppenleiter*in"))
+            if user.has_perm(UserPermission.CAN_INVITE_OPERATORS):
+                choices.append((UserGroup.OPERATOR, "Operator"))
 
         self.fields["role"].choices = choices
 
@@ -127,6 +135,12 @@ def login_user(request):
         return index_template(
             request, form=LoginForm(), error="Invalid username or password"
         )
+    if not isinstance(user, ObservatoryUser):
+        return index_template(request, form=LoginForm(), error="Invalid user")
+    if user.deletion_pending:
+        return index_template(
+            request, form=LoginForm(), error="This account has been marked for deletion"
+        )
     auth.login(request, user)
     logger.info(f"User {username} logged in successfully")
     return redirect(settings.LOGIN_REDIRECT_URL)
@@ -153,10 +167,14 @@ def generate_user_invitation(request):
         )
 
     email = form.cleaned_data["email"]
+    username = form.cleaned_data["username"]
     quota = form.cleaned_data["quota"]
     lifetime = form.cleaned_data["lifetime"]
     role = form.cleaned_data["role"]
     expert = form.cleaned_data["expert"]
+
+    if username is None or username == "":
+        username = email
 
     if role == UserGroup.ADMIN and not request.user.has_perm(
         UserPermission.CAN_INVITE_ADMINS
@@ -167,25 +185,36 @@ def generate_user_invitation(request):
             error="You do not have permission to invite admins",
         )
 
-    if role == UserGroup.GROUP_LEADER and not request.user.has_perm(
-        UserPermission.CAN_INVITE_GROUP_LEADERS
+    if role == UserGroup.OPERATOR and not request.user.has_perm(
+        UserPermission.CAN_INVITE_OPERATORS
     ):
         return generate_invitation_template(
             request,
             form=GenerateInvitationForm(request.user),
-            error="You do not have permission to invite group leaders",
+            error="You do not have permission to invite operators",
         )
 
-    base_url = f"{request.scheme}://{request.get_host()}/accounts/register"  # this seems convoluted
-    link = generate_invitation_link(base_url, email, quota, lifetime, role, expert)
+    url = settings.BASE_URL
+    subpath = settings.SUBPATH
+    if subpath:
+        url += subpath
+    url += "/accounts/register"
+    link = generate_invitation_link(
+        base_url=url,
+        email=email,
+        username=username,
+        quota=quota,
+        lifetime=lifetime,
+        role=role,
+        expert=expert,
+    )
     if link is None:
-        return generate_invitation_template(
-            request,
-            form=GenerateInvitationForm(request.user),
-            error="Email already registered",
+        return JsonResponse(
+            {"status": "error", "error": "User with this email already exists"},
+            status=400,
         )
     logger.info(f"Invitation generated for email {email} by {request.user.username}")
-    return generate_invitation_template(request, link=link)
+    return JsonResponse({"status": "success", "link": link}, status=200)
 
 
 @require_GET
@@ -222,10 +251,8 @@ def register_user(request, token):
             email=invitation.email,
             error="Invalid password",
         )
-
-    invitation.delete()
     user = ObservatoryUser.objects.create_user(
-        username=invitation.email,
+        username=invitation.username,
         email=invitation.email,
         quota=invitation.quota,
         lifetime=invitation.lifetime,
@@ -239,7 +266,7 @@ def register_user(request, token):
             )
         )
     user.save()
-    invitation.save()
+    invitation.delete()
     auth.login(request, user)
     logger.info(
         f"Created new {invitation.role} account for {user.username} with quota {user.quota} and lifetime {user.lifetime} (expert: {invitation.expert})"
@@ -247,15 +274,85 @@ def register_user(request, token):
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 
+@api_view(["POST"])
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
+def has_invitation(request):
+    email = request.data.get("email")
+    exists = InvitationToken.objects.filter(email=email).exists()
+    return JsonResponse({"has_invitation": exists}, status=200)
+
+
+@require_POST
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
+def delete_invitation(request, invitation_id):
+    invitation = InvitationToken.objects.get(id=invitation_id)
+    invitation.delete()
+    return JsonResponse({"status": "success"}, status=200)
+
+
+@require_POST
+def delete_user(request, user_id):
+    request_user = request.user
+    if user_id != request_user.id and not request_user.has_perm(
+        UserPermission.CAN_DELETE_USERS
+    ):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "You do not have permission to delete this user.",
+            },
+            status=403,
+        )
+    target_user = ObservatoryUser.objects.get(id=user_id)
+    if not target_user:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User does not exist.",
+            },
+            status=400,
+        )
+    if not isinstance(target_user, ObservatoryUser):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "You cannot delete this user.",
+            },
+            status=400,
+        )
+    target_user.deletion_pending = True
+    target_user.save()
+    logger.info(f"{target_user} has been marked for deletion by {request_user}")
+    return JsonResponse({"status": "success"}, status=200)
+
+
+@require_GET
+def get_user_data(request):
+    data = user_data.get_all_data(request.user)
+    return JsonResponse(data)
+
+
+@require_GET
+def dsgvo_options(request):
+    return render(request, "accounts/dsgvo.html", {"subpath": settings.SUBPATH})
+
+
 def index_template(request, error=None, form=None):
-    return render(request, "authentication/index.html", {"error": error, "form": form})
+    return render(request, "accounts/index.html", {"error": error, "form": form})
 
 
 def generate_invitation_template(request, error=None, link=None, form=None):
     return render(
         request,
-        "authentication/generate_invitation.html",
-        {"error": error, "form": form, "link": link, "UserGroups": UserGroup},
+        "accounts/user_management.html",
+        {
+            "error": error,
+            "form": form,
+            "UserGroups": UserGroup,
+            "invitations": InvitationToken.objects.all(),
+            "users": ObservatoryUser.objects.all(),
+            "current_user": request.user,
+        },
     )
 
 
@@ -264,7 +361,7 @@ def register_from_invitation_template(
 ):
     return render(
         request,
-        "authentication/register_from_invitation.html",
+        "accounts/register_from_invitation.html",
         {"error": error, "form": form, "email": email, "token": token},
     )
 

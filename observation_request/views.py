@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 
+from TURMFrontend import settings
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureSettingsForm,
@@ -19,7 +20,7 @@ def simple_request(request):
         ("Exposure", ExposureSettingsForm()),
     ]
     context["forms"] = forms
-    context["create_form_url"] = "/observation-data/create/"
+    context["create_form_url"] = settings.SUBPATH + "/observation-data/create/"
     return render(request, "observationRequest/requestTemplate.html", context)
 
 

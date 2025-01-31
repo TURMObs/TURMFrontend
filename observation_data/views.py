@@ -7,11 +7,6 @@ from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.status import (
-    HTTP_401_UNAUTHORIZED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_403_FORBIDDEN,
-)
 
 from observation_data import observation_management
 from observation_data.models import (
@@ -39,11 +34,6 @@ def create_observation(request):
     """
 
     user = request.user
-    if not user.is_authenticated:
-        return Response(
-            {"error": "Authentication required"},
-            status=HTTP_401_UNAUTHORIZED,
-        )
 
     if not isinstance(user, ObservatoryUser):
         return Response(
@@ -157,11 +147,6 @@ def delete_observation(request):
     :return: HTTP response success or error with error message
     """
     user = request.user
-    if not user.is_authenticated:
-        return Response(
-            {"error": "Authentication required"},
-            status=HTTP_401_UNAUTHORIZED,
-        )
 
     if not isinstance(user, ObservatoryUser):
         return Response(
@@ -175,7 +160,7 @@ def delete_observation(request):
     if not observation_id:
         return Response(
             {"error": "Invalid observation id"},
-            status=HTTP_400_BAD_REQUEST,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     obs = AbstractObservation.objects.get(id=observation_id)
@@ -189,7 +174,7 @@ def delete_observation(request):
             {
                 f"User {user.get_username()} does not have permission to delete observation {observation_id}."
             },
-            status=HTTP_401_UNAUTHORIZED,
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
     try:
@@ -200,6 +185,6 @@ def delete_observation(request):
         return Response({response}, status=HTTP_403_FORBIDDEN)
     except BadRequest as e:
         response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
-        return Response({response}, status=HTTP_400_BAD_REQUEST)
+        return Response({response}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_202_ACCEPTED)
