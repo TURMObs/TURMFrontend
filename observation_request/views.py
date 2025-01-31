@@ -1,5 +1,5 @@
 from django.shortcuts import redirect, render
-
+import json
 from TURMFrontend import settings
 from observation_data.forms import (
     CelestialTargetForm,
@@ -7,7 +7,6 @@ from observation_data.forms import (
     TURMProjectForm,
 )
 from observation_data.models import AbstractObservation, ObservationType
-from observation_data.serializers import get_serializer
 
 
 def create_observation_request(request):
@@ -29,17 +28,13 @@ def edit_observation_request(request, observation_id):
     if observation is None:
         return redirect(settings.LOGIN_REDIRECT_URL)
 
-    serializer = get_serializer(observation.observation_type)
-    data = serializer.to_representation(serializer, observation)
-    print(data)
-
-    observation_type = ObservationType(observation.observation_type)
+    existing_request = build_observation_data(observation)
 
     context = {
         "forms": [
             (
                 "Project",
-                TURMProjectForm(initial={"observatory": observation.observatory}),
+                TURMProjectForm(),
             ),
             (
                 "Target",
@@ -54,22 +49,63 @@ def edit_observation_request(request, observation_id):
             ),
             (
                 "Exposure",
-                ExposureSettingsForm(
-                    initial={
-                        "observation_type": (
-                            observation_type,
-                            observation_type.label,
-                        ),
-                        "filter_set": print(
-                            [ft.filter_type for ft in observation.filter_set.all()]
-                        ),
-                        "exposure_time": observation.exposure_time,
-                    }
-                ),
+                ExposureSettingsForm(),
             ),
         ],
         "edit_form_url": settings.SUBPATH + "/observation-data/edit/",
+        "existing_request": json.dumps(existing_request),
     }
     return render(
         request, "observation_request/edit_observation_template.html", context
     )
+
+
+def build_observation_data(observation: AbstractObservation):
+    content = {
+        "observatory": observation.observatory.name,
+        "observation_type": observation.observation_type,
+        "filter_set": [ft.filter_type for ft in observation.filter_set.all()],
+    }
+
+    if observation.observation_type in [
+        ObservationType.IMAGING,
+        ObservationType.EXOPLANET,
+        ObservationType.VARIABLE,
+        ObservationType.MONITORING,
+    ]:
+        content["exposure_time"] = float(observation.exposure_time)
+
+    if observation.observation_type in [
+        ObservationType.IMAGING,
+        ObservationType.VARIABLE,
+        ObservationType.MONITORING,
+        ObservationType.EXPERT,
+    ]:
+        content["frames_per_filter"] = observation.frames_per_filter
+
+    match observation.observation_type:
+        case ObservationType.IMAGING:
+            content["frames_per_filter"] = observation.frames_per_filter
+        case ObservationType.EXOPLANET:
+            content["start_observation"] = (
+                str(observation.start_observation.replace(tzinfo=None)).strip(),
+            )
+            content["end_observation"] = (
+                str(observation.end_observation.replace(tzinfo=None)).strip(),
+            )
+        case ObservationType.VARIABLE:
+            content["minimum_altitude"] = float(observation.minimum_altitude)
+
+    if observation.observation_type in [
+        ObservationType.MONITORING,
+        ObservationType.EXPERT,
+    ]:
+        content["start_scheduling"] = (
+            str(observation.start_scheduling.replace(tzinfo=None)).strip(),
+        )
+        content["end_scheduling"] = (
+            str(observation.end_scheduling.replace(tzinfo=None)).strip(),
+        )
+        content["cadence"] = observation.cadence
+
+    return content

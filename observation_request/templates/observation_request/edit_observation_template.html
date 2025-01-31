@@ -11,13 +11,35 @@
           href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
     <style></style>
 {% endblock %}
-<!-- {% block scripts %}
+{% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
     <script> onload = _ => {
+        function markInputAsChecked(query, value, predicate) {
+            const queryString = `input[id^="${query}"]`;
+            for (const input of document.querySelectorAll(queryString)) {
+                if (predicate(input.value)) {
+                    input.checked = true;
+                }
+            }
+        }
+
+        function markInputAsCheckedIfEqual(query, value) {
+            markInputAsChecked(query, value, (val) => val == value)
+        }
+
+        const existingRequest = JSON.parse('{{ existing_request|escapejs }}');
+
+        markInputAsCheckedIfEqual("id_observatory", existingRequest.observatory);
+        markInputAsCheckedIfEqual("id_observation_type", existingRequest.observation_type);
+        markInputAsChecked("id_filter_set", existingRequest.filter_set, (val) => existingRequest.filter_set.includes(val));
+        markInputAsCheckedIfEqual("id_exposure_time", existingRequest.exposure_time);
+        markInputAsCheckedIfEqual("id_start_observation", existingRequest.start_observation);
+        markInputAsCheckedIfEqual("id_end_observation", existingRequest.end_observation);
+
         check_radio_if_none_selected()
     };
-</script>
-{% endblock %} -->
+    </script>
+{% endblock %}
 {% block content %}
     <div class="content_wrapper form_wrapper">
         <header class="form_body">

@@ -1,6 +1,8 @@
 {% extends "base_template.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block style %}
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+          rel='stylesheet'>
     <style>
     .container {
         margin: 30px;
@@ -76,6 +78,7 @@
                             <th class="right-align">Project status</th>
                             <th class="right-align">Project completion</th>
                             <th class="right-align">Priority</th>
+                            <td></td>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,6 +98,11 @@
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 <td class="right-align">{{ observation.priority }}</td>
+                                <td>
+                                    <a href="{% url 'edit-observation-request' observation.id %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                </td>
                             </tr>
                             <tr class="expander-row"
                                 id="expander-{{ observation.id }}"
@@ -146,6 +154,12 @@
 
             rows.forEach(row => {
                 row.addEventListener('click', function() {
+                    // Check if the clicked element is the edit icon or its parent link
+                    if (event.target.classList.contains('bx-edit') || event.target.closest('a')) {
+                        // If it's the edit icon or its link, don't expand the row
+                        return;
+                    }
+
                     const id = this.getAttribute('data-id');
                     const expander = document.getElementById(`expander-${id}`);
 
