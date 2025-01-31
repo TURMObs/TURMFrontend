@@ -20,12 +20,12 @@
     | `NC_PORT`                | Local Port that the Nextcloud can be accessed on                                                                                                              | **No**       | `8080`, only required for Nextcloud testing    |
     | `NC_USER`                | User for the Nextcloud instance                                                                                                                               | **No**       | Nextcloud User                                 |
     | `NC_PASSWORD`            | Password for the Nextcloud instance                                                                                                                           | **No**       | Nextcloud password                             |
-    | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **YES**      | `http://localhost:8080`, when testing locally. `http://turmfrontend-nextcloud:80` when run in Docker                                |
-    | `NC_PREFIX`              | Top level folders in the nextcloud to store the observations in . Entered as string (without "" or leading/following '/' for multiple folders)                | **No**.      | `test`, default/non-existing: root directory of nextcloud,                                  |
-    | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**.      | default/non-existing `True`                                 |
+    | `NC_URL`                 | URL to the Nextcloud instance                                                                                                                                 | **Yes**      | `http://localhost:8080`, when testing locally. `http://turmfrontend-nextcloud:80` when run in Docker                                |
+    | `NC_PREFIX`              | Top level folders in the nextcloud to store the observations in . Entered as string (without "" or leading/following '/' for multiple folders)                | **No**      | `test`, default/non-existing: root directory of nextcloud,                                  |
+    | `NC_TEST`                | The nextcloud test cannot run in CI. If set to false these test are skipped                                                                                   | **No**      | default/non-existing `True`                                 |
     | `SUBPATH`                | Subpath the website is being deployed on                                                                                  | **No**.      | /tom                              |
-    | `SECRET_KEY`              | Secret Django Key. Keep private!                                                                               | **Yes**.      | See https://djecrety.ir/                           |
-   | `BASE_URL`              | Base Website URL                                                                              | **Yes**.      | https://turm.physik.tu-darmstadt.de                      |
+    | `SECRET_KEY`             | Secret Django Key. Keep private and wrap in " to prevent formatting on # or $. You might have to escape $ with \                                                                           | **No**      | See https://djecrety.ir/. Always set a private key for deployment!                           |
+    | `BASE_URL`               | Base Website URL                                                                              | **Yes**      | http://localhost:8000                  |
 
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
@@ -42,6 +42,9 @@ WEB_PORT=8000
 NC_PORT=8080
 NC_USER=<user>
 NC_PASSWORD=<password>
+NC_URL=http://localhost:8080
+SECRET_KEY="django-insecure-k$b$^f\#%axr_@sur%@5u9ru2sau$xddv7%wb@kr(vp^y5ad!vu"
+BASE_URL="https://localhost:8000"
 ```
 
 ## Development

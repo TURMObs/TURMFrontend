@@ -38,7 +38,7 @@ FORCE_SCRIPT_NAME = None if SUBPATH == "" else SUBPATH
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if DEBUG:
-    SECRET_KEY = "django-insecure-k$b$^f#%axr_@sur%@5u9ru2sau$xddv7%wb@kr(vp^y5ad!vu"
+    SECRET_KEY = "django-insecure-kxbx^f#%axr_@sur%@5u9ru2sauxxddv7%wb@kr(vp^y5ad!vu"
 else:
     SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     "dashboard",
     "observation_data",
     "observation_request",
-    "dsgvo",
     "nextcloud",
 ]
 

@@ -64,7 +64,7 @@
                             <th class="left-align">Type</th>
                             <th class="left-align">Filters</th>
                             <th class="right-align">Exposure time</th>
-                            {% if request.user.is_superuser %}<th class="left-align">User</th>{% endif %}
+                            {% if perms.accounts.can_see_all_observations %}<th class="left-align">User</th>{% endif %}
                             <th class="right-align">Created at</th>
                             <th class="right-align">Project status</th>
                             <th class="right-align">Project completion</th>
@@ -81,7 +81,7 @@
                                     {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
                                 </td>
                                 <td class="right-align">{{ observation.exposure_time }}</td>
-                                {% if request.user.is_superuser %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
+                                {% if perms.accounts.can_see_all_observations %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
                                 <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
