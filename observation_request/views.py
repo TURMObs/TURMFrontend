@@ -116,10 +116,10 @@ def build_observation_data(observation: AbstractObservation):
         ObservationType.EXPERT,
     ]:
         content["start_scheduling"] = (
-            str(observation.start_scheduling.replace(tzinfo=None)).strip(),
+            str(observation.start_scheduling.replace(tzinfo=None)).strip()[:10],
         )
         content["end_scheduling"] = (
-            str(observation.end_scheduling.replace(tzinfo=None)).strip(),
+            str(observation.end_scheduling.replace(tzinfo=None)).strip()[:10],
         )
         content["cadence"] = observation.cadence
 
