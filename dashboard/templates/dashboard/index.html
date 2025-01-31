@@ -154,9 +154,8 @@
 
             rows.forEach(row => {
                 row.addEventListener('click', function() {
-                    // Check if the clicked element is the edit icon or its parent link
+                    // Do not expand the row if the user clicked on the edit icon
                     if (event.target.classList.contains('bx-edit') || event.target.closest('a')) {
-                        // If it's the edit icon or its link, don't expand the row
                         return;
                     }
 
