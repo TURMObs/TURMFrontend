@@ -96,15 +96,15 @@ class SetPasswordForm(forms.Form):
         password2 = cleaned_data.get("new_password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords are not the same.")
-        if is_allowed_password(password1) is False:
+        if not is_allowed_password(password1):
             raise forms.ValidationError(
                 "Only letters, numbers and common special characters are allowed."
             )
-        if password_length_ok(password1) is False:
+        if not password_length_ok(password1):
             raise forms.ValidationError(
                 "Password must be between 8 and 64 characters long."
             )
-        if password_requirements_met(password1) is False:
+        if not password_requirements_met(password1):
             raise forms.ValidationError(
                 "Password must contain at least one letter, one number and one special character."
             )
