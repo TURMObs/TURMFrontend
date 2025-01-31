@@ -25,7 +25,7 @@
         const url = "http://simbad.u-strasbg.fr/simbad/sim-script";
         const script = `
         output console=off script=off
-        format object form1 "%COO(s; A, D; ICRS; J2000)"
+        format object form1 "%COO(s:; A, D; ICRS; J2000)"
         query id ${catalog_id}
         `;
         console.log("ID: " + catalog_id)
@@ -61,17 +61,33 @@
             console.log(error_res)
             alert(error_res)
         } else {
-            /**
-             If we reach this point, the simbad response has the following pattern (this is m42)
-             05 35 16.8, -05 23 15
-             */
-            const split_res= response.replace(/\+/g, "").split(",")
-            const ra = split_res[0].trim()
-            const dec = split_res[1].trim()
 
-            document.getElementById("id_ra").value = ra;
-            document.getElementById("id_dec").value = dec;
+            let split_res= response.replace(/\+/g, "").split(",")
+            let ra = split_res[0].trim().split(":")
+            let dec = split_res[1].trim().split(":")
+
+
+            if (ra[2] == null) { // if necessary calculates the decimal places of hh into mm
+                let ra_hh = ra[1].split(".")
+                ra[1] = ra_hh[0]
+                ra[2] = (parseInt(ra_hh[1]) * 6).toString()
+
+            }
+            if (dec[2] == null) { // if necessary calculates the decimal places of mm into ss
+                let dec_hh = dec[1].split(".")
+                dec[1] = dec_hh[0]
+                dec[2] = (parseInt(dec_hh[1]) * 6).toString()
+            }
+
+            for (let i=0; i < 3; i++) { // limits all inputs to 8 digits (usually 5 decimal digits)
+                dec[i] = dec[i].substring(0, 8)
+                ra[i] = ra[i].substring(0, 8)
+            }
+
+            document.getElementById("id_ra").value = ra.join(" ")
+            document.getElementById("id_dec").value = dec.join(" ");
             console.log(`Inserted values for ${catalog_id}! \nRA: ${ra}\nDEC: ${dec}`)
+
         }
     }
     </script>

@@ -10,7 +10,8 @@ from observation_request.TURMInput import (
     TURMGridInput,
     TURMDateTimeInput,
     TURMDateInput,
-    _TURMChoiceInput, TURMCharInput,
+    _TURMChoiceInput,
+    TURMCharInput,
 )
 
 
@@ -166,7 +167,9 @@ class TURMGridField(TURMField):
             (TURMField.model_field_to_input(field), name)
             for field, name in model_fields
         ]
-        return TURMGridField(sub_widgets=sub_widgets, grid_dim=grid_dim,  *args, **kwargs)
+        return TURMGridField(
+            sub_widgets=sub_widgets, grid_dim=grid_dim, *args, **kwargs
+        )
 
 
 class TURMDateDuration(TURMField):

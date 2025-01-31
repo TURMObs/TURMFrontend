@@ -31,14 +31,21 @@ class Dependency(Enum):
 
 
 class CelestialTargetForm(forms.Form):
-    name = TURMField.init_from_model(CelestialTarget._meta.get_field('name')).add_attrs({"placeholder": "OrionNebula"})
+    name = TURMField.init_from_model(CelestialTarget._meta.get_field("name")).add_attrs(
+        {"placeholder": "OrionNebula"}
+    )
     target_widgets = [
         (TURMCharInput("catalog_id"), "Catalog ID"),
         (TURMButtonInput("Fetch SIMBAD coordinates", "fetch_coordinates()"), ""),
     ]
     catalog_id = TURMGridField(target_widgets, (2, 1))
-    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra")).add_attrs({"placeholder": "hh mm ss"})
-    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec")).add_attrs({"placeholder": "dd mm ss"})
+    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra")).add_attrs(
+        {"placeholder": "hh mm ss"}
+    )
+    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec")).add_attrs(
+        {"placeholder": "dd mm ss"}
+    )
+
 
 class TURMProjectForm(forms.Form):
     """
