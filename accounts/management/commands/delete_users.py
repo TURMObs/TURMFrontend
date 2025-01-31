@@ -5,6 +5,7 @@ from django.db.models import Q
 
 from accounts import user_data
 from accounts.models import ObservatoryUser
+from observation_data.observation_management import process_pending_deletion_users
 
 
 class Command(BaseCommand):
@@ -20,3 +21,4 @@ class Command(BaseCommand):
             Q(deletion_pending=True) | Q(lifetime__lt=datetime.now().date())
         ):
             user_data.delete_user(user)
+        process_pending_deletion_users()

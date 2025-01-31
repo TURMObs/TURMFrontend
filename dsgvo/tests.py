@@ -1,69 +1,27 @@
 import os
 import unittest
 
-import django
+import django.test
 from django.core.management import call_command
-from django.test import TestCase
-from nc_py_api import Nextcloud
 
+from accounts.models import ObservatoryUser
 from nextcloud import nextcloud_manager
 from nextcloud.nextcloud_manager import (
-    initialize_connection,
-    mkdir,
-    get_observation_file,
     file_exists,
+    get_observation_file,
+    mkdir,
+    delete,
+    initialize_connection,
 )
-from nextcloud.nextcloud_sync import upload_observations
+from nextcloud.nextcloud_sync import upload_observations, update_observations
 from observation_data.models import (
     ObservationType,
     ImagingObservation,
     VariableObservation,
 )
-from observation_data.observation_management import (
-    process_pending_deletion,
-)
-from .models import InvitationToken, generate_invitation_link, ObservatoryUser
-import nextcloud.nextcloud_manager as nm
+
 
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
-prefix = os.getenv("NC_PREFIX", default="")
-nc: Nextcloud
-
-
-class GenerateInvitationLinkTest(TestCase):
-    def setUp(self):
-        self.base_url = "http://testserver/invite"
-        self.email = "test@example.com"
-
-    def test_generate_invitation_link_new_email(self):
-        link = generate_invitation_link(base_url=self.base_url, email=self.email)
-        self.assertIsNotNone(link)
-        self.assertTrue(link.startswith(self.base_url))
-
-        # Check that an InvitationToken was created
-        token = InvitationToken.objects.get(email=self.email)
-        self.assertIsNotNone(token)
-        self.assertEqual(link, f"{self.base_url}/{token.token}")
-
-    def test_generate_invitation_link_existing_user(self):
-        ObservatoryUser.objects.create_user(
-            username="testuser", email=self.email, password="testpass"
-        )
-        link = generate_invitation_link(self.base_url, self.email)
-        self.assertIsNone(link)
-
-    def test_generate_invitation_link_existing_token(self):
-        # First generation
-        link1 = generate_invitation_link(self.base_url, self.email)
-
-        # Second generation with the same email
-        link2 = generate_invitation_link(self.base_url, self.email)
-
-        self.assertEqual(link1, link2)
-
-        # Check that only one InvitationToken was created
-        tokens = InvitationToken.objects.filter(email=self.email)
-        self.assertEqual(tokens.count(), 1)
 
 
 @unittest.skipIf(
@@ -76,14 +34,13 @@ class DSGVOUserDataTestCase(django.test.TestCase):
     nc_prefix = "test-nc"
 
     def setUp(self):
-        ObservatoryUser.objects.create_user(
+        initialize_connection()
+        self.user = ObservatoryUser.objects.create_user(
             username="testuser", password="testpassword", is_superuser=True
         )
-        self.user = ObservatoryUser.objects.get(username="testuser")
-        call_command("populate_observatories")
-        self.maxDiff = None
         self.client = django.test.Client()
-        self.client.force_login(user=self.user)
+        self.client.login(username="testuser", password="testpassword")
+        call_command("populate_observatories")
 
         # automatically adds test in name of test root folder
         self.old_prefix = self.prefix
@@ -147,7 +104,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
     def test_data_download(self):
         self._create_imaging_observation("M51")
         self._create_variable_observation("M42")
-        response = self.client.get("/accounts/get-user-data")
+        response = self.client.get("/dsgvo/get-user-data/")
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("observation_requests", data)
@@ -173,9 +130,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
                 username="testuser2", password="testpassword"
             ),
         )
-        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
+        response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)
-        process_pending_deletion()
+        update_observations()
         self.assertFalse(ObservatoryUser.objects.filter(username="testuser").exists())
         self.assertFalse(VariableObservation.objects.exists())
         self.assertEqual(ImagingObservation.objects.count(), 1)
@@ -183,7 +140,6 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertEqual(remaining_observation.target.name, "M52")
 
     def test_data_uploaded_deletion(self):
-        initialize_connection()
         im1 = self._create_imaging_observation("M51")
         var1 = self._create_variable_observation("M42")
         im2 = self._create_imaging_observation(
@@ -192,6 +148,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
                 username="testuser2", password="testpassword"
             ),
         )
+        initialize_connection()
         mkdir(f"{self.prefix}/TURMX/Projects")
         upload_observations()
         file_im1 = get_observation_file(im1)
@@ -200,10 +157,11 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         for file in [file_im1, file_var1, file_im2]:
             self.assertIsNotNone(file)
             self.assertTrue(file_exists(file))
-        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
-        process_pending_deletion()
+        response = self.client.delete("/dsgvo/delete-user/")
         self.assertEqual(response.status_code, 200)
+
+        update_observations()
         self.assertFalse(file_exists(file_im1))
         self.assertTrue(file_exists(file_im2))
         self.assertFalse(file_exists(file_var1))
-        nm.delete(f"{self.prefix}")
+        delete(self.prefix)

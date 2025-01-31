@@ -1,6 +1,6 @@
 import logging
 
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, BadRequest
 from django.db.models import ManyToManyField
 from django.http import QueryDict
 from django.views.decorators.http import require_POST
@@ -8,7 +8,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from observation_data.models import ObservationType, AbstractObservation
+from observation_data import observation_management
+from observation_data.models import (
+    ObservationType,
+    AbstractObservation,
+    ObservationStatus,
+)
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
 
@@ -129,3 +134,58 @@ def convert_query_dict(qdict, model: AbstractObservation):
         converted_dict[key] = val[0]
 
     return converted_dict
+
+
+@require_POST
+@api_view(["POST"])
+def delete_observation(request):
+    """
+    Deletes the observation with the passed id.
+    User must be the owner of the observation or admin to delete the observation.
+    :param request: HTTP request with observation data
+    :return: HTTP response success or error with error message
+    """
+    user = request.user
+
+    if not isinstance(user, ObservatoryUser):
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    request_data = request.data
+    observation_id = request_data.get("id")
+
+    if not observation_id:
+        return Response(
+            {"error": "Invalid observation id"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        obs = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist as e:
+        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
+        logger.error(response)
+        return Response({response}, status=status.HTTP_403_FORBIDDEN)
+
+    if not user == obs.user and not user.has_perm(
+        UserPermission.CAN_DELETE_ALL_OBSERVATIONS
+    ):
+        logger.info(
+            f"User {user.get_username()} does not have permission to delete observation {observation_id}."
+        )
+        return Response(
+            {
+                f"User {user.get_username()} does not have permission to delete observation {observation_id}."
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    try:
+        observation_management.delete_observation(observation_id)
+    except BadRequest as e:
+        response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
+        return Response({response}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_202_ACCEPTED)
