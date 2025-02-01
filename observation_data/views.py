@@ -8,7 +8,11 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from observation_data.models import ObservationType, AbstractObservation
+from observation_data.models import (
+    ObservationType,
+    AbstractObservation,
+    ObservationStatus,
+)
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
 
@@ -97,8 +101,9 @@ def edit_observation(request, observation_id):
     """
     Edit an observation which is identified by the observation id.
     The passed data must satisfy the is_valid() method of the corresponding serializer and include all necessary fields.
-    Note that the user must be authenticated to create an observation and staff to create an expert observation.
+    Note that the one editing the observation must have the permission to edit all observations or the observation request must be owned by the user.
     :param request: HTTP request with observation data
+    :param observation_id: The id of the observation to be edited
     :return: HTTP response with the created observation data or error message
     """
 
@@ -115,6 +120,12 @@ def edit_observation(request, observation_id):
         return Response(
             {"error": "Observation not found"},
             status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if observation.project_status != ObservationStatus.PENDING:
+        return Response(
+            {"error": "Only pending observations can be edited"},
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     # Either the user can edit all observations or the observation request is owned by the user
@@ -158,8 +169,6 @@ def edit_observation(request, observation_id):
 
     serializer = serializer_class(observation, data=request_data)
     if not serializer.is_valid():
-        print("There are errors")
-        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     observation = serializer.save()

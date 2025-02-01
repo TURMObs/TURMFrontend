@@ -99,9 +99,11 @@
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
                                 <td>
-                                    <a href="{% url 'edit-observation-request' observation.id %}">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
+                                    {% if observation.project_status == "Pending Upload" %}
+                                        <a href="{% url 'edit-observation-request' observation.id %}">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                             <tr class="expander-row"
