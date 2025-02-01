@@ -178,7 +178,7 @@
          */
         function delete_observation(obs_id) {
             if (!confirm("delete this observation")) return;
-            fetch('{% url "delete_observation" %}', {
+            fetch('{% url "delete-observation" %}', {
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRFToken": '{{ csrf_token }}',
