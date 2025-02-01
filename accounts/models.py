@@ -140,3 +140,74 @@ def generate_invitation_link(
     invitation_token.link = invitation_link
     invitation_token.save()
     return invitation_link
+
+
+SPECIAL_CHARACTERS = [
+    "!",
+    "#",
+    "$",
+    "%",
+    "(",
+    ")",
+    "*",
+    "+",
+    ",",
+    "-",
+    ".",
+    "/",
+    ":",
+    ";",
+    "=",
+    "?",
+    "@",
+    "[",
+    "]",
+    "^",
+    "_",
+    "{",
+    "|",
+    "}",
+    "~",
+]
+
+
+def is_allowed_password(string: str) -> bool:
+    """
+    Check if a all characters in a string are allowed to be used in a password.
+
+    Allowed characters: All alphanumeric, so (A-Z), (a-z), (0-9) and all characters in SPECIAL_CHARACTERS.
+
+    :param string: The string to check.
+
+    :return: True if the string is allowed, False otherwise.
+    """
+
+    return all(
+        char.isalnum() or char in SPECIAL_CHARACTERS and char != " " for char in string
+    )
+
+
+def password_length_ok(string: str) -> bool:
+    """
+    Check if the length of a string is at least 8 characters and at most 64 characters.
+
+    :param string: The string to check.
+
+    :return: True if the string is at least 8 characters long and at most 64 characters long, False otherwise.
+    """
+    return len(string) >= 8 and len(string) <= 64
+
+
+def password_requirements_met(password: str) -> bool:
+    """
+    Check if a password meets the requirements for a password. The password must contain at least one letter, one number and one special character.
+
+    :param password: The password to check.
+
+    :return: True if the password meets the requirements, False otherwise.
+    """
+    has_letter = any(char.isalpha() for char in password)
+    has_number = any(char.isdigit() for char in password)
+    has_special = any(char in SPECIAL_CHARACTERS for char in password)
+
+    return has_letter and has_number and has_special and password_length_ok(password)
