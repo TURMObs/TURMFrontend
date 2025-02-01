@@ -21,7 +21,7 @@ services:
       python manage.py create_groups_and_permissions &&
       (if [ \"$DEBUG\" = \"True\" ]; then python manage.py generate_admin_user; fi) &&
       (if [ \"$DEBUG\" = \"True\" ]; then echo 'Development server running at http://localhost:8000/ on local machine'; fi) &&
-      python manage.py runserver 0.0.0.0:8000"
+      (if [ \"$DEBUG\" = \"True\" ]; then python manage.py runserver 0.0.0.0:8000; else gunicorn TURMFrontend.wsgi:application --bind 0.0.0.0:8000 --workers 3; fi)"
     volumes:
       - .:/code
       - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
@@ -34,6 +34,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DOCKER_MODE: "True"
+      DEBUG: ${DEBUG:-True}
 
   nextcloud:
     image: nextcloud

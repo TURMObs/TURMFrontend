@@ -1,0 +1,78 @@
+{% extends "base_template.html" %}
+{% block title %}User Data Settings{% endblock %}
+{% block style %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
+          rel="stylesheet">
+    <style>
+        label {
+            font-size: 1.15em;
+        }
+
+        .container {
+            height: 90vh;
+        }
+
+        .flex {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="container_center">
+            <div class="content_wrapper flex">
+                <h1>User Data Settings</h1>
+                <button id="downloadBtn">Download User Data</button>
+                <button id="deleteBtn">Delete User Data</button>
+            </div>
+        </div>
+    </div>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script>
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        // Download User Data
+        document.getElementById('downloadBtn').addEventListener('click', function () {
+            fetch('{{ subpath }}/get-user-data/')
+                .then(response => response.json())
+                .then(data => {
+                    const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'user_data.json';
+                    link.click();
+                });
+        });
+
+        // Delete User Data
+        document.getElementById('deleteBtn').addEventListener('click', function () {
+            const user_id = {{ request.user.id }}
+            if (confirm("Are you sure you want to delete your user data? This action cannot be undone.")) {
+                fetch(`{{ subpath }}/delete-user/${user_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert("Your user data has been marked for deletion in the next 30 days. You will be logged out.");
+                            window.location.href = '/';
+                        } else {
+                            alert("An error occurred while deleting the data.");
+                        }
+                    });
+            }
+        });
+
+    </script>
+{% endblock %}

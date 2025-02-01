@@ -29,14 +29,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-k$b$^f#%axr_@sur%@5u9ru2sau$xddv7%wb@kr(vp^y5ad!vu"
+load_dotenv()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-load_dotenv()
 DEBUG = os.getenv("DEBUG", "True") == "True"
+SUBPATH = os.getenv("SUBPATH", "")
+FORCE_SCRIPT_NAME = None if SUBPATH == "" else SUBPATH
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+if DEBUG:
+    SECRET_KEY = "django-insecure-kxbx^f#%axr_@sur%@5u9ru2sauxxddv7%wb@kr(vp^y5ad!vu"
+else:
+    SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY not set")
+
+
+if DEBUG:
+    ALLOWED_HOSTS = []
+else:
+    ALLOWED_HOSTS = ["127.0.0.1"]
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = [BASE_URL]
+
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
 
 
 # Application definition
@@ -55,7 +74,6 @@ INSTALLED_APPS = [
     "dashboard",
     "observation_data",
     "observation_request",
-    "dsgvo",
     "nextcloud",
 ]
 
