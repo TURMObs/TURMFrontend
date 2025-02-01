@@ -88,5 +88,9 @@ def process_pending_deletion_users():
     """
     Also deletes all users with status deletion_pending=True
     """
-    for user in ObservatoryUser.objects.filter(deletion_pending=True):
+    users = ObservatoryUser.objects.filter(deletion_pending=True)
+    for user in users:
+        logger.info(f"Deleted user {user.username}")
         user.delete()
+
+    logger.info(f"Deleted {len(users)} users with status deletion_pending.")

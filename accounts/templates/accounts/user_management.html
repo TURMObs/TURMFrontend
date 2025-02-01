@@ -448,7 +448,7 @@
 
             try {
                 const response = await fetch("{% url 'delete-user' 0 %}".replace("0", userId), {
-                    method: 'POST',
+                    method: 'DELETE',
                     headers: {
                         'X-CSRFToken': csrfToken,
                         'Content-Type': 'application/json',

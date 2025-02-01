@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 import django.contrib.auth as auth
 from django import forms
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
 from django.http import JsonResponse
@@ -12,11 +11,8 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
-
 from rest_framework.decorators import api_view
 
-from observation_data.models import AbstractObservation
-from observation_data.observation_management import delete_observation
 from . import user_data
 from .models import (
     InvitationToken,
@@ -293,8 +289,12 @@ def delete_invitation(request, invitation_id):
     return JsonResponse({"status": "success"}, status=200)
 
 
-@require_POST
 def delete_user(request, user_id):
+    if request.method != "DELETE":
+        return JsonResponse(
+            {"status": "error", "message": "wrong method. Requires DELETE"}, status=405
+        )
+
     request_user = request.user
     if user_id != request_user.id and not request_user.has_perm(
         UserPermission.CAN_DELETE_USERS
@@ -324,6 +324,7 @@ def delete_user(request, user_id):
             status=400,
         )
     user_data.delete_user(target_user)
+    target_user.is_active = False  # prevents user from logging in again
     target_user.save()
 
     logger.info(f"{target_user} has been marked for deletion by {request_user}")
@@ -336,7 +337,6 @@ def get_user_data(request):
     return JsonResponse(data)
 
 
-@require_GET
 @require_GET
 def dsgvo_options(request):
     return render(request, "accounts/dsgvo.html", {"subpath": settings.SUBPATH})

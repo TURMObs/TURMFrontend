@@ -6,6 +6,7 @@ from accounts.models import ObservatoryUser
 from observation_data.models import AbstractObservation
 from observation_data.observation_management import delete_observation
 
+
 logger = logging.getLogger(__name__)
 
 

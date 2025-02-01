@@ -173,7 +173,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
                 username="testuser2", password="testpassword"
             ),
         )
-        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
+        response = self.client.delete(f"/accounts/delete-user/{self.user.id}")
         self.assertEqual(response.status_code, 200)
         process_pending_deletion()
         self.assertFalse(ObservatoryUser.objects.filter(username="testuser").exists())
@@ -200,7 +200,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         for file in [file_im1, file_var1, file_im2]:
             self.assertIsNotNone(file)
             self.assertTrue(file_exists(file))
-        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
+        response = self.client.delete(f"/accounts/delete-user/{self.user.id}")
         process_pending_deletion()
         self.assertEqual(response.status_code, 200)
         self.assertFalse(file_exists(file_im1))
