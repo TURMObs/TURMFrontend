@@ -69,7 +69,9 @@ class TURMField(Field):
             case models.DateField:
                 return TURMDateInput(name=model_field.name, *args, **kwargs)
             case models.CharField:
-                return TURMCharInput(name=model_field.name, *args, **kwargs)
+                return TURMCharInput(
+                    name=model_field.name, placeholder="", *args, **kwargs
+                )
             case _:
                 raise NotImplementedError(f"{type(model_field)} is not supported yet.")
 

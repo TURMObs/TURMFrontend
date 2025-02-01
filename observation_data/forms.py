@@ -35,7 +35,7 @@ class CelestialTargetForm(forms.Form):
         {"placeholder": "OrionNebula"}
     )
     target_widgets = [
-        (TURMCharInput("catalog_id"), "Catalog ID"),
+        (TURMCharInput("catalog_id", "M42"), "Catalog ID"),
         (TURMButtonInput("Fetch SIMBAD coordinates", "fetch_coordinates()"), ""),
     ]
     catalog_id = TURMGridField(target_widgets, (2, 1))

@@ -46,11 +46,13 @@ class TURMCharInput(_TURMInput):
     def __init__(
         self,
         name: str,
+        placeholder: str,
         *args,
         **kwargs,
     ):
         super().__init__(name=name, *args, **kwargs)
         self.attrs["type"] = "text"
+        self.attrs["placeholder"] = placeholder
 
     def render(self, name, value, attrs=None, renderer=None):
         html_render = f"<input {self._render_attrs(attrs)}></input>"
