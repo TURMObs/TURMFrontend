@@ -33,7 +33,7 @@ class Command(BaseCommand):
         serializer = ImagingObservationSerializer(data=data)
 
         if not serializer.is_valid():
-            print("ihr schwachköpfe")
+            print("Test observation is invalid")
             return
 
         serializer.save()

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import django.contrib.auth as auth
 from django import forms
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
 from django.http import JsonResponse
@@ -14,7 +15,8 @@ import os
 
 from rest_framework.decorators import api_view
 
-from observation_data.models import AbstractObservation, ObservationStatus
+from observation_data.models import AbstractObservation
+from observation_data.observation_management import delete_observation
 from . import user_data
 from .models import (
     InvitationToken,
@@ -321,12 +323,8 @@ def delete_user(request, user_id):
             },
             status=400,
         )
-    target_user.deletion_pending = True
+    user_data.delete_user(target_user)
     target_user.save()
-
-    for obs in AbstractObservation.objects.filter(user=target_user):
-        obs.project_status = ObservationStatus.PENDING_DELETION
-        obs.save()
 
     logger.info(f"{target_user} has been marked for deletion by {request_user}")
     return JsonResponse({"status": "success"}, status=200)

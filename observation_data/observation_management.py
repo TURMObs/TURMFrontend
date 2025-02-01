@@ -25,19 +25,25 @@ def delete_observation(observation_id: int):
     obs = AbstractObservation.objects.get(id=observation_id)
 
     if obs.project_status == ObservationStatus.PENDING_DELETION:
-        raise BadRequest(f"Observation {obs.id} is already marked for deletion.")
+        raise BadRequest(
+            f"Observation {obs.id} with target {obs.target.name} is already marked for deletion."
+        )
 
     if (
         obs.project_status == ObservationStatus.UPLOADED
         or obs.project_status == ObservationStatus.ERROR
     ):  # to prevent mix-up during NINA-Scheduling these observations are deleted in the morning
         obs.project_status = ObservationStatus.PENDING_DELETION
-        logger.info(f"Status of observation {obs.id} set to {obs.project_status}")
+        logger.info(
+            f"Status of observation {obs.id} with target {obs.target.name} set to {obs.project_status}"
+        )
         obs.save()
         return
 
     obs.delete()
-    logger.info(f"Observation {obs.id} deleted successfully from database.")
+    logger.info(
+        f"Observation {obs.id} with target {obs.target.name} deleted successfully from database."
+    )
 
 
 def process_pending_deletion():
@@ -63,12 +69,18 @@ def process_pending_deletion_observations():
         nc_path = generate_observation_path(obs)
         if nm.file_exists(nc_path):
             nm.delete(nc_path)
-            logger.info(f"Observation {obs.id} deleted successfully from Nextcloud.")
+            logger.info(
+                f"Observation {obs.id} with target {obs.target.name} deleted successfully from Nextcloud."
+            )
         else:
-            logger.info(f"Observation {obs.id} does not exist in Nextcloud.")
+            logger.info(
+                f"Observation {obs.id} with target {obs.target.name} does not exist in Nextcloud."
+            )
 
         obs.delete()
-        logger.info(f"Observation {obs.id} deleted successfully from database.")
+        logger.info(
+            f"Observation {obs.id} with target {obs.target.name} deleted successfully from database."
+        )
     logger.info("All observations with status PENDING_DELETE deleted successfully.")
 
 

@@ -1,3 +1,4 @@
+from django.core.exceptions import BadRequest
 from django.core.management.base import BaseCommand
 
 import logging
@@ -13,5 +14,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for obs in AbstractObservation.objects.all():
-            observation_management.delete_observation(obs)
+            try:
+                observation_management.delete_observation(obs.id)
+            except BadRequest:
+                pass  # observations might already be marked for deletion, but this does not matter here
+
         observation_management.process_pending_deletion_observations()
