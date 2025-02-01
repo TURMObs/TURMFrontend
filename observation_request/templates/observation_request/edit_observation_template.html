@@ -40,6 +40,9 @@
         }
 
         function fillInput(query, value) {
+            if (value === undefined || value === null) {
+                return;
+            }
             const queryString = `input[id^="${query}"]`;
             for (const input of document.querySelectorAll(queryString)) {
                 input.value = value;
@@ -97,4 +100,5 @@
                 <button type="submit">Save changes</button>
             </div>
         </form>
-    {% endblock %}
+    </div>
+{% endblock %}

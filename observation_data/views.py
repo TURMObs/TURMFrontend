@@ -156,12 +156,13 @@ def edit_observation(request, observation_id):
             },
         )
 
-    serializer = serializer_class(data=request_data)
+    serializer = serializer_class(observation, data=request_data)
     if not serializer.is_valid():
+        print("There are errors")
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # TODO: Actually apply the changes
-
+    observation = serializer.save()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

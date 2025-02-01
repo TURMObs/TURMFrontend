@@ -56,16 +56,7 @@ def _create_observation(validated_data, observation_type, model):
 
     """
     target_data = validated_data.pop("target")
-    catalog_id = target_data.get("catalog_id")
-    if not catalog_id:
-        target_data["catalog_id"] = ""
-
-    created_target, created = CelestialTarget.objects.get_or_create(
-        name=target_data.get("name"),
-        catalog_id=target_data.get("catalog_id"),
-        ra=target_data.get("ra"),
-        dec=target_data.get("dec"),
-    )
+    created_target = _get_or_create_celestial_target_from_data(target_data)
 
     validated_data["project_status"] = ObservationStatus.PENDING
     validated_data["project_completion"] = 0.0
@@ -81,6 +72,51 @@ def _create_observation(validated_data, observation_type, model):
     observation = model.objects.create(target=created_target, **validated_data)
     observation.filter_set.set(filter_set)
     return observation
+
+
+def _update_observation(validated_data, existing_observation, observation_type, model):
+    """
+    Updates an existing observation model with new data.
+    The existing observation is deleted and a new one is created with the updated data.
+    Properties like created_at will be re-used from the existing observation.
+    :param validated_data: Data to update the observation
+    :param existing_observation: The existing observation to be updated
+    :param observation_type: New observation type, possibly different from existing type
+    :param model: The model class of the observation
+    :return: Updated observation instance
+    """
+    target_data = validated_data.pop("target")
+    created_target = _get_or_create_celestial_target_from_data(target_data)
+
+    validated_data["project_status"] = ObservationStatus.PENDING
+    validated_data["project_completion"] = 0.0
+    validated_data["created_at"] = existing_observation.created_at
+
+    if observation_type in priorities:
+        validated_data["priority"] = existing_observation.priority
+
+    if issubclass(model, ScheduledObservation):
+        validated_data["next_upload"] = validated_data["start_scheduling"]
+
+    filter_set = validated_data.pop("filter_set")
+    observation = model.objects.create(target=created_target, **validated_data)
+    observation.filter_set.set(filter_set)
+    existing_observation.delete()
+    return observation
+
+
+def _get_or_create_celestial_target_from_data(target_data):
+    catalog_id = target_data.get("catalog_id")
+    if not catalog_id:
+        target_data["catalog_id"] = ""
+
+    created_target, created = CelestialTarget.objects.get_or_create(
+        name=target_data.get("name"),
+        catalog_id=target_data.get("catalog_id"),
+        ra=target_data.get("ra"),
+        dec=target_data.get("dec"),
+    )
+    return created_target
 
 
 def _convert_decimal_fields(rep):
@@ -277,6 +313,11 @@ class ImagingObservationSerializer(serializers.ModelSerializer):
             validated_data, ObservationType.IMAGING, ImagingObservation
         )
 
+    def update(self, instance, validated_data):
+        return _update_observation(
+            validated_data, instance, ObservationType.IMAGING, ImagingObservation
+        )
+
     def to_representation(self, instance):
         additional_fields = {
             "ditherEvery": 1,
@@ -311,6 +352,11 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return _create_observation(
             validated_data, ObservationType.EXOPLANET, ExoplanetObservation
+        )
+
+    def update(self, instance, validated_data):
+        return _update_observation(
+            validated_data, instance, ObservationType.EXOPLANET, ExoplanetObservation
         )
 
     def to_representation(self, instance):
@@ -355,6 +401,11 @@ class VariableObservationSerializer(serializers.ModelSerializer):
             validated_data, ObservationType.VARIABLE, VariableObservation
         )
 
+    def update(self, instance, validated_data):
+        return _update_observation(
+            validated_data, instance, ObservationType.VARIABLE, VariableObservation
+        )
+
     def to_representation(self, instance):
         additional_fields = {
             "minimumAltitude": instance.minimum_altitude,
@@ -391,6 +442,11 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return _create_observation(
             validated_data, ObservationType.MONITORING, MonitoringObservation
+        )
+
+    def update(self, instance, validated_data):
+        return _update_observation(
+            validated_data, instance, ObservationType.MONITORING, MonitoringObservation
         )
 
     def to_representation(self, instance):
@@ -435,6 +491,11 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return _create_observation(
             validated_data, ObservationType.EXPERT, ExpertObservation
+        )
+
+    def update(self, instance, validated_data):
+        return _update_observation(
+            validated_data, instance, ObservationType.EXPERT, ExpertObservation
         )
 
     def to_representation(self, instance):

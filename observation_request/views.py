@@ -43,7 +43,7 @@ def edit_observation_request(request, observation_id):
                         "name": observation.target.name,
                         "catalog_id": observation.target.catalog_id,
                         "ra": observation.target.ra,
-                        "dec": observation.target.ra,
+                        "dec": observation.target.dec,
                     }
                 ),
             ),
