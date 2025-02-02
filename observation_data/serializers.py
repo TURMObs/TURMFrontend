@@ -67,6 +67,7 @@ def _create_observation(validated_data, observation_type, model):
         dec=target_data.get("dec"),
     )
 
+    # Set default values
     validated_data["project_status"] = ObservationStatus.PENDING
     validated_data["project_completion"] = 0.0
     validated_data["created_at"] = timezone.now()
@@ -184,9 +185,6 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
             "acceptedAmount": 0,
         }
         # If exposure_fields is provided, update each exposure with the additional fields
-        if exposure_fields:
-            exposure_data.update(exposure_fields)
-
         if exposure_settings:
             exposure_data.update(
                 {
@@ -196,6 +194,9 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
                     "subFrame": exposure_settings.subFrame,
                 }
             )
+
+        if exposure_fields:
+            exposure_data.update(exposure_fields)
 
         ordered = OrderedDict(
             (key, exposure_data.get(key, None)) for key in exposure_order
@@ -415,6 +416,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "frames_per_filter",
             "dither_every",
             "binning",
+            "subframe",
             "gain",
             "offset",
             "start_observation",
@@ -461,7 +463,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             ],
         }
         exposure_fields = {
-            "subFrame": instance.frames_per_filter,
+            "subFrame": instance.subframe,
             "binning": instance.binning,
             "gain": instance.gain,
             "offset": instance.offset,
