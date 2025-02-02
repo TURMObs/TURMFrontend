@@ -12,7 +12,7 @@ from observation_data.models import AbstractObservation, ObservationType
 def create_observation_request(request):
     context = {
         "forms": [
-            ("Project", TURMProjectForm()),
+            ("Observatory", TURMProjectForm()),
             ("Target", CelestialTargetForm()),
             ("Exposure", ExposureSettingsForm()),
         ],
@@ -32,7 +32,7 @@ def edit_observation_request(request, observation_id):
 
     context = {
         "forms": [
-            ("Project", TURMProjectForm()),
+            ("Observatory", TURMProjectForm()),
             ("Target", CelestialTargetForm()),
             ("Exposure", ExposureSettingsForm()),
         ],

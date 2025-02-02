@@ -63,7 +63,8 @@ class TURMProjectForm(forms.Form):
 
     try:
         observatory = TURMField.init_from_model(
-            model_field=AbstractObservation._meta.get_field("observatory")
+            model_field=AbstractObservation._meta.get_field("observatory"),
+            label_name="",
         ).add_on_click(
             lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')"
         )
