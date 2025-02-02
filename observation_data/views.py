@@ -7,7 +7,6 @@ from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.status import HTTP_401_UNAUTHORIZED
 
 from observation_data.models import ObservationType, AbstractObservation
 from accounts.models import ObservatoryUser, UserPermission
@@ -29,11 +28,6 @@ def create_observation(request):
     """
 
     user = request.user
-    if not user.is_authenticated:
-        return Response(
-            {"error": "Authentication required"},
-            status=HTTP_401_UNAUTHORIZED,
-        )
 
     if not isinstance(user, ObservatoryUser):
         return Response(
