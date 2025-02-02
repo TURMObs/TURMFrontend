@@ -104,6 +104,7 @@ def build_observation_data(observation: AbstractObservation):
         case ObservationType.EXPERT:
             content["priority"] = observation.priority
             content["dither_every"] = observation.dither_every
+            content["subframe"] = float(observation.subframe)
             content["binning"] = observation.binning
             content["gain"] = observation.gain
             content["offset"] = observation.offset
