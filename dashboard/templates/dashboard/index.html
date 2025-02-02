@@ -76,6 +76,7 @@
                             <th class="right-align">Project status</th>
                             <th class="right-align">Project completion</th>
                             <th class="right-align">Priority</th>
+                            <th class="right-align"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,6 +96,11 @@
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 <td class="right-align">{{ observation.priority }}</td>
+                                <td class="right-align">
+                                    <div>
+                                        <button onclick="delete_observation('{{ observation.id }}')">X</button>
+                                    </div>
+                                </td>
                             </tr>
                             <tr class="expander-row"
                                 id="expander-{{ observation.id }}"
@@ -165,5 +171,28 @@
                 });
             });
         });
+
+        /**
+         * Sends api request to delete observation with the given id.
+         * @param obs_id id of the observation that is to be deleted
+         */
+        function delete_observation(obs_id) {
+            if (!confirm("delete this observation")) return;
+            fetch('{% url "delete-observation" %}', {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": '{{ csrf_token }}',
+                },
+                method: "POST",
+                body: JSON.stringify({id: obs_id}),
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload()
+                    return;
+                }
+                response.json().then(json_response => alert(json_response["error"]))
+            });
+
+        }
     </script>
 {% endblock %}
