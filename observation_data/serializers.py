@@ -198,7 +198,6 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
         if exposure_fields:
             exposure_data.update(exposure_fields)
 
-
         ordered = OrderedDict(
             (key, exposure_data.get(key, None)) for key in exposure_order
         )

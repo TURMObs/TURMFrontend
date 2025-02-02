@@ -14,13 +14,15 @@ from observation_data.models import (
     ObservationType,
     Filter,
     AbstractObservation,
-    ObservationStatus, ExpertObservation,
+    ObservationStatus,
+    ExpertObservation,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
     VariableObservationSerializer,
-    MonitoringObservationSerializer, ExpertObservationSerializer,
+    MonitoringObservationSerializer,
+    ExpertObservationSerializer,
 )
 
 
@@ -975,10 +977,18 @@ class JsonFormattingTestCase(django.test.TestCase):
             "subframe": 0.5,
             "gain": 1,
             "offset": 1,
-            "start_observation": target_day.replace(hour=0, minute=0, second=0).isoformat(),
-            "end_observation":  target_day.replace(hour=1, minute=0, second=0).isoformat(),
-            "start_scheduling": target_day.replace(hour=0, minute=0, second=0).isoformat(),
-            "end_scheduling": target_day.replace(hour=1, minute=0, second=0).isoformat(),
+            "start_observation": target_day.replace(
+                hour=0, minute=0, second=0
+            ).isoformat(),
+            "end_observation": target_day.replace(
+                hour=1, minute=0, second=0
+            ).isoformat(),
+            "start_scheduling": target_day.replace(
+                hour=0, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": target_day.replace(
+                hour=1, minute=0, second=0
+            ).isoformat(),
             "cadence": 1,
             "moon_separation_angle": 30.0,
             "moon_separation_width": 7.0,
@@ -994,4 +1004,8 @@ class JsonFormattingTestCase(django.test.TestCase):
         serialized_json = ExpertObservationSerializer(
             ExpertObservation.objects.get()
         ).data
-        self.assertEqual(serialized_json["targets"][0]["exposures"][0]["subFrame"], 0.5, serialized_json)
+        self.assertEqual(
+            serialized_json["targets"][0]["exposures"][0]["subFrame"],
+            0.5,
+            serialized_json,
+        )
