@@ -350,6 +350,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         moon_separation_width: int = 1,
         minimum_altitude: float = 10.0,
         frames_per_filter: int = 100,
+        subframe: int = 1,
     ):
         """
         Creates expert observations from scratch without checks from serializers
@@ -383,6 +384,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             moon_separation_width=moon_separation_width,
             minimum_altitude=minimum_altitude,
             frames_per_filter=frames_per_filter,
+            subframe=subframe,
         )
 
         obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
