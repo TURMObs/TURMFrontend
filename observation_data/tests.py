@@ -1140,6 +1140,10 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 202)
         self.assertEqual(0, AbstractObservation.objects.count())
 
+    @skipIf(
+        not run_nc_test,
+        "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
+    )
     def test_currently_uploaded(self):
         # simulates the situation where a user tries to delete an observation, that currently might be used by NINA and therefore cannot be deleted
         obs_id = 42
@@ -1176,8 +1180,6 @@ class ObservationManagementTestCase(django.test.TestCase):
         "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
     )
     def test_obs_exists_in_nc(self):
-        nm.initialize_connection()
-
         # simulates the situation a successful deletion where the observation is in the nextcloud
         nm.initialize_connection()
         nm.mkdir(f"{self.nc_prefix}/TURMX/Projects")
