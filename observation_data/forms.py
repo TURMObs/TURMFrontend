@@ -31,6 +31,10 @@ class Dependency(Enum):
 
 
 class CelestialTargetForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(CelestialTargetForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ""
+
     name = TURMField.init_from_model(CelestialTarget._meta.get_field("name")).add_attrs(
         {"placeholder": "OrionNebula"}
     )
@@ -39,12 +43,12 @@ class CelestialTargetForm(forms.Form):
         (TURMButtonInput("Fetch SIMBAD coordinates", "fetch_coordinates()"), ""),
     ]
     catalog_id = TURMGridField(target_widgets, (2, 1))
-    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra")).add_attrs(
-        {"placeholder": "hh mm ss"}
-    )
-    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec")).add_attrs(
-        {"placeholder": "dd mm ss"}
-    )
+    ra = TURMField.init_from_model(
+        CelestialTarget._meta.get_field("ra"), label_name="RA"
+    ).add_attrs({"placeholder": "hh mm ss"})
+    dec = TURMField.init_from_model(
+        CelestialTarget._meta.get_field("dec"), label_name="DEC"
+    ).add_attrs({"placeholder": "dd mm ss"})
 
 
 class TURMProjectForm(forms.Form):
@@ -90,7 +94,7 @@ class ExposureSettingsForm(forms.Form):
         observation_type = TURMSelectField(
             "observation_type",
             [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
-            label_name="Observation Type",
+            label_name="Observation type",
         ).add_on_click(
             lambda o_type: f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"
         )
@@ -134,13 +138,13 @@ class ExposureSettingsForm(forms.Form):
         exposure_settings = [
             (
                 ExpertObservation._meta.get_field("frames_per_filter"),
-                "Frames per filter",
+                "Frames per Filter",
             ),
-            (ExpertObservation._meta.get_field("dither_every"), "dither every"),
-            (ExposureSettings._meta.get_field("binning"), "binning"),
-            (ExposureSettings._meta.get_field("subframe"), "sub frame"),
-            (ExposureSettings._meta.get_field("gain"), "gain"),
-            (ExposureSettings._meta.get_field("offset"), "offset"),
+            (ExpertObservation._meta.get_field("dither_every"), "Dither Every"),
+            (ExposureSettings._meta.get_field("binning"), "Binning"),
+            (ExposureSettings._meta.get_field("subframe"), "Sub Frame"),
+            (ExposureSettings._meta.get_field("gain"), "Gain"),
+            (ExposureSettings._meta.get_field("offset"), "Offset"),
         ]
 
         exposure = TURMGridField.init_from_model(
@@ -150,7 +154,8 @@ class ExposureSettingsForm(forms.Form):
         )
         # imaging
         frames_per_filter = TURMField.init_from_model(
-            ExpertObservation._meta.get_field("frames_per_filter")
+            ExpertObservation._meta.get_field("frames_per_filter"),
+            label_name="Frames per Filter",
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
