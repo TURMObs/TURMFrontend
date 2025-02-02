@@ -138,7 +138,7 @@ class ExposureSettingsForm(forms.Form):
             ),
             (ExpertObservation._meta.get_field("dither_every"), "dither every"),
             (ExposureSettings._meta.get_field("binning"), "binning"),
-            (ExposureSettings._meta.get_field("subFrame"), "sub frame"),
+            (ExposureSettings._meta.get_field("subframe"), "sub frame"),
             (ExposureSettings._meta.get_field("gain"), "gain"),
             (ExposureSettings._meta.get_field("offset"), "offset"),
         ]

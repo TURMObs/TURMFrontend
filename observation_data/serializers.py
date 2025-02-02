@@ -227,7 +227,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
                     "gain": exposure_settings.gain,
                     "offset": exposure_settings.offset,
                     "binning": exposure_settings.binning,
-                    "subFrame": exposure_settings.subFrame,
+                    "subFrame": exposure_settings.subframe,
                 }
             )
 
