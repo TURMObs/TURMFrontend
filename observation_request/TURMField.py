@@ -27,8 +27,6 @@ class TURMField(Field):
 
     @classmethod
     def model_field_to_input(cls, model_field, measurement_unit=None, *args, **kwargs):
-        print("type: ", type(model_field))
-        print("field: ", model_field)
         match type(model_field):
             case models.DecimalField:
                 return TURMFloatInput(

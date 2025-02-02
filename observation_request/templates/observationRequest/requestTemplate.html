@@ -28,7 +28,6 @@
         format object form1 "%COO(s:; A, D; ICRS; J2000)"
         query id ${catalog_id}
         `;
-        console.log("ID: " + catalog_id)
 
         try {
             const response = await fetch(url, {
@@ -42,19 +41,14 @@
             const text = await response.text();
             check_response(text, catalog_id);
         } catch (error) {
-            console.error('Error:', error);
-            console.error(`Got HTTP error! status: ${response.status}`)
-            alert(`Did not receive a valid response. Got: ${error.message}`);
+            alert(`An error while trying to get a response from SIMBAD server. Got: ${error.message}`)
         }
     }
 
     function check_response(response, catalog_id) {
-        console.log(`Got response: ${response}`)
 
         if (response.includes("error")) {
-            let error_res = `Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database!`
-            console.log(error_res)
-            alert(error_res)
+            alert(`Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database!`)
             return;
         }
 
@@ -82,7 +76,6 @@
 
         document.getElementById("id_ra").value = ra.join(" ")
         document.getElementById("id_dec").value = dec.join(" ");
-        console.log(`Inserted values for ${catalog_id}! \nRA: ${ra}\nDEC: ${dec}`)
 
     }
     </script>
