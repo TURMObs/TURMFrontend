@@ -15,6 +15,11 @@ input[type="datetime-local"] {
   padding: 0.75em 1.5em;
 }
 
+.grid_input_div button {
+  margin-top: 1.5em;
+  width: 100%;
+}
+
 .radio_input_div,
 .checkbox_input_div {
   -webkit-user-select: none; /* Safari */
