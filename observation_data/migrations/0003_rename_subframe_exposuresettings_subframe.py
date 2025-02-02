@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0002_expertobservation_subframe'),
+        ("observation_data", "0002_expertobservation_subframe"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='exposuresettings',
-            old_name='subFrame',
-            new_name='subframe',
+            model_name="exposuresettings",
+            old_name="subFrame",
+            new_name="subframe",
         ),
     ]

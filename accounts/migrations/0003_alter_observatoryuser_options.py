@@ -4,14 +4,25 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0002_alter_observatoryuser_options_invitationtoken_link_and_more'),
+        (
+            "accounts",
+            "0002_alter_observatoryuser_options_invitationtoken_link_and_more",
+        ),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='observatoryuser',
-            options={'permissions': [('can_generate_invitation', 'Can generate invitation links'), ('can_invite_admins', 'Can invite new admin users'), ('can_invite_operators', 'Can invite new operators'), ('can_create_expert_observation', 'Can create expert observation'), ('can_see_all_observations', 'Can see all observations'), ('can_edit_all_observations', 'Can edit all observations')]},
+            name="observatoryuser",
+            options={
+                "permissions": [
+                    ("can_generate_invitation", "Can generate invitation links"),
+                    ("can_invite_admins", "Can invite new admin users"),
+                    ("can_invite_operators", "Can invite new operators"),
+                    ("can_create_expert_observation", "Can create expert observation"),
+                    ("can_see_all_observations", "Can see all observations"),
+                    ("can_edit_all_observations", "Can edit all observations"),
+                ]
+            },
         ),
     ]
