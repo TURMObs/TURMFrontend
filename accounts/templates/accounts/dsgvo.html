@@ -40,9 +40,7 @@
 
         // Download User Data
         document.getElementById('downloadBtn').addEventListener('click', function () {
-            fetch('{{ subpath }}/accounts/get-user-data', {
-                    method: 'GET',
-                })
+            fetch('{{ subpath }}/accounts/get-user-data')
                 .then(response => response.json())
                 .then(data => {
                     const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});

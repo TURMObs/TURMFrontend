@@ -150,8 +150,6 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         call_command("populate_observatories")
 
-        # self.LOCAL_PATH = "test_data"
-
         self.maxDiff = None
         self.client = django.test.Client()
         self.user = None
