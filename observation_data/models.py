@@ -164,6 +164,7 @@ class ExpertObservation(ScheduledObservation):
     frames_per_filter = models.IntegerField()
     dither_every = models.IntegerField()
     binning = models.IntegerField()
+    subframe = models.DecimalField(max_digits=5, decimal_places=4)
     gain = models.IntegerField()
     offset = models.IntegerField()
     start_observation = models.DateTimeField()
