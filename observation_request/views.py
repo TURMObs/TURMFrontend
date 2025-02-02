@@ -32,25 +32,9 @@ def edit_observation_request(request, observation_id):
 
     context = {
         "forms": [
-            (
-                "Project",
-                TURMProjectForm(),
-            ),
-            (
-                "Target",
-                CelestialTargetForm(
-                    initial={
-                        "name": observation.target.name,
-                        "catalog_id": observation.target.catalog_id,
-                        "ra": observation.target.ra,
-                        "dec": observation.target.dec,
-                    }
-                ),
-            ),
-            (
-                "Exposure",
-                ExposureSettingsForm(),
-            ),
+            ("Project", TURMProjectForm()),
+            ("Target", CelestialTargetForm()),
+            ("Exposure", ExposureSettingsForm()),
         ],
         "edit_form_url": settings.SUBPATH
         + "/observation-data/edit/"
@@ -67,6 +51,10 @@ def build_observation_data(observation: AbstractObservation):
         "observatory": observation.observatory.name,
         "observation_type": observation.observation_type,
         "filter_set": [ft.filter_type for ft in observation.filter_set.all()],
+        "target_name": observation.target.name,
+        "catalog_id": observation.target.catalog_id,
+        "ra": observation.target.ra,
+        "dec": observation.target.dec,
     }
 
     if observation.observation_type in [

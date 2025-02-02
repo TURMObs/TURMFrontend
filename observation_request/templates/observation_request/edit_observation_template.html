@@ -56,6 +56,11 @@
         markInputAsChecked("id_filter_set", existingRequest.filter_set, (val) => existingRequest.filter_set.includes(val));
         markInputAsCheckedIfEqual("id_exposure_time", existingRequest.exposure_time);
 
+        fillInput("id_name", existingRequest.target_name);
+        fillInput("id_catalog_id", existingRequest.catalog_id);
+        fillInput("id_ra", existingRequest.ra);
+        fillInput("id_dec", existingRequest.dec);
+
         fillInput("id_frames_per_filter", existingRequest.frames_per_filter);
         fillInput("id_start_observation", existingRequest.start_observation);
         fillInput("id_end_observation", existingRequest.end_observation);
@@ -68,7 +73,7 @@
         fillInput("id_exposure_time_expert", existingRequest.exposure_time);
         fillInput("id_dither_every", existingRequest.dither_every);
         fillInput("id_binning", existingRequest.binning);
-        fillInput("id_subframe", existingRequest.subframe);
+        fillInput("id_subFrame", existingRequest.subframe);
         fillInput("id_gain", existingRequest.gain);
         fillInput("id_offset", existingRequest.offset);
         fillInput("id_moon_separation_angle", existingRequest.moon_separation_angle);
