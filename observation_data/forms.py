@@ -12,6 +12,7 @@ from observation_request.TURMField import (
     TURMDateDuration,
     TURMDateTimeDuration,
 )
+from observation_request.TURMInput import TURMCharInput, TURMButtonInput
 from .models import (
     CelestialTarget,
     ExpertObservation,
@@ -29,24 +30,21 @@ class Dependency(Enum):
     observatory = "observatory_dependent"
 
 
-class CelestialTargetForm(forms.ModelForm):
-    """
-    Form for specifying a celestial target.
-    """
-
-    class Meta:
-        model = CelestialTarget
-        fields = ["name", "catalog_id", "ra", "dec"]
-
-    def __init__(self, *args, **kwargs):
-        super(CelestialTargetForm, self).__init__(*args, **kwargs)
-        self.label_suffix = ""
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({"class": "input_text"})
-        self.fields["name"].widget.attrs.update({"placeholder": "OrionNebula"})
-        self.fields["catalog_id"].widget.attrs.update({"placeholder": "M42"})
-        self.fields["ra"].widget.attrs.update({"placeholder": "hh mm ss"})
-        self.fields["dec"].widget.attrs.update({"placeholder": "dd mm ss"})
+class CelestialTargetForm(forms.Form):
+    name = TURMField.init_from_model(CelestialTarget._meta.get_field("name")).add_attrs(
+        {"placeholder": "OrionNebula"}
+    )
+    target_widgets = [
+        (TURMCharInput("catalog_id", "M42"), "Catalog ID"),
+        (TURMButtonInput("Fetch SIMBAD coordinates", "fetch_coordinates()"), ""),
+    ]
+    catalog_id = TURMGridField(target_widgets, (2, 1))
+    ra = TURMField.init_from_model(CelestialTarget._meta.get_field("ra")).add_attrs(
+        {"placeholder": "hh mm ss"}
+    )
+    dec = TURMField.init_from_model(CelestialTarget._meta.get_field("dec")).add_attrs(
+        {"placeholder": "dd mm ss"}
+    )
 
 
 class TURMProjectForm(forms.Form):
@@ -145,7 +143,9 @@ class ExposureSettingsForm(forms.Form):
             (ExposureSettings._meta.get_field("offset"), "offset"),
         ]
 
-        exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
+        exposure = TURMGridField.init_from_model(
+            exposure_settings, (2, 3)
+        ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
         # imaging
@@ -222,7 +222,7 @@ class ExposureSettingsForm(forms.Form):
             ),
         ]
 
-        moon_separation = TURMGridField(
+        moon_separation = TURMGridField.init_from_model(
             moon_separation_settings, (2, 1)
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}

@@ -42,6 +42,40 @@ class _TURMInput(Widget):
         raise NotImplementedError("Subclasses must implement this method.")
 
 
+class TURMCharInput(_TURMInput):
+    def __init__(
+        self,
+        name: str,
+        placeholder: str,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(name=name, *args, **kwargs)
+        self.attrs["type"] = "text"
+        self.attrs["placeholder"] = placeholder
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html_render = f"<input {self._render_attrs(attrs)}></input>"
+        return mark_safe(html_render)
+
+
+class TURMButtonInput(_TURMInput):
+    def __init__(
+        self,
+        name: str,
+        onclick: str,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(name, *args, **kwargs)
+        self.attrs["onclick"] = onclick
+        self.attrs["type"] = "button"
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html_render = f"<button {self._render_attrs(attrs)}>{name}</button>"
+        return mark_safe(html_render)
+
+
 """ --- TURM Numeric Inputs """
 
 
@@ -285,7 +319,7 @@ class TURMGridInput(_TURMInput):
     def __init__(
         self, widgets: list[tuple[_TURMInput, str]], grid_dim=(1, 1), *args, **kwargs
     ):
-        super().__init__(name="", *args, *kwargs)
+        super().__init__(name="", *args, **kwargs)
         self.widgets = widgets
         self.grid_dim = grid_dim
 
