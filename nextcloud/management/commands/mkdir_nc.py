@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Creates path in the nextcloud"
+    help = "Creates path in the nextcloud. Example: <TURMX/Projects>"
 
     def handle(self, *args, **options):
         path = options.get("path", "").strip("/")

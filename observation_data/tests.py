@@ -2,6 +2,9 @@ import json
 import os
 from datetime import datetime, timezone, timedelta
 
+from django.utils import timezone as tz
+from unittest import skipIf
+
 import django.test
 from django.contrib.auth.models import Permission
 from django.core.management import call_command
@@ -9,6 +12,8 @@ from django.conf import settings
 from dotenv import load_dotenv
 
 from accounts.models import ObservatoryUser, UserPermission
+from nextcloud.nextcloud_manager import generate_observation_path
+from nextcloud.nextcloud_sync import upload_observations
 from observation_data.models import (
     ExoplanetObservation,
     ImagingObservation,
@@ -19,14 +24,24 @@ from observation_data.models import (
     ObservationStatus,
     ExpertObservation,
     VariableObservation,
+    Observatory,
+    CelestialTarget,
+)
+from observation_data.observation_management import (
+    process_pending_deletion,
 )
 from observation_data.serializers import (
+    ExpertObservationSerializer,
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
     VariableObservationSerializer,
     MonitoringObservationSerializer,
-    ExpertObservationSerializer,
 )
+
+# from django.utils import timezone
+from nextcloud import nextcloud_manager as nm, nextcloud_manager
+
+run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 
 
 def _create_user_and_login(test_instance):
@@ -1276,7 +1291,9 @@ class JsonFormattingTestCase(django.test.TestCase):
             "filter_set": [Filter.FilterType.LUMINANCE],
         }
         response = self.client.post(
-            path="/observation-data/create/", data=data, content_type="application/json"
+            path="/observation-data/create/",
+            data=data,
+            content_type="application/json",
         )
         self.assertEqual(response.status_code, 201, response.json())
         serialized_json = ExpertObservationSerializer(
@@ -1287,3 +1304,204 @@ class JsonFormattingTestCase(django.test.TestCase):
             0.5,
             serialized_json,
         )
+
+
+class ObservationManagementTestCase(django.test.TestCase):
+    old_prefix = ""
+    prefix = nextcloud_manager.prefix
+    nc_prefix = "test-nc"
+
+    def setUp(self):
+        # automatically adds "test-nc" in name of test root folder
+        self.old_prefix = self.prefix
+        nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
+        self.prefix = f"{self.nc_prefix}{self.prefix}"
+        call_command("populate_observatories")
+
+        self.user = None
+        self.maxDiff = None
+        self.client = django.test.Client()
+        _create_user_and_login(self)
+
+    def tearDown(self):
+        nextcloud_manager.prefix = self.old_prefix
+
+    def create_test_observation(
+        self,
+        obs_id: int,
+    ):
+        """
+        Creates imaging observations from scratch without checks from serializers
+        """
+        target = CelestialTarget.objects.create(
+            name=f"TargetName{str(obs_id)}", ra="0", dec="0"
+        )
+
+        obs = ImagingObservation.objects.create(
+            id=obs_id,
+            observatory=Observatory.objects.get(name="TURMX"),
+            target=target,
+            user=self.user,
+            created_at=tz.now(),
+            observation_type=ObservationType.IMAGING,
+            project_status=ObservationStatus.PENDING,
+            project_completion=0.0,
+            priority=10,
+            exposure_time=10.0,
+            frames_per_filter=100,
+        )
+
+        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+
+    def test_delete_no_permission(self):
+        # simulates the situation where a user without delete-all-permissions tries to delete an observation of another user
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        other_test_instance = django.test.Client()
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        other_test_instance.user = ObservatoryUser.objects.get(
+            username="Max Mustermann"
+        )
+        other_test_instance.force_login(other_test_instance.user)
+
+        response = other_test_instance.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+    def test_delete_non_admin(self):
+        # simulates the situation where a user without delete-all-permissions tries to delete an observation of himself
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        obs.user = ObservatoryUser.objects.get(username="Max Mustermann")
+        obs.save()
+
+        other_test_instance = django.test.Client()
+        other_test_instance.user = ObservatoryUser.objects.get(
+            username="Max Mustermann"
+        )
+        other_test_instance.force_login(other_test_instance.user)
+
+        response = other_test_instance.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(0, AbstractObservation.objects.count())
+
+    def test_delete_admin(self):
+        # simulates the situation where a user with delete-all-permissions tries to delete an observation of another user
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        obs.save()
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(0, AbstractObservation.objects.count())
+
+    @skipIf(
+        not run_nc_test,
+        "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
+    )
+    def test_currently_uploaded(self):
+        # simulates the situation where a user tries to delete an observation, that currently might be used by NINA and therefore cannot be deleted
+        obs_id = 42
+        self.create_test_observation(obs_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        obs.project_status = ObservationStatus.UPLOADED
+        obs.save()
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING_DELETION)
+
+        process_pending_deletion()
+        self.assertEqual(
+            0, AbstractObservation.objects.count()
+        )  # obs does not exist anymore
+
+    def test_bad_id(self):
+        # simulates the situation where a user tries to delete a non-existing observation
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": 12345}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+
+    @skipIf(
+        not run_nc_test,
+        "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
+    )
+    def test_obs_exists_in_nc(self):
+        # simulates the situation a successful deletion where the observation is in the nextcloud
+        nm.initialize_connection()
+        nm.mkdir(f"{self.nc_prefix}/TURMX/Projects")
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        obs = AbstractObservation.objects.get(id=obs_id)
+        upload_observations()
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+
+        self.assertTrue(nm.file_exists(generate_observation_path(obs)))
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+        process_pending_deletion()
+
+        self.assertEqual(0, AbstractObservation.objects.count())
+        self.assertFalse(nm.file_exists(generate_observation_path(obs)))
+
+        nm.delete(self.nc_prefix)
+
+    def test_does_not_obs_exists_in_nc(self):
+        # simulates the situation a successful deletion where the observation is not in the nextcloud
+        obs_id = 42
+        self.create_test_observation(obs_id=obs_id)
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(0, AbstractObservation.objects.count())

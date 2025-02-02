@@ -23,6 +23,7 @@ class UserPermission:
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
     CAN_EDIT_ALL_OBSERVATIONS = "can_edit_all_observations"
     CAN_DELETE_USERS = "can_delete_users"
+    CAN_DELETE_ALL_OBSERVATIONS = "can_delete_all_observations"
 
 
 class InvitationToken(models.Model):
@@ -87,6 +88,7 @@ class ObservatoryUser(AbstractUser):
             ),
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
             (UserPermission.CAN_EDIT_ALL_OBSERVATIONS, "Can edit all observations"),
+            (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
         ]
 
 

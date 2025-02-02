@@ -11,7 +11,6 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
-
 from rest_framework.decorators import api_view
 
 from . import user_data
@@ -304,8 +303,12 @@ def delete_invitation(request, invitation_id):
     return JsonResponse({"status": "success"}, status=200)
 
 
-@require_POST
 def delete_user(request, user_id):
+    if request.method != "DELETE":
+        return JsonResponse(
+            {"status": "error", "message": "wrong method. Requires DELETE"}, status=405
+        )
+
     request_user = request.user
     if user_id != request_user.id and not request_user.has_perm(
         UserPermission.CAN_DELETE_USERS
@@ -334,8 +337,10 @@ def delete_user(request, user_id):
             },
             status=400,
         )
-    target_user.deletion_pending = True
+    user_data.delete_user(target_user)
+    target_user.is_active = False  # prevents user from logging in again
     target_user.save()
+
     logger.info(f"{target_user} has been marked for deletion by {request_user}")
     return JsonResponse({"status": "success"}, status=200)
 

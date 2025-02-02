@@ -59,14 +59,14 @@ def get_data_from_nc(obs: AbstractObservation):
 
         if nc_path is None:
             logger.error(
-                f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but could not find it under expected path: {generate_observation_path(obs)}"
+                f"Expected observation {obs.id} with target {obs.target.name} to be uploaded in nextcloud to retrieve progress, but could not find it under expected path: {generate_observation_path(obs)}"
             )
             return None, None
 
         nc_dict = nm.download_dict(nc_path)
     except NextcloudException as e:
         logger.error(
-            f"Expected observation {obs.id} to be uploaded in nextcloud to retrieve progress, but got: {e}"
+            f"Expected observation {obs.id} with target {obs.target.name} to be uploaded in nextcloud to retrieve progress, but got: {e}"
         )
         return None, None
 
@@ -106,11 +106,11 @@ def update_non_scheduled_observations():
             try:
                 nm.delete(nc_path)
                 logger.info(
-                    f"Deleted observation {obs.id} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}!"
+                    f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}!"
                 )
             except NextcloudException as e:
                 logger.error(
-                    f"Tried to delete observation {obs.id} because progress is 100, but got: {e}"
+                    f"Tried to delete observation {obs.id} with target {obs.target.name} because progress is 100, but got: {e}"
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
@@ -179,11 +179,11 @@ def update_scheduled_observations(today: datetime = timezone.now()):
                 obs.project_status = ObservationStatus.COMPLETED
                 nm.delete(nc_path)
                 logger.info(
-                    f"Deleted observation {obs.id} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
+                    f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
                 )
             except NextcloudException as e:
                 logger.error(
-                    f"Tried to delete observation {obs.id} because it has reached its scheduled end, but got: {e}"
+                    f"Tried to delete observation {obs.id} with target {obs.target.name} because it has reached its scheduled end, but got: {e}"
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
@@ -193,11 +193,11 @@ def update_scheduled_observations(today: datetime = timezone.now()):
                 obs.project_status = ObservationStatus.PENDING  # set status to pending to indicate observation currently does NOT exist in the nextcloud.
                 nm.delete(nc_path)
                 logger.info(
-                    f"Deleted observation {obs.id} from nextcloud as it is partially completed. Set status to {ObservationStatus.PENDING} to prepare for new upload on {obs.next_upload}."
+                    f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is partially completed. Set status to {ObservationStatus.PENDING} to prepare for new upload on {obs.next_upload}."
                 )
             except NextcloudException as e:
                 logger.error(
-                    f"Tried to delete observation {obs.id} because partial progress is 100, but got: {e}"
+                    f"Tried to delete observation {obs.id} with target {obs.target.name} because partial progress is 100, but got: {e}"
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()

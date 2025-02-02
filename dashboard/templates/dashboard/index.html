@@ -55,6 +55,26 @@
         background-color: var(--tom-light-grey);
         cursor: pointer;
     }
+
+    .actions-container {
+        display: flex;
+        flex-direction: row;
+        gap: 1em;
+        align-items: center;
+    }
+
+    .action-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 20%;
+    }
+
+    .action-icon:hover {
+        background-color: var(--tom-dark-grey);
+    }
     </style>
 {% endblock %}
 {% block content %}
@@ -78,7 +98,7 @@
                             <th class="right-align">Project status</th>
                             <th class="right-align">Project completion</th>
                             <th class="right-align">Priority</th>
-                            <td></td>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,58 +118,63 @@
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
-                                <td>
+                                <td class="actions-container">
                                     {% if observation.project_status == "Pending Upload" %}
-                                        <a href="{% url 'edit-observation-request' observation.id %}">
+                                        <a href="{% url 'edit-observation-request' observation.id %}"
+                                           class="action-icon">
                                             <i class="bx bx-edit"></i>
+                                        </a>
+                                        <a href="#"
+                                           onclick="delete_observation('{{ observation.id }}'); return false;"
+                                           class="action-icon">
+                                            <i class="bx bx-trash"></i>
                                         </a>
                                     {% endif %}
                                 </td>
-                            </tr>
-                            <tr class="expander-row"
-                                id="expander-{{ observation.id }}"
-                                style="display: none">
-                                <td colspan="5">
-                                    <div class="expander-content">
-                                        {% if observation.observation_type == 'Imaging' %}
-                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                        {% elif observation.observation_type == 'Exoplanet' %}
-                                            <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                            <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                        {% elif observation.observation_type == 'Variable' %}
-                                            <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
-                                        {% elif observation.observation_type == 'Monitor' %}
-                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                            <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                            <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                            <p>Cadence: {{ observation.cadence }}</p>
-                                        {% elif observation.observation_type == 'Expert' %}
-                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                            <p>Dither every: {{ observation.dither_every }}</p>
-                                            <p>Binning: {{ observation.binning }}</p>
-                                            <p>Gain: {{ observation.gain }}</p>
-                                            <p>Offset: {{ observation.offset }}</p>
-                                            <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                            <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                            <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                            <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                            <p>Cadence: {{ observation.cadence }}</p>
-                                            <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
-                                            <p>Moon separation width: {{ observation.moon_separation_width }}</p>
-                                            <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
+                                <tr class="expander-row"
+                                    id="expander-{{ observation.id }}"
+                                    style="display: none">
+                                    <td colspan="5">
+                                        <div class="expander-content">
+                                            {% if observation.observation_type == 'Imaging' %}
+                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                            {% elif observation.observation_type == 'Exoplanet' %}
+                                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                            {% elif observation.observation_type == 'Variable' %}
+                                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                            {% elif observation.observation_type == 'Monitor' %}
+                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                <p>Cadence: {{ observation.cadence }}</p>
+                                            {% elif observation.observation_type == 'Expert' %}
+                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                                <p>Dither every: {{ observation.dither_every }}</p>
+                                                <p>Binning: {{ observation.binning }}</p>
+                                                <p>Gain: {{ observation.gain }}</p>
+                                                <p>Offset: {{ observation.offset }}</p>
+                                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                <p>Cadence: {{ observation.cadence }}</p>
+                                                <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
+                                                <p>Moon separation width: {{ observation.moon_separation_width }}</p>
+                                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
         </div>
-    </div>
-{% endblock %}
-{% block scripts %}
-    <script>
+    {% endblock %}
+    {% block scripts %}
+        <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rows = document.querySelectorAll('.observation-row');
             let currentlyExpanded = null;
@@ -180,5 +205,28 @@
                 });
             });
         });
-    </script>
-{% endblock %}
+
+        /**
+         * Sends api request to delete observation with the given id.
+         * @param obs_id id of the observation that is to be deleted
+         */
+        function delete_observation(obs_id) {
+            if (!confirm("Do you want to delete this observation? This action cannot be undone.")) return;
+            fetch('{% url "delete-observation" %}', {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": '{{ csrf_token }}',
+                },
+                method: "POST",
+                body: JSON.stringify({id: obs_id}),
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload()
+                    return;
+                }
+                response.json().then(json_response => alert(json_response["error"]))
+            });
+
+        }
+        </script>
+    {% endblock %}
