@@ -20,6 +20,9 @@ from .models import (
     ObservatoryUser,
     UserPermission,
     UserGroup,
+    is_allowed_password,
+    password_length_ok,
+    password_requirements_met,
 )
 
 logger = logging.getLogger(__name__)
@@ -99,7 +102,19 @@ class SetPasswordForm(forms.Form):
         password1 = cleaned_data.get("new_password1")
         password2 = cleaned_data.get("new_password2")
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords do not match")
+            raise forms.ValidationError("The passwords are not the same.")
+        if not is_allowed_password(password1):
+            raise forms.ValidationError(
+                "Only letters, numbers and common special characters are allowed."
+            )
+        if not password_length_ok(password1):
+            raise forms.ValidationError(
+                "Password must be between 8 and 64 characters long."
+            )
+        if not password_requirements_met(password1):
+            raise forms.ValidationError(
+                "Password must contain at least one letter, one number and one special character."
+            )
         return cleaned_data
 
 
@@ -246,9 +261,8 @@ def register_user(request, token):
         return register_from_invitation_template(
             request,
             token,
-            form=SetPasswordForm(),
+            form=form,
             email=invitation.email,
-            error="Invalid password",
         )
     user = ObservatoryUser.objects.create_user(
         username=invitation.username,
@@ -361,13 +375,11 @@ def generate_invitation_template(request, error=None, link=None, form=None):
     )
 
 
-def register_from_invitation_template(
-    request, token, error=None, email=None, form=None
-):
+def register_from_invitation_template(request, token, email=None, form=None):
     return render(
         request,
         "accounts/register_from_invitation.html",
-        {"error": error, "form": form, "email": email, "token": token},
+        {"form": form, "email": email, "token": token},
     )
 
 

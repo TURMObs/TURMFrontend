@@ -169,6 +169,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["target"].pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_imaging_insert_no_catalog_id_flat(self):
         data = self._get_flat_base_request()
@@ -177,6 +179,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data.pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_exoplanet_insert(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -251,7 +255,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "frames_per_filter": 100,
                 "dither_every": 1.0,
                 "binning": 1,
-                "subframe": "Full",
+                "subframe": 0.5,
                 "gain": 1,
                 "offset": 1,
                 "start_observation": start.isoformat(),
@@ -265,6 +269,8 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "priority": 100,
             },
         )
+        observation = AbstractObservation.objects.get()
+        self.assertEqual(observation.subframe, 0.5)
 
     def test_expert_insert_flat(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -279,7 +285,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "frames_per_filter": 100,
                 "dither_every": 1.0,
                 "binning": 1,
-                "subframe": "Full",
+                "subframe": 1.0,
                 "gain": 1,
                 "offset": 1,
                 "start_observation": start.isoformat(),
@@ -408,7 +414,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 100
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 0.75
         data["gain"] = 1
         data["start_observation"] = base_time.replace(
             hour=0, minute=0, second=0, microsecond=0
@@ -545,7 +551,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 100
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 0.0
         data["gain"] = 1
         data["exposure_time"] = 31  # valid because it's an expert observation
         data["start_observation"] = base_time.replace(
@@ -579,7 +585,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 0
         data["gain"] = 1
         data["exposure_time"] = 1801  # invalid because it's out of range
         data["start_observation"] = start.isoformat()
@@ -596,6 +602,35 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request(data)
         self._assert_error_response(
             response, 400, {"exposure_time": ["Must be between 1 and 1800."]}
+        )
+
+    def test_invalid_subframe_expert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
+        data = self._get_flat_base_request()
+        data["observation_type"] = ObservationType.EXPERT
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = 1
+        data["subframe"] = 1.001  # invalid because it's out of range
+        data["gain"] = 1
+        data["exposure_time"] = 1800
+        data["start_observation"] = start.isoformat()
+        data["end_observation"] = end.isoformat()
+        data["start_scheduling"] = start.isoformat()
+        data["end_scheduling"] = end.isoformat()
+        data["cadence"] = 1
+        data["moon_separation_angle"] = 30.0
+        data["moon_separation_width"] = 7.0
+        data["minimum_altitude"] = 35
+        data["priority"] = 100
+        data["required_amount"] = 100
+        data["offset"] = 1
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"subframe": ["Must be between 0.0 and 1.0."]}
         )
 
     def test_invalid_frames_per_filter(self):
@@ -937,6 +972,57 @@ class JsonFormattingTestCase(django.test.TestCase):
     def test_json_variable_formatting(self):
         self._test_serialization(
             "RV-Ari", VariableObservationSerializer, "Variable_L_RV-Ari.json"
+        )
+
+    def test_expert_subframe(self):
+        target_day = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "M31",
+                "ra": "00 42 44",
+                "dec": "+41 16 09",
+            },
+            "observation_type": ObservationType.EXPERT,
+            "frames_per_filter": 100,
+            "dither_every": 1.0,
+            "binning": 1,
+            "subframe": 0.5,
+            "gain": 1,
+            "offset": 1,
+            "start_observation": target_day.replace(
+                hour=0, minute=0, second=0
+            ).isoformat(),
+            "end_observation": target_day.replace(
+                hour=1, minute=0, second=0
+            ).isoformat(),
+            "start_scheduling": target_day.replace(
+                hour=0, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": target_day.replace(
+                hour=1, minute=0, second=0
+            ).isoformat(),
+            "cadence": 1,
+            "moon_separation_angle": 30.0,
+            "moon_separation_width": 7.0,
+            "minimum_altitude": 35,
+            "priority": 100,
+            "exposure_time": 60.0,
+            "filter_set": [Filter.FilterType.LUMINANCE],
+        }
+        response = self.client.post(
+            path="/observation-data/create/",
+            data=data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        serialized_json = ExpertObservationSerializer(
+            ExpertObservation.objects.get()
+        ).data
+        self.assertEqual(
+            serialized_json["targets"][0]["exposures"][0]["subFrame"],
+            0.5,
+            serialized_json,
         )
 
 

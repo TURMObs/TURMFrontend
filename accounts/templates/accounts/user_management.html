@@ -169,8 +169,11 @@
                     <div class="input-field">{{ form.username }}</div>
                     <div class="form-group">
                         <div class="input-field">
-                            <label for="id_role"></label>
-                            <select name="role" id="id_role" class="styled-select">
+                            <label for="id_role_selector"></label>
+                            <select name="role"
+                                    id="id_role_selector"
+                                    class="styled-select"
+                                    onchange="checkRoleChange">
                                 {% for value, label in form.role.field.choices %}
                                     <option value="{{ value }}"
                                             {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
@@ -338,6 +341,19 @@
 {% endblock %}
 {% block scripts %}
     <script>
+        function checkRoleChange() {
+            const role = document.getElementById('id_role_selector').value;
+            const expertCheckbox = document.getElementById('id_expert');
+
+            if (role === '{{ UserGroups.ADMIN }}') {
+                expertCheckbox.checked = true;
+                expertCheckbox.disabled = true;
+            } else {
+                expertCheckbox.disabled = false;
+                expertCheckbox.checked = false;
+            }
+        }
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 closeModal();
