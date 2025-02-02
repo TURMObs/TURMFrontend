@@ -243,7 +243,9 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     return rep
 
 
-def _validate_fields(attrs, validate_times=False, validate_scheduling=False):
+def _validate_fields(
+    attrs, validate_times=False, validate_scheduling=False, exclude_observation_ids=[]
+):
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
@@ -263,6 +265,7 @@ def _validate_fields(attrs, validate_times=False, validate_scheduling=False):
             attrs.get("start_observation"),
             attrs.get("end_observation"),
             attrs.get("observatory"),
+            exclude_observation_ids,
         )
         if time_errors:
             errors = {**errors, **time_errors}
@@ -347,7 +350,11 @@ class ExoplanetObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(attrs, validate_times=True)
+        _validate_fields(
+            attrs,
+            exclude_observation_ids=[self.instance.id] if self.instance else [],
+            validate_times=True,
+        )
         return attrs
 
     def create(self, validated_data):
@@ -487,7 +494,11 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(attrs, validate_times=True)
+        _validate_fields(
+            attrs,
+            validate_times=True,
+            exclude_observation_ids=[self.instance.id] if self.instance else [],
+        )
         return attrs
 
     def create(self, validated_data):
