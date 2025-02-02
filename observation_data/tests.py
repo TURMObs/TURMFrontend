@@ -1045,8 +1045,6 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.client = django.test.Client()
         _create_user_and_login(self)
 
-        nm.initialize_connection()
-
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix
 
@@ -1178,6 +1176,8 @@ class ObservationManagementTestCase(django.test.TestCase):
         "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
     )
     def test_obs_exists_in_nc(self):
+        nm.initialize_connection()
+
         # simulates the situation a successful deletion where the observation is in the nextcloud
         nm.initialize_connection()
         nm.mkdir(f"{self.nc_prefix}/TURMX/Projects")
