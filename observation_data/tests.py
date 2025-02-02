@@ -15,6 +15,7 @@ from accounts.models import ObservatoryUser, UserPermission
 from nextcloud.nextcloud_manager import generate_observation_path
 from nextcloud.nextcloud_sync import upload_observations
 from observation_data.models import (
+    ExpertObservation,
     ImagingObservation,
     ObservationType,
     Filter,
@@ -27,6 +28,7 @@ from observation_data.observation_management import (
     process_pending_deletion,
 )
 from observation_data.serializers import (
+    ExpertObservationSerializer,
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
     VariableObservationSerializer,

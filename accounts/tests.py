@@ -22,10 +22,7 @@ from observation_data.models import (
 from observation_data.observation_management import (
     process_pending_deletion,
 )
-<<<<<<< HEAD
-from .models import InvitationToken, generate_invitation_link, ObservatoryUser
 import nextcloud.nextcloud_manager as nm
-=======
 from .models import (
     InvitationToken,
     generate_invitation_link,
@@ -34,7 +31,6 @@ from .models import (
     password_length_ok,
     password_requirements_met,
 )
->>>>>>> main
 
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 prefix = os.getenv("NC_PREFIX", default="")
@@ -217,9 +213,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertFalse(file_exists(file_im1))
         self.assertTrue(file_exists(file_im2))
         self.assertFalse(file_exists(file_var1))
-<<<<<<< HEAD
         nm.delete(f"{self.prefix}")
-=======
 
 
 class PasswordRequirementsTest(TestCase):
@@ -257,4 +251,3 @@ class PasswordRequirementsTest(TestCase):
         self.assertFalse(password_requirements_met("password"))
         self.assertFalse(password_requirements_met("password1"))
         self.assertFalse(password_requirements_met("password!"))
->>>>>>> main
