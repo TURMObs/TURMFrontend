@@ -115,8 +115,15 @@ def edit_observation(request, observation_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    observation = AbstractObservation.objects.get(id=observation_id)
-    if observation is None:
+    if not isinstance(observation_id, int):
+        return Response(
+            {"error": f"Invalid observation id: {observation_id}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        observation = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist:
         return Response(
             {"error": "Observation not found"},
             status=status.HTTP_404_NOT_FOUND,
