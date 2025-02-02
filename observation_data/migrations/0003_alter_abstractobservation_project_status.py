@@ -4,15 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0002_expertobservation_subframe'),
+        ("observation_data", "0002_expertobservation_subframe"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='abstractobservation',
-            name='project_status',
-            field=models.CharField(choices=[('Pending Upload', 'Pending'), ('Uploaded', 'Uploaded'), ('Error', 'Error'), ('Completed', 'Completed'), ('Pending Deletion', 'Pending Deletion')]),
+            model_name="abstractobservation",
+            name="project_status",
+            field=models.CharField(
+                choices=[
+                    ("Pending Upload", "Pending"),
+                    ("Uploaded", "Uploaded"),
+                    ("Error", "Error"),
+                    ("Completed", "Completed"),
+                    ("Pending Deletion", "Pending Deletion"),
+                ]
+            ),
         ),
     ]
