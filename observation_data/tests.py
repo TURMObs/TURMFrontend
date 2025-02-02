@@ -10,12 +10,15 @@ from dotenv import load_dotenv
 
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.models import (
+    ExoplanetObservation,
     ImagingObservation,
+    MonitoringObservation,
     ObservationType,
     Filter,
     AbstractObservation,
     ObservationStatus,
     ExpertObservation,
+    VariableObservation,
 )
 from observation_data.serializers import (
     ImagingObservationSerializer,
@@ -782,10 +785,145 @@ class EditObservationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, expected_status, response.json())
         self.assertEqual(response.json(), expected_error)
 
-    def _insert_observation(self, observation_id, data):
-        AbstractObservation.
+    def _edit_observation(self, observation_id, data):
         response = self._send_post_request(observation_id, data)
-        self.assertEqual(response.status_code, 200, response.json())
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def _create_imaging_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "LBN437",
+                "ra": "22 32 01",
+                "dec": "40 49 24",
+            },
+            "observation_type": ObservationType.IMAGING,
+            "exposure_time": 300.0,
+            "filter_set": ["H"],
+            "frames_per_filter": 100,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, ImagingObservation.objects.get().id)
+
+    def _create_exoplanet_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "Qatar-4b",
+                "ra": "00 19 26",
+                "dec": "+44 01 39",
+            },
+            "observation_type": ObservationType.EXOPLANET,
+            "start_observation": base_time.replace(
+                hour=19, minute=30, second=0
+            ).isoformat(),
+            "end_observation": base_time.replace(
+                hour=23, minute=30, second=0
+            ).isoformat(),
+            "exposure_time": 120.0,
+            "filter_set": ["L"],
+        }
+        response = self.client.post(
+            path="/observation-data/create/",
+            data=data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, ExoplanetObservation.objects.get().id)
+
+    def _create_variable_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "RV-Ari",
+                "catalog_id": "RV-Ari",
+                "ra": "02 15 07",
+                "dec": "+18 04 28",
+            },
+            "observation_type": ObservationType.VARIABLE,
+            "exposure_time": 60.0,
+            "filter_set": ["L"],
+            "minimum_altitude": 30.0,
+            "frames_per_filter": 450,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, VariableObservation.objects.get().id)
+
+    def _create_monitoring_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "T-CrB",
+                "ra": "15 59 30",
+                "dec": "+25 55 13",
+            },
+            "cadence": 1,
+            "exposure_time": 30.0,
+            "start_scheduling": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
+            "observation_type": ObservationType.MONITORING,
+            "filter_set": ["R", "G", "B"],
+            "frames_per_filter": 10,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, MonitoringObservation.objects.get().id)
+
+    def _create_expert_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "T-CrB",
+                "ra": "15 59 30",
+                "dec": "+25 55 13",
+            },
+            "priority": 5000,
+            "cadence": 1,
+            "exposure_time": 30.0,
+            "start_scheduling": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
+            "observation_type": ObservationType.EXPERT,
+            "filter_set": ["R", "G", "B"],
+            "frames_per_filter": 10,
+            "dither_every": 1,
+            "binning": 1,
+            "subframe": 1.0000,
+            "gain": 1,
+            "offset": 1,
+            "start_observation": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_observation": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
+            "moon_separation_angle": 30.00,
+            "moon_separation_width": 7,
+            "minimum_altitude": 35.00,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, ExpertObservation.objects.get().id)
 
     def test_no_user(self):
         self.client.logout()
@@ -797,609 +935,82 @@ class EditObservationTestCase(django.test.TestCase):
         response = self._send_post_request(1, {})
         self._assert_error_response(response, 404, {"error": "Observation not found"})
 
-    def test_invalid_type_flat(self):
-        response = self._send_post_request(1, self._get_flat_base_request())
+    def test_missing_target_field_flat(self):
+        (_, id) = self._create_imaging_observation()
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data.pop("name")
+        response = self._send_post_request(id, data)
+        self.assertEqual(response.status_code, 400, response.json())
+
+    def test_missing_ra_field_flat(self):
+        (_, id) = self._create_imaging_observation()
+        data = self._get_flat_base_request()
+        data["observation_type"] = "Imaging"
+        data["frames_per_filter"] = 1
+        data["required_amount"] = 100
+        data.pop("ra")
+        response = self._send_post_request(id, data)
         self._assert_error_response(
-            response, 404, {"error": "Invalid observation type: Invalid"}
+            response, 400, {"target": {"ra": ["This field is required."]}}
         )
 
-    # def test_missing_fields(self):
-    #     response = self._send_post_request(1, {"type": "Imaging"})
-    #     self.assertEqual(response.status_code, 400)
+    def test_imaging_edit(self):
+        (data, id) = self._create_imaging_observation()
+        data["frames_per_filter"] = 50
+        self._edit_observation(id, data)
+        observation = ImagingObservation.objects.get()
+        self.assertEqual(AbstractObservation.objects.count(), 1)
+        self.assertEqual(observation.observation_type, ObservationType.IMAGING)
+        self.assertEqual(observation.frames_per_filter, 50)
 
-    # def test_missing_target_field_flat(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = "Imaging"
-    #     data.pop("name")
-    #     response = self._send_post_request(1, data)
-    #     self.assertEqual(response.status_code, 400, response.json())
+    def test_exoplanet_edit(self):
+        (data, id) = self._create_exoplanet_observation()
+        data["exposure_time"] = 60.0
+        self._edit_observation(id, data)
+        observation = ExoplanetObservation.objects.get()
+        self.assertEqual(AbstractObservation.objects.count(), 1)
+        self.assertEqual(observation.observation_type, ObservationType.EXOPLANET)
+        self.assertEqual(observation.exposure_time, 60.0)
 
-    # def test_missing_ra_field_flat(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = "Imaging"
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     data.pop("ra")
-    #     response = self._send_post_request(1, data)
-    #     self._assert_error_response(
-    #         response, 400, {"target": {"ra": ["This field is required."]}}
-    #     )
+    def test_variable_edit(self):
+        (data, id) = self._create_variable_observation()
+        data["minimum_altitude"] = 40.0
+        self._edit_observation(id, data)
+        observation = VariableObservation.objects.get()
+        self.assertEqual(AbstractObservation.objects.count(), 1)
+        self.assertEqual(observation.observation_type, ObservationType.VARIABLE)
+        self.assertEqual(observation.minimum_altitude, 40.0)
 
-    # def _test_observation_insert(
-    #     self, observation_type, additional_data=None, flat=False
-    # ):
-    #     data = self.base_request.copy() if not flat else self._get_flat_base_request()
-    #     data["observation_type"] = observation_type
-    #     if additional_data:
-    #         data.update(additional_data)
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
+    def test_monitoring_edit(self):
+        (data, id) = self._create_monitoring_observation()
+        data["cadence"] = 5
+        self._edit_observation(id, data)
+        observation = MonitoringObservation.objects.get()
+        self.assertEqual(AbstractObservation.objects.count(), 1)
+        self.assertEqual(observation.observation_type, ObservationType.MONITORING)
+        self.assertEqual(observation.cadence, 5)
 
-    # def test_imaging_insert(self):
-    #     self._test_observation_insert(
-    #         ObservationType.IMAGING, {"frames_per_filter": 100}
-    #     )
+    def test_expert_edit(self):
+        (data, id) = self._create_expert_observation()
+        data["moon_separation_width"] = 9
+        self._edit_observation(id, data)
+        observation = ExpertObservation.objects.get()
+        self.assertEqual(AbstractObservation.objects.count(), 1)
+        self.assertEqual(observation.observation_type, ObservationType.EXPERT)
+        self.assertEqual(observation.moon_separation_width, 9)
 
-    # def test_imaging_insert_flat(self):
-    #     self._test_observation_insert(
-    #         ObservationType.IMAGING,
-    #         {"frames_per_filter": 100},
-    #         flat=True,
-    #     )
-
-    # def test_imaging_insert_no_catalog_id(self):
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 100
-    #     data["target"].pop("catalog_id")
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-    #     observation_request = ImagingObservation.objects.get()
-    #     self.assertEqual(observation_request.target.catalog_id, "")
-
-    # def test_imaging_insert_no_catalog_id_flat(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 100
-    #     data.pop("catalog_id")
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-    #     observation_request = ImagingObservation.objects.get()
-    #     self.assertEqual(observation_request.target.catalog_id, "")
-
-    # def test_exoplanet_insert(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    #     end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
-
-    #     self._test_observation_insert(
-    #         ObservationType.EXOPLANET,
-    #         {
-    #             "start_observation": start.isoformat(),
-    #             "end_observation": end.isoformat(),
-    #         },
-    #     )
-
-    # def test_exoplanet_insert_flat(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    #     end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
-
-    #     self._test_observation_insert(
-    #         ObservationType.EXOPLANET,
-    #         {
-    #             "start_observation": start.isoformat(),
-    #             "end_observation": end.isoformat(),
-    #         },
-    #         flat=True,
-    #     )
-
-    # def test_variable_insert(self):
-    #     self._test_observation_insert(
-    #         "Variable", {"minimum_altitude": 30.0, "frames_per_filter": 100}
-    #     )
-
-    # def test_variable_insert_flat(self):
-    #     self._test_observation_insert(
-    #         "Variable", {"minimum_altitude": 30.0, "frames_per_filter": 100}, flat=True
-    #     )
-
-    # def test_monitoring_insert(self):
-    #     self._test_observation_insert(
-    #         ObservationType.MONITORING,
-    #         {
-    #             "frames_per_filter": 100,
-    #             "start_scheduling": "2021-01-01T00:00:00Z",
-    #             "end_scheduling": "2021-01-01T01:00:00Z",
-    #             "cadence": 1,
-    #         },
-    #     )
-
-    # def test_monitoring_insert_flat(self):
-    #     self._test_observation_insert(
-    #         ObservationType.MONITORING,
-    #         {
-    #             "frames_per_filter": 100,
-    #             "start_scheduling": "2021-01-01T00:00:00Z",
-    #             "end_scheduling": "2021-01-01T01:00:00Z",
-    #             "cadence": 1,
-    #         },
-    #         flat=True,
-    #     )
-
-    # def test_expert_insert(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    #     end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
-
-    #     self.user.is_superuser = True
-    #     self.user.save()
-    #     self._test_observation_insert(
-    #         ObservationType.EXPERT,
-    #         {
-    #             "frames_per_filter": 100,
-    #             "dither_every": 1.0,
-    #             "binning": 1,
-    #             "subframe": "Full",
-    #             "gain": 1,
-    #             "offset": 1,
-    #             "start_observation": start.isoformat(),
-    #             "end_observation": end.isoformat(),
-    #             "start_scheduling": start.isoformat(),
-    #             "end_scheduling": end.isoformat(),
-    #             "cadence": 1,
-    #             "moon_separation_angle": 30.0,
-    #             "moon_separation_width": 7.0,
-    #             "minimum_altitude": 35,
-    #             "priority": 100,
-    #         },
-    #     )
-
-    # def test_expert_insert_flat(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    #     end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
-
-    #     self.user.is_superuser = True
-    #     self.user.save()
-    #     self._test_observation_insert(
-    #         ObservationType.EXPERT,
-    #         {
-    #             "frames_per_filter": 100,
-    #             "dither_every": 1.0,
-    #             "binning": 1,
-    #             "subframe": "Full",
-    #             "gain": 1,
-    #             "offset": 1,
-    #             "start_observation": start.isoformat(),
-    #             "end_observation": end.isoformat(),
-    #             "start_scheduling": start.isoformat(),
-    #             "end_scheduling": end.isoformat(),
-    #             "cadence": 1,
-    #             "moon_separation_angle": 30.0,
-    #             "moon_separation_width": 7.0,
-    #             "minimum_altitude": 35,
-    #             "priority": 100,
-    #         },
-    #         flat=True,
-    #     )
-
-    # def test_no_expert_user(self):
-    #     self.user.is_superuser = False
-    #     self.user.groups.clear()
-    #     self.user.user_permissions.remove(
-    #         Permission.objects.get(
-    #             codename=UserPermission.CAN_CREATE_EXPERT_OBSERVATION
-    #         )
-    #     )
-    #     self.user.save()
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.EXPERT
-    #     data["frames_per_filter"] = 1
-    #     data["dither_every"] = 1.0
-    #     data["binning"] = 1
-    #     data["subframe"] = "Full"
-    #     data["gain"] = 1
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 403, response.json())
-
-    # def test_wrong_observatory(self):
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 1
-    #     data["observatory"] = "INVALID"
-    #     data["user"] = self.user.id
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 400, response.json())
-
-    # def test_target_exists(self):
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 100
-    #     data["user"] = self.user.id
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    # def _test_exoplanet_overlap(
-    #     self,
-    #     start1,
-    #     end1,
-    #     start2,
-    #     end2,
-    #     expected_status_code,
-    #     obs1="TURMX",
-    #     obs2="TURMX",
-    # ):
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.EXOPLANET
-    #     data["start_observation"] = start1
-    #     data["end_observation"] = end1
-    #     data["observatory"] = obs1
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    #     data["start_observation"] = start2
-    #     data["end_observation"] = end2
-    #     data["observatory"] = obs2
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, expected_status_code, response.json())
-
-    #     if expected_status_code == 400:
-    #         overlapping = response.json().get("overlapping_observations", [])
-    #         self.assertIsInstance(overlapping, list)
-    #         self.assertEqual(len(overlapping), 1)
-    #         start_time = datetime.fromisoformat(overlapping[0]["start_observation"])
-    #         end_time = datetime.fromisoformat(overlapping[0]["end_observation"])
-
-    #         self.assertEqual(
-    #             start_time.replace(tzinfo=None), start1.replace(tzinfo=None)
-    #         )
-    #         self.assertEqual(end_time.replace(tzinfo=None), end1.replace(tzinfo=None))
-
-    # def test_whole_overlap_exoplanet(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     self._test_exoplanet_overlap(
-    #         base_time.replace(hour=0, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=0, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         400,
-    #     )
-
-    # def test_partial_overlap_exoplanet_end(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     self._test_exoplanet_overlap(
-    #         base_time.replace(hour=0, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=0, minute=30, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=30, second=0, microsecond=0),
-    #         400,
-    #     )
-
-    # def test_partial_overlap_exoplanet_start(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     self._test_exoplanet_overlap(
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=2, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=30, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=45, second=0, microsecond=0),
-    #         400,
-    #     )
-
-    # def test_overlap_expert(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     self.user.is_superuser = True
-    #     self.user.save()
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.EXPERT
-    #     data["frames_per_filter"] = 100
-    #     data["dither_every"] = 1.0
-    #     data["binning"] = 1
-    #     data["subframe"] = "Full"
-    #     data["gain"] = 1
-    #     data["start_observation"] = base_time.replace(
-    #         hour=0, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_observation"] = base_time.replace(
-    #         hour=1, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["start_scheduling"] = base_time.replace(
-    #         hour=0, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_scheduling"] = base_time.replace(
-    #         hour=1, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["cadence"] = 1
-    #     data["moon_separation_angle"] = 30.0
-    #     data["moon_separation_width"] = 7.0
-    #     data["minimum_altitude"] = 35
-    #     data["priority"] = 100
-    #     data["offset"] = 1
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    #     data["start_observation"] = base_time.replace(
-    #         hour=1, minute=30, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_observation"] = base_time.replace(
-    #         hour=2, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    #     data = self.base_request.copy()
-    #     data["observation_type"] = ObservationType.EXOPLANET
-    #     data["start_observation"] = base_time.replace(
-    #         hour=2, minute=5, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_observation"] = base_time.replace(
-    #         hour=2, minute=30, second=0, microsecond=0
-    #     ).isoformat()
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    #     data["start_observation"] = base_time.replace(
-    #         hour=0, minute=30, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_observation"] = base_time.replace(
-    #         hour=3, minute=30, second=0, microsecond=0
-    #     ).isoformat()
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 400, response.json())
-    #     self.assertEqual(len(response.json()["overlapping_observations"]), 3)
-
-    # def test_no_overlap_exoplanet(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     self._test_exoplanet_overlap(
-    #         base_time.replace(hour=0, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=2, minute=0, second=0, microsecond=0),
-    #         201,
-    #     )
-
-    # def test_overlap_different_observatory(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     self._test_exoplanet_overlap(
-    #         base_time.replace(hour=0, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=1, minute=0, second=0, microsecond=0),
-    #         base_time.replace(hour=0, minute=15, second=0, microsecond=0),
-    #         base_time.replace(hour=2, minute=0, second=0, microsecond=0),
-    #         201,
-    #         obs1="TURMX",
-    #         obs2="TURMX2",
-    #     )
-
-    # def test_invalid_ra_format(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["ra"] = "17 45 40.1234X"
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"target": {"ra": ["Invalid format."]}}
-    #     )
-
-    # def test_invalid_dec_format(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["dec"] = "-29 00 28.1234X"
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"target": {"dec": ["Invalid format."]}}
-    #     )
-
-    # def test_ra_out_of_range(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["ra"] = "24 00 00.00000000"
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"target": {"ra": ["Invalid format."]}}
-    #     )
-
-    # def test_dec_out_of_range(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["dec"] = "-90 00 00.00000000"
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"target": {"dec": ["Invalid format."]}}
-    #     )
-
-    # def test_invalid_exposure_time(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["exposure_time"] = 31  # not a valid option
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"exposure_time": ["Must be one of [30, 60, 120, 300]."]}
-    #     )
-
-    # def test_valid_exposure_time_expert(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.EXPERT
-    #     data["frames_per_filter"] = 100
-    #     data["dither_every"] = 1.0
-    #     data["binning"] = 1
-    #     data["subframe"] = "Full"
-    #     data["gain"] = 1
-    #     data["exposure_time"] = 31  # valid because it's an expert observation
-    #     data["start_observation"] = base_time.replace(
-    #         hour=0, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_observation"] = base_time.replace(
-    #         hour=1, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["start_scheduling"] = base_time.replace(
-    #         hour=0, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["end_scheduling"] = base_time.replace(
-    #         hour=1, minute=0, second=0, microsecond=0
-    #     ).isoformat()
-    #     data["cadence"] = 1
-    #     data["moon_separation_angle"] = 30.0
-    #     data["moon_separation_width"] = 7.0
-    #     data["minimum_altitude"] = 35
-    #     data["priority"] = 100
-    #     data["offset"] = 1
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    # def test_invalid_exposure_time_expert(self):
-    #     base_time = datetime.now(timezone.utc) + timedelta(days=1)
-    #     start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    #     end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
-
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.EXPERT
-    #     data["frames_per_filter"] = 1
-    #     data["dither_every"] = 1.0
-    #     data["binning"] = 1
-    #     data["subframe"] = "Full"
-    #     data["gain"] = 1
-    #     data["exposure_time"] = 1801  # invalid because it's out of range
-    #     data["start_observation"] = start.isoformat()
-    #     data["end_observation"] = end.isoformat()
-    #     data["start_scheduling"] = start.isoformat()
-    #     data["end_scheduling"] = end.isoformat()
-    #     data["cadence"] = 1
-    #     data["moon_separation_angle"] = 30.0
-    #     data["moon_separation_width"] = 7.0
-    #     data["minimum_altitude"] = 35
-    #     data["priority"] = 100
-    #     data["required_amount"] = 100
-    #     data["offset"] = 1
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"exposure_time": ["Must be between 1 and 1800."]}
-    #     )
-
-    # def test_invalid_frames_per_filter(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 10001  # Out of valid range
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"frames_per_filter": ["Must be between 1 and 1000."]}
-    #     )
-
-    # def test_missing_frames_per_filter_and_invalid_dec(self):
-    #     data = self._get_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["target"]["dec"] = "-29 00 XX.1699"
-    #     response = self._send_post_request(data)
-
-    #     self._assert_error_response(
-    #         response,
-    #         400,
-    #         {
-    #             "target": {"dec": ["Invalid format."]},
-    #             "frames_per_filter": ["This field is required."],
-    #         },
-    #     )
-
-    # # noinspection PyTypedDict
-    # def test_invalid_filter(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     data["filter_set"] = ["X"]
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"filter_set": ['Invalid pk "X" - object does not exist.']}
-    #     )
-
-    # def test_missing_filters(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     data.pop("filter_set")
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response, 400, {"filter_set": ["This field is required."]}
-    #     )
-
-    # def test_unavailable_filters(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = 100
-    #     data["filter_set"] = [
-    #         Filter.FilterType.SLOAN_R,
-    #         Filter.FilterType.SLOAN_I,
-    #         Filter.FilterType.LUMINANCE,
-    #     ]
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response,
-    #         400,
-    #         {
-    #             "filter_set": [
-    #                 "Filter SR is not available at observatory TURMX.",
-    #                 "Filter SI is not available at observatory TURMX.",
-    #             ]
-    #         },
-    #     )
-
-    # def test_multiple_errors(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.EXOPLANET
-    #     data["frames_per_filter"] = 1
-    #     data["required_amount"] = -1
-    #     data["filter_set"] = [Filter.FilterType.RED]
-    #     data["start_observation"] = "2021-01-01T01:00:00Z"
-    #     data["end_observation"] = "2021-01-01T00:00:00Z"
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(
-    #         response,
-    #         400,
-    #         {
-    #             "time_range": ["Start time must be before end time."],
-    #             "start_time": ["Start time must be in the future."],
-    #         },
-    #     )
-
-    # def test_user_quota(self):
-    #     self.user.quota = 1
-    #     self.user.save()
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 100
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(response, 403, {"error": "Quota exceeded"})
-    #     obs_request = AbstractObservation.objects.filter(user=self.user)[0]
-    #     obs_request.project_status = ObservationStatus.COMPLETED
-    #     obs_request.save()
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-
-    # def test_lifetime_exceeded(self):
-    #     data = self._get_flat_base_request()
-    #     data["observation_type"] = ObservationType.IMAGING
-    #     data["frames_per_filter"] = 100
-    #     response = self._send_post_request(data)
-    #     self.assertEqual(response.status_code, 201, response.json())
-    #     self.user.lifetime = (datetime.now(timezone.utc) - timedelta(days=1)).date()
-    #     self.user.save()
-    #     response = self._send_post_request(data)
-    #     self._assert_error_response(response, 403, {"error": "Lifetime exceeded"})
+    def test_edit_change_type(self):
+        (data, id) = self._create_imaging_observation()
+        data["observation_type"] = ObservationType.VARIABLE
+        data["frames_per_filter"] = 120
+        data["minimum_altitude"] = 40.0
+        self._edit_observation(id, data)
+        observation = VariableObservation.objects.get()
+        self.assertEqual(AbstractObservation.objects.count(), 1)
+        self.assertEqual(observation.observation_type, ObservationType.VARIABLE)
+        self.assertEqual(observation.minimum_altitude, 40.0)
+        self.assertEqual(observation.frames_per_filter, 120)
 
 
 class JsonFormattingTestCase(django.test.TestCase):
