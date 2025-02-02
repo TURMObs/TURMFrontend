@@ -119,6 +119,8 @@ def verify_field_integrity(name, value, observation_type):
             return _assert_number_in_range(name, value, 0, 100)
         case "binning":
             return _assert_in_choices(name, value, [1, 2, 3])
+        case "subframe":
+            return _assert_number_in_range(name, value, 0.0, 1.0)
         case "gain":
             return _assert_number_in_range(name, value, 0, 5000)
         case "offset":
