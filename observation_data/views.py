@@ -135,7 +135,7 @@ def edit_observation(request, observation_id):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Either the user can edit all observations or the observation request is owned by the user
+    # Either the observation request is owned by the user or the user is allowed to edit all observations
     can_edit = observation.user.id == user.id or user.has_perm(
         UserPermission.CAN_EDIT_ALL_OBSERVATIONS
     )
