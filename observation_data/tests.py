@@ -1368,8 +1368,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         other_test_instance.force_login(other_test_instance.user)
 
         response = other_test_instance.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 401)
@@ -1393,8 +1392,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         other_test_instance.force_login(other_test_instance.user)
 
         response = other_test_instance.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 202)
@@ -1411,8 +1409,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(1, AbstractObservation.objects.count())
 
         response = self.client.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 202)
@@ -1431,8 +1428,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         obs.save()
 
         response = self.client.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 202)
@@ -1447,11 +1443,10 @@ class ObservationManagementTestCase(django.test.TestCase):
     def test_bad_id(self):
         # simulates the situation where a user tries to delete a non-existing observation
         response = self.client.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": 12345}),
+            "/observation-data/delete/12345",
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
     @skipIf(
         not run_nc_test,
@@ -1470,8 +1465,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         upload_observations()
 
         response = self.client.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 202)
@@ -1479,8 +1473,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertTrue(nm.file_exists(generate_observation_path(obs)))
 
         response = self.client.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 400)
@@ -1499,8 +1492,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(1, AbstractObservation.objects.count())
 
         response = self.client.post(
-            "/observation-data/delete/",
-            data=json.dumps({"id": obs_id}),
+            f"/observation-data/delete/{obs_id}",
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 202)
