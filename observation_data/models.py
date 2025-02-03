@@ -43,7 +43,7 @@ class ExposureSettings(models.Model):
     gain = models.IntegerField()
     offset = models.IntegerField()
     binning = models.IntegerField()
-    subframe = models.DecimalField(max_digits=10, decimal_places=4)
+    subframe = models.DecimalField(max_digits=5, decimal_places=4)
 
 
 class Filter(models.Model):

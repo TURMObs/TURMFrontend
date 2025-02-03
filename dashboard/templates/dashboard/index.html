@@ -119,13 +119,13 @@
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
                                 <td class="actions-container">
-                                    {% if observation.project_status == "Pending Upload" %}
+                                    {% if observation.project_status == ObservationStatus.PENDING %}
                                         <a href="{% url 'edit-observation-request' observation.id %}"
                                            class="action-icon">
                                             <i class="bx bx-edit"></i>
                                         </a>
                                         <a href="#"
-                                           onclick="delete_observation('{{ observation.id }}'); return false;"
+                                           onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
                                            class="action-icon">
                                             <i class="bx bx-trash"></i>
                                         </a>
@@ -136,32 +136,32 @@
                                     style="display: none">
                                     <td colspan="5">
                                         <div class="expander-content">
-                                            {% if observation.observation_type == 'Imaging' %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                            {% elif observation.observation_type == 'Exoplanet' %}
-                                                <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                            {% elif observation.observation_type == 'Variable' %}
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
-                                            {% elif observation.observation_type == 'Monitor' %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                            {% if observation.observation_type == ObservationType.IMAGING %}
+                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                            {% elif observation.observation_type == ObservationType.EXOPLANET %}
+                                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                            {% elif observation.observation_type == ObservationType.VARIABLE %}
+                                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                            {% elif observation.observation_type == ObservationType.MONITORING %}
+                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
                                                 <p>Cadence: {{ observation.cadence }}</p>
-                                            {% elif observation.observation_type == 'Expert' %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Dither Every: {{ observation.dither_every }}</p>
+                                            {% elif observation.observation_type == ObservationType.EXPERT %}
+                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                                <p>Dither every: {{ observation.dither_every }}</p>
                                                 <p>Binning: {{ observation.binning }}</p>
                                                 <p>Gain: {{ observation.gain }}</p>
                                                 <p>Offset: {{ observation.offset }}</p>
-                                                <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                                <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
                                                 <p>Cadence: {{ observation.cadence }}</p>
-                                                <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
-                                                <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
+                                                <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
+                                                <p>Moon separation width: {{ observation.moon_separation_width }}</p>
+                                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -208,17 +208,18 @@
 
         /**
          * Sends api request to delete observation with the given id.
-         * @param obs_id id of the observation that is to be deleted
+         * @param {string} url - The url to send the request to.
          */
-        function delete_observation(obs_id) {
-            if (!confirm("Do you want to delete this observation? This action cannot be undone.")) return;
-            fetch('{% url "delete-observation" %}', {
+        function delete_observation(url) {
+            if (!confirm("Do you want to delete this observation? This action cannot be undone.")) {
+              return;
+            }
+            fetch(url, {
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRFToken": '{{ csrf_token }}',
                 },
                 method: "POST",
-                body: JSON.stringify({id: obs_id}),
             }).then(response => {
                 if (response.ok) {
                     window.location.reload()
