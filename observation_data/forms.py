@@ -95,7 +95,7 @@ class ExposureSettingsForm(forms.Form):
         observation_type = TURMSelectField(
             "observation_type",
             [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
-            label_name="Observation type",
+            label_name="Observation Type",
         ).add_on_click(
             lambda o_type: f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"
         )
