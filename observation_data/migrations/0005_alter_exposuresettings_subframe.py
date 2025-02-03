@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0004_rename_subframe_exposuresettings_subframe'),
+        ("observation_data", "0004_rename_subframe_exposuresettings_subframe"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='exposuresettings',
-            name='subframe',
+            model_name="exposuresettings",
+            name="subframe",
             field=models.DecimalField(decimal_places=4, max_digits=5),
         ),
     ]
