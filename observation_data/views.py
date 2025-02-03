@@ -77,7 +77,7 @@ def create_observation(request):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-    if "name" in request_data and isinstance(request_data["name"], str):
+    if isinstance(request_data.get("name", ""), str):
         request_data = _nest_observation_request(
             request_data,
             {
@@ -164,7 +164,7 @@ def edit_observation(request, observation_id):
     observation_type = request_data.get("observation_type")
     request_data["user"] = request.user.id
 
-    if "name" in request_data and isinstance(request_data["name"], str):
+    if isinstance(request_data.get("name", ""), str):
         request_data = _nest_observation_request(
             request_data,
             {
