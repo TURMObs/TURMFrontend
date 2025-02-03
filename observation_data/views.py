@@ -225,7 +225,7 @@ def convert_query_dict(qdict, model: AbstractObservation):
 
 @require_POST
 @api_view(["POST"])
-def delete_observation(request):
+def delete_observation(request, observation_id):
     """
     Deletes the observation with the passed id.
     User must be the owner of the observation or admin to delete the observation.
@@ -240,10 +240,7 @@ def delete_observation(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    request_data = request.data
-    observation_id = request_data.get("id")
-
-    if not observation_id:
+    if not isinstance(observation_id, int):
         return Response(
             {"error": "Invalid observation id"},
             status=status.HTTP_400_BAD_REQUEST,
