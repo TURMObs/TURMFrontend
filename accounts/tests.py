@@ -4,11 +4,11 @@ import unittest
 import django
 from django.core.management import call_command
 from django.test import TestCase
-from nc_py_api import NextcloudException
+from nc_py_api import Nextcloud
 
+from nextcloud import nextcloud_manager
 from nextcloud.nextcloud_manager import (
     initialize_connection,
-    delete,
     mkdir,
     get_observation_file,
     file_exists,
@@ -18,11 +18,23 @@ from observation_data.models import (
     ObservationType,
     ImagingObservation,
     VariableObservation,
-    AbstractObservation,
 )
-from .models import InvitationToken, generate_invitation_link, ObservatoryUser
+from observation_data.observation_management import (
+    process_pending_deletion,
+)
+import nextcloud.nextcloud_manager as nm
+from .models import (
+    InvitationToken,
+    generate_invitation_link,
+    ObservatoryUser,
+    is_allowed_password,
+    password_length_ok,
+    password_requirements_met,
+)
 
 run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
+prefix = os.getenv("NC_PREFIX", default="")
+nc: Nextcloud
 
 
 class GenerateInvitationLinkTest(TestCase):
@@ -66,15 +78,27 @@ class GenerateInvitationLinkTest(TestCase):
     "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
 )
 class DSGVOUserDataTestCase(django.test.TestCase):
+    old_prefix = ""
+    prefix = nextcloud_manager.prefix
+    nc_prefix = "test-nc"
+
     def setUp(self):
-        initialize_connection()
-        self._clear_data()
-        self.user = ObservatoryUser.objects.create_user(
+        ObservatoryUser.objects.create_user(
             username="testuser", password="testpassword", is_superuser=True
         )
-        self.client = django.test.Client()
-        self.client.login(username="testuser", password="testpassword")
+        self.user = ObservatoryUser.objects.get(username="testuser")
         call_command("populate_observatories")
+        self.maxDiff = None
+        self.client = django.test.Client()
+        self.client.force_login(user=self.user)
+
+        # automatically adds test in name of test root folder
+        self.old_prefix = self.prefix
+        nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
+        self.prefix = f"{self.nc_prefix}{self.prefix}"
+
+    def tearDown(self):
+        nextcloud_manager.prefix = self.old_prefix
 
     def _create_observation(self, data: dict, user: ObservatoryUser = None):
         prev_user = self.user
@@ -127,14 +151,6 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self._create_observation(data, user)
         return VariableObservation.objects.get(target__name=target_name)
 
-    @staticmethod
-    def _clear_data():
-        AbstractObservation.objects.all().delete()
-        try:
-            delete("TURMX")
-        except NextcloudException:
-            pass
-
     def test_data_download(self):
         self._create_imaging_observation("M51")
         self._create_variable_observation("M42")
@@ -164,9 +180,9 @@ class DSGVOUserDataTestCase(django.test.TestCase):
                 username="testuser2", password="testpassword"
             ),
         )
-        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
-        call_command("clean_up_users")
+        response = self.client.delete(f"/accounts/delete-user/{self.user.id}")
         self.assertEqual(response.status_code, 200)
+        process_pending_deletion()
         self.assertFalse(ObservatoryUser.objects.filter(username="testuser").exists())
         self.assertFalse(VariableObservation.objects.exists())
         self.assertEqual(ImagingObservation.objects.count(), 1)
@@ -174,6 +190,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self.assertEqual(remaining_observation.target.name, "M52")
 
     def test_data_uploaded_deletion(self):
+        initialize_connection()
         im1 = self._create_imaging_observation("M51")
         var1 = self._create_variable_observation("M42")
         im2 = self._create_imaging_observation(
@@ -182,8 +199,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
                 username="testuser2", password="testpassword"
             ),
         )
-        initialize_connection()
-        mkdir("TURMX/Projects")
+        mkdir(f"{self.prefix}/TURMX/Projects")
         upload_observations()
         file_im1 = get_observation_file(im1)
         file_var1 = get_observation_file(var1)
@@ -191,9 +207,47 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         for file in [file_im1, file_var1, file_im2]:
             self.assertIsNotNone(file)
             self.assertTrue(file_exists(file))
-        response = self.client.post(f"/accounts/delete-user/{self.user.id}")
-        call_command("clean_up_users")
+        response = self.client.delete(f"/accounts/delete-user/{self.user.id}")
+        process_pending_deletion()
         self.assertEqual(response.status_code, 200)
         self.assertFalse(file_exists(file_im1))
         self.assertTrue(file_exists(file_im2))
         self.assertFalse(file_exists(file_var1))
+        nm.delete(f"{self.prefix}")
+
+
+class PasswordRequirementsTest(TestCase):
+    def test_is_allowed_password(self):
+        # check if alphanumeric password is allowed
+        self.assertTrue(is_allowed_password("TestPassword1234567890"))
+
+        # check if password with special characters is allowed
+        self.assertTrue(is_allowed_password("!#$%()*+,-./:;=?@[]^_{|}~"))
+
+        # check if password with spaces is not allowed
+        self.assertFalse(is_allowed_password(" "))
+        self.assertFalse(is_allowed_password("Test Password"))
+
+        # check if password with uncommon special characters is not allowed
+        self.assertFalse(is_allowed_password("password!€"))
+        self.assertFalse(is_allowed_password("password!∞"))
+        self.assertFalse(is_allowed_password("password!😊"))
+
+    def test_password_length_ok(self):
+        # check if password length is at least 8 characters and at most 64 characters
+        self.assertFalse(password_length_ok("test123"))
+        self.assertFalse(
+            password_length_ok(
+                "testpasswordtestpasswordtestpasswordtestpasswordtestpassword12345"
+            )
+        )
+
+        # check if empty password is not allowed
+        self.assertFalse(password_length_ok(""))
+
+    def test_password_requirements_met(self):
+        # check if password meets the requirements for a password
+        self.assertTrue(password_requirements_met("password1!"))
+        self.assertFalse(password_requirements_met("password"))
+        self.assertFalse(password_requirements_met("password1"))
+        self.assertFalse(password_requirements_met("password!"))

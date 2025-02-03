@@ -2,6 +2,9 @@ import json
 import os
 from datetime import datetime, timezone, timedelta
 
+from django.utils import timezone as tz
+from unittest import skipIf
+
 import django.test
 from django.contrib.auth.models import Permission
 from django.core.management import call_command
@@ -9,19 +12,33 @@ from django.conf import settings
 from dotenv import load_dotenv
 
 from accounts.models import ObservatoryUser, UserPermission
+from nextcloud.nextcloud_manager import generate_observation_path
+from nextcloud.nextcloud_sync import upload_observations
 from observation_data.models import (
+    ExpertObservation,
     ImagingObservation,
     ObservationType,
     Filter,
     AbstractObservation,
     ObservationStatus,
+    Observatory,
+    CelestialTarget,
+)
+from observation_data.observation_management import (
+    process_pending_deletion,
 )
 from observation_data.serializers import (
+    ExpertObservationSerializer,
     ImagingObservationSerializer,
     ExoplanetObservationSerializer,
     VariableObservationSerializer,
     MonitoringObservationSerializer,
 )
+
+# from django.utils import timezone
+from nextcloud import nextcloud_manager as nm, nextcloud_manager
+
+run_nc_test = False if os.getenv("NC_TEST", default=True) == "False" else True
 
 
 def _create_user_and_login(test_instance):
@@ -154,6 +171,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["target"].pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_imaging_insert_no_catalog_id_flat(self):
         data = self._get_flat_base_request()
@@ -162,6 +181,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data.pop("catalog_id")
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 201, response.json())
+        observation_request = ImagingObservation.objects.get()
+        self.assertEqual(observation_request.target.catalog_id, "")
 
     def test_exoplanet_insert(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -236,7 +257,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "frames_per_filter": 100,
                 "dither_every": 1.0,
                 "binning": 1,
-                "subframe": "Full",
+                "subframe": 0.5,
                 "gain": 1,
                 "offset": 1,
                 "start_observation": start.isoformat(),
@@ -250,6 +271,8 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "priority": 100,
             },
         )
+        observation = AbstractObservation.objects.get()
+        self.assertEqual(observation.subframe, 0.5)
 
     def test_expert_insert_flat(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -264,7 +287,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "frames_per_filter": 100,
                 "dither_every": 1.0,
                 "binning": 1,
-                "subframe": "Full",
+                "subframe": 1.0,
                 "gain": 1,
                 "offset": 1,
                 "start_observation": start.isoformat(),
@@ -393,7 +416,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 100
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 0.75
         data["gain"] = 1
         data["start_observation"] = base_time.replace(
             hour=0, minute=0, second=0, microsecond=0
@@ -530,7 +553,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 100
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 0.0
         data["gain"] = 1
         data["exposure_time"] = 31  # valid because it's an expert observation
         data["start_observation"] = base_time.replace(
@@ -564,7 +587,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 0
         data["gain"] = 1
         data["exposure_time"] = 1801  # invalid because it's out of range
         data["start_observation"] = start.isoformat()
@@ -581,6 +604,35 @@ class ObservationCreationTestCase(django.test.TestCase):
         response = self._send_post_request(data)
         self._assert_error_response(
             response, 400, {"exposure_time": ["Must be between 1 and 1800."]}
+        )
+
+    def test_invalid_subframe_expert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+
+        data = self._get_flat_base_request()
+        data["observation_type"] = ObservationType.EXPERT
+        data["frames_per_filter"] = 1
+        data["dither_every"] = 1.0
+        data["binning"] = 1
+        data["subframe"] = 1.001  # invalid because it's out of range
+        data["gain"] = 1
+        data["exposure_time"] = 1800
+        data["start_observation"] = start.isoformat()
+        data["end_observation"] = end.isoformat()
+        data["start_scheduling"] = start.isoformat()
+        data["end_scheduling"] = end.isoformat()
+        data["cadence"] = 1
+        data["moon_separation_angle"] = 30.0
+        data["moon_separation_width"] = 7.0
+        data["minimum_altitude"] = 35
+        data["priority"] = 100
+        data["required_amount"] = 100
+        data["offset"] = 1
+        response = self._send_post_request(data)
+        self._assert_error_response(
+            response, 400, {"subframe": ["Must be between 0.0 and 1.0."]}
         )
 
     def test_invalid_frames_per_filter(self):
@@ -923,3 +975,255 @@ class JsonFormattingTestCase(django.test.TestCase):
         self._test_serialization(
             "RV-Ari", VariableObservationSerializer, "Variable_L_RV-Ari.json"
         )
+
+    def test_expert_subframe(self):
+        target_day = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "M31",
+                "ra": "00 42 44",
+                "dec": "+41 16 09",
+            },
+            "observation_type": ObservationType.EXPERT,
+            "frames_per_filter": 100,
+            "dither_every": 1.0,
+            "binning": 1,
+            "subframe": 0.5,
+            "gain": 1,
+            "offset": 1,
+            "start_observation": target_day.replace(
+                hour=0, minute=0, second=0
+            ).isoformat(),
+            "end_observation": target_day.replace(
+                hour=1, minute=0, second=0
+            ).isoformat(),
+            "start_scheduling": target_day.replace(
+                hour=0, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": target_day.replace(
+                hour=1, minute=0, second=0
+            ).isoformat(),
+            "cadence": 1,
+            "moon_separation_angle": 30.0,
+            "moon_separation_width": 7.0,
+            "minimum_altitude": 35,
+            "priority": 100,
+            "exposure_time": 60.0,
+            "filter_set": [Filter.FilterType.LUMINANCE],
+        }
+        response = self.client.post(
+            path="/observation-data/create/",
+            data=data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        serialized_json = ExpertObservationSerializer(
+            ExpertObservation.objects.get()
+        ).data
+        self.assertEqual(
+            serialized_json["targets"][0]["exposures"][0]["subFrame"],
+            0.5,
+            serialized_json,
+        )
+
+
+class ObservationManagementTestCase(django.test.TestCase):
+    old_prefix = ""
+    prefix = nextcloud_manager.prefix
+    nc_prefix = "test-nc"
+
+    def setUp(self):
+        # automatically adds "test-nc" in name of test root folder
+        self.old_prefix = self.prefix
+        nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
+        self.prefix = f"{self.nc_prefix}{self.prefix}"
+        call_command("populate_observatories")
+
+        self.user = None
+        self.maxDiff = None
+        self.client = django.test.Client()
+        _create_user_and_login(self)
+
+    def tearDown(self):
+        nextcloud_manager.prefix = self.old_prefix
+
+    def create_test_observation(
+        self,
+        obs_id: int,
+    ):
+        """
+        Creates imaging observations from scratch without checks from serializers
+        """
+        target = CelestialTarget.objects.create(
+            name=f"TargetName{str(obs_id)}", ra="0", dec="0"
+        )
+
+        obs = ImagingObservation.objects.create(
+            id=obs_id,
+            observatory=Observatory.objects.get(name="TURMX"),
+            target=target,
+            user=self.user,
+            created_at=tz.now(),
+            observation_type=ObservationType.IMAGING,
+            project_status=ObservationStatus.PENDING,
+            project_completion=0.0,
+            priority=10,
+            exposure_time=10.0,
+            frames_per_filter=100,
+        )
+
+        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+
+    def test_delete_no_permission(self):
+        # simulates the situation where a user without delete-all-permissions tries to delete an observation of another user
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        other_test_instance = django.test.Client()
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        other_test_instance.user = ObservatoryUser.objects.get(
+            username="Max Mustermann"
+        )
+        other_test_instance.force_login(other_test_instance.user)
+
+        response = other_test_instance.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+    def test_delete_non_admin(self):
+        # simulates the situation where a user without delete-all-permissions tries to delete an observation of himself
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        obs.user = ObservatoryUser.objects.get(username="Max Mustermann")
+        obs.save()
+
+        other_test_instance = django.test.Client()
+        other_test_instance.user = ObservatoryUser.objects.get(
+            username="Max Mustermann"
+        )
+        other_test_instance.force_login(other_test_instance.user)
+
+        response = other_test_instance.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(0, AbstractObservation.objects.count())
+
+    def test_delete_admin(self):
+        # simulates the situation where a user with delete-all-permissions tries to delete an observation of another user
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        obs.save()
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(0, AbstractObservation.objects.count())
+
+    @skipIf(
+        not run_nc_test,
+        "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
+    )
+    def test_currently_uploaded(self):
+        # simulates the situation where a user tries to delete an observation, that currently might be used by NINA and therefore cannot be deleted
+        obs_id = 42
+        self.create_test_observation(obs_id=obs_id)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        obs.project_status = ObservationStatus.UPLOADED
+        obs.save()
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        obs = AbstractObservation.objects.get(id=obs_id)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING_DELETION)
+
+        process_pending_deletion()
+        self.assertEqual(
+            0, AbstractObservation.objects.count()
+        )  # obs does not exist anymore
+
+    def test_bad_id(self):
+        # simulates the situation where a user tries to delete a non-existing observation
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": 12345}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+
+    @skipIf(
+        not run_nc_test,
+        "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
+    )
+    def test_obs_exists_in_nc(self):
+        # simulates the situation a successful deletion where the observation is in the nextcloud
+        nm.initialize_connection()
+        nm.mkdir(f"{self.nc_prefix}/TURMX/Projects")
+        obs_id = 42
+
+        self.create_test_observation(obs_id=obs_id)
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        obs = AbstractObservation.objects.get(id=obs_id)
+        upload_observations()
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+
+        self.assertTrue(nm.file_exists(generate_observation_path(obs)))
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+        process_pending_deletion()
+
+        self.assertEqual(0, AbstractObservation.objects.count())
+        self.assertFalse(nm.file_exists(generate_observation_path(obs)))
+
+        nm.delete(self.nc_prefix)
+
+    def test_does_not_obs_exists_in_nc(self):
+        # simulates the situation a successful deletion where the observation is not in the nextcloud
+        obs_id = 42
+        self.create_test_observation(obs_id=obs_id)
+        self.assertEqual(1, AbstractObservation.objects.count())
+
+        response = self.client.post(
+            "/observation-data/delete/",
+            data=json.dumps({"id": obs_id}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(0, AbstractObservation.objects.count())

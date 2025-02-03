@@ -1,41 +1,28 @@
 import logging
 
-from django.contrib.auth.base_user import AbstractBaseUser
 from django.forms.models import model_to_dict
-from nc_py_api import NextcloudException
 
-import nextcloud.nextcloud_manager as nm
-from observation_data.models import AbstractObservation, ObservationStatus
+from accounts.models import ObservatoryUser
+from observation_data.models import AbstractObservation
+from observation_data.observation_management import delete_observation
+
 
 logger = logging.getLogger(__name__)
 
 
-def delete_user(user: AbstractBaseUser):
+def delete_user(user: ObservatoryUser):
     """
     Deletes all data associated with a user. This includes all observation requests and uploaded files.
     :param user: The user to delete
     """
     observation_requests = AbstractObservation.objects.filter(user=user.id)
     for request in observation_requests:
-        status = request.project_status
-        if status != ObservationStatus.PENDING:
-            nc_path = nm.get_observation_file(request)
-            if not nc_path:
-                continue
-            if not nm.file_exists(nc_path):
-                continue
-            try:
-                nm.delete(nc_path)
-            except NextcloudException as e:
-                logger.error(
-                    f"Failed to delete observation {request.id} at {nc_path} for {user}: {e}"
-                )
-        request.delete()
-
-    user.delete()
+        delete_observation(observation_id=request.id)
+    user.deletion_pending = True  # cannot be deleted right away because we have to wait until the morning to delete the users observations and afterward the user itself
+    user.save()
 
 
-def get_all_data(user: AbstractBaseUser):
+def get_all_data(user: ObservatoryUser):
     """
     Get all data associated with a user. This includes all observation requests.
     :param user: The user to get the data from

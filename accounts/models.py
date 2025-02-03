@@ -23,6 +23,7 @@ class UserPermission:
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
     CAN_DELETE_USERS = "can_delete_users"
     CAN_EDIT_USERS = "can_edit_users"
+    CAN_DELETE_ALL_OBSERVATIONS = "can_delete_all_observations"
 
 
 class InvitationToken(models.Model):
@@ -88,6 +89,8 @@ class ObservatoryUser(AbstractUser):
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
             (UserPermission.CAN_DELETE_USERS, "Can delete users"),
             (UserPermission.CAN_EDIT_USERS, "Can edit users"),
+            (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
+            (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
         ]
 
 
@@ -108,7 +111,7 @@ def generate_invitation_link(
     :param username: The username of the user to invite. Can be None if the user has no username/alias.
     :param quota: The quota for the user. Can be None if the user has unlimited quota.
     :param lifetime: User lifetime. Can be None if the user has unlimited lifetime.
-    :param role: The role of the user. Can be one of "admin", "group_manager", or "user".
+    :param role: The role of the user. Can be one of "admin", "operator", or "user".
     :param expert: Whether the user is an expert.
 
     :return: The generated invitation link, or None if a user with the given email already exists.
@@ -143,3 +146,74 @@ def generate_invitation_link(
     invitation_token.link = invitation_link
     invitation_token.save()
     return invitation_link
+
+
+SPECIAL_CHARACTERS = [
+    "!",
+    "#",
+    "$",
+    "%",
+    "(",
+    ")",
+    "*",
+    "+",
+    ",",
+    "-",
+    ".",
+    "/",
+    ":",
+    ";",
+    "=",
+    "?",
+    "@",
+    "[",
+    "]",
+    "^",
+    "_",
+    "{",
+    "|",
+    "}",
+    "~",
+]
+
+
+def is_allowed_password(string: str) -> bool:
+    """
+    Check if a all characters in a string are allowed to be used in a password.
+
+    Allowed characters: All alphanumeric, so (A-Z), (a-z), (0-9) and all characters in SPECIAL_CHARACTERS.
+
+    :param string: The string to check.
+
+    :return: True if the string is allowed, False otherwise.
+    """
+
+    return all(
+        char.isalnum() or char in SPECIAL_CHARACTERS and char != " " for char in string
+    )
+
+
+def password_length_ok(string: str) -> bool:
+    """
+    Check if the length of a string is at least 8 characters and at most 64 characters.
+
+    :param string: The string to check.
+
+    :return: True if the string is at least 8 characters long and at most 64 characters long, False otherwise.
+    """
+    return len(string) >= 8 and len(string) <= 64
+
+
+def password_requirements_met(password: str) -> bool:
+    """
+    Check if a password meets the requirements for a password. The password must contain at least one letter, one number and one special character.
+
+    :param password: The password to check.
+
+    :return: True if the password meets the requirements, False otherwise.
+    """
+    has_letter = any(char.isalpha() for char in password)
+    has_number = any(char.isdigit() for char in password)
+    has_special = any(char in SPECIAL_CHARACTERS for char in password)
+
+    return has_letter and has_number and has_special and password_length_ok(password)

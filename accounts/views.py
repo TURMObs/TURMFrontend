@@ -5,6 +5,7 @@ import django.contrib.auth as auth
 from django import forms
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
+from django.http import JsonResponse
 from django.core.validators import MinValueValidator
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -12,7 +13,6 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 import os
-
 from rest_framework.decorators import api_view
 
 from . import user_data
@@ -22,6 +22,9 @@ from .models import (
     ObservatoryUser,
     UserPermission,
     UserGroup,
+    is_allowed_password,
+    password_length_ok,
+    password_requirements_met,
 )
 
 logger = logging.getLogger(__name__)
@@ -183,7 +186,19 @@ class SetPasswordForm(forms.Form):
         password1 = cleaned_data.get("new_password1")
         password2 = cleaned_data.get("new_password2")
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords do not match")
+            raise forms.ValidationError("The passwords are not the same.")
+        if not is_allowed_password(password1):
+            raise forms.ValidationError(
+                "Only letters, numbers and common special characters are allowed."
+            )
+        if not password_length_ok(password1):
+            raise forms.ValidationError(
+                "Password must be between 8 and 64 characters long."
+            )
+        if not password_requirements_met(password1):
+            raise forms.ValidationError(
+                "Password must contain at least one letter, one number and one special character."
+            )
         return cleaned_data
 
 
@@ -330,9 +345,8 @@ def register_user(request, token):
         return register_from_invitation_template(
             request,
             token,
-            form=SetPasswordForm(),
+            form=form,
             email=invitation.email,
-            error="Invalid password",
         )
     user = ObservatoryUser.objects.create_user(
         username=invitation.username,
@@ -355,58 +369,6 @@ def register_user(request, token):
         f"Created new {invitation.role} account for {user.username} with quota {user.quota} and lifetime {user.lifetime} (expert: {invitation.expert})"
     )
     return redirect(settings.LOGIN_REDIRECT_URL)
-
-
-@api_view(["POST"])
-@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
-def has_invitation(request):
-    email = request.data.get("email")
-    exists = InvitationToken.objects.filter(email=email).exists()
-    return JsonResponse({"has_invitation": exists}, status=200)
-
-
-@require_POST
-@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
-def delete_invitation(request, invitation_id):
-    invitation = InvitationToken.objects.get(id=invitation_id)
-    invitation.delete()
-    return JsonResponse({"status": "success"}, status=200)
-
-
-@require_POST
-def delete_user(request, user_id):
-    request_user = request.user
-    if user_id != request_user.id and not request_user.has_perm(
-        UserPermission.CAN_DELETE_USERS
-    ):
-        return JsonResponse(
-            {
-                "status": "error",
-                "message": "You do not have permission to delete this user.",
-            },
-            status=403,
-        )
-    target_user = ObservatoryUser.objects.get(id=user_id)
-    if not target_user:
-        return JsonResponse(
-            {
-                "status": "error",
-                "message": "User does not exist.",
-            },
-            status=400,
-        )
-    if not isinstance(target_user, ObservatoryUser):
-        return JsonResponse(
-            {
-                "status": "error",
-                "message": "You cannot delete this user.",
-            },
-            status=400,
-        )
-    target_user.deletion_pending = True
-    target_user.save()
-    logger.info(f"{target_user} has been marked for deletion by {request_user}")
-    return JsonResponse({"status": "success"}, status=200)
 
 
 @require_POST
@@ -441,6 +403,65 @@ def edit_user(request):
     return JsonResponse({"status": "success"}, status=200)
 
 
+
+@api_view(["POST"])
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
+def has_invitation(request):
+    email = request.data.get("email")
+    exists = InvitationToken.objects.filter(email=email).exists()
+    return JsonResponse({"has_invitation": exists}, status=200)
+
+
+@require_POST
+@user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
+def delete_invitation(request, invitation_id):
+    invitation = InvitationToken.objects.get(id=invitation_id)
+    invitation.delete()
+    return JsonResponse({"status": "success"}, status=200)
+
+
+def delete_user(request, user_id):
+    if request.method != "DELETE":
+        return JsonResponse(
+            {"status": "error", "message": "wrong method. Requires DELETE"}, status=405
+        )
+
+    request_user = request.user
+    if user_id != request_user.id and not request_user.has_perm(
+        UserPermission.CAN_DELETE_USERS
+    ):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "You do not have permission to delete this user.",
+            },
+            status=403,
+        )
+    target_user = ObservatoryUser.objects.get(id=user_id)
+    if not target_user:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User does not exist.",
+            },
+            status=400,
+        )
+    if not isinstance(target_user, ObservatoryUser):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "You cannot delete this user.",
+            },
+            status=400,
+        )
+    user_data.delete_user(target_user)
+    target_user.is_active = False  # prevents user from logging in again
+    target_user.save()
+
+    logger.info(f"{target_user} has been marked for deletion by {request_user}")
+    return JsonResponse({"status": "success"}, status=200)
+
+
 @require_GET
 def get_user_data(request):
     data = user_data.get_all_data(request.user)
@@ -472,13 +493,11 @@ def generate_invitation_template(request, error=None, link=None, invitation_form
     )
 
 
-def register_from_invitation_template(
-    request, token, error=None, email=None, form=None
-):
+def register_from_invitation_template(request, token, email=None, form=None):
     return render(
         request,
         "accounts/register_from_invitation.html",
-        {"error": error, "form": form, "email": email, "token": token},
+        {"form": form, "email": email, "token": token},
     )
 
 

@@ -40,7 +40,7 @@
 
         // Download User Data
         document.getElementById('downloadBtn').addEventListener('click', function () {
-            fetch('{{ subpath }}/get-user-data/')
+            fetch('{{ subpath }}/accounts/get-user-data')
                 .then(response => response.json())
                 .then(data => {
                     const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
@@ -54,8 +54,9 @@
         // Delete User Data
         document.getElementById('deleteBtn').addEventListener('click', function () {
             const user_id = {{ request.user.id }}
+
             if (confirm("Are you sure you want to delete your user data? This action cannot be undone.")) {
-                fetch(`{{ subpath }}/delete-user/${user_id}`, {
+                fetch(`{{ subpath }}/accounts/delete-user/${user_id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
