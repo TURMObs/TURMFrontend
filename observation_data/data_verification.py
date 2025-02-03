@@ -54,13 +54,14 @@ def _assert_matches_regex(name, value, regex):
 
 
 def _check_overlapping_observation(
-    start_observation, end_observation, observatory
+    start_observation, end_observation, observatory, exclude_observation_ids
 ) -> list:
     """
     Check if an observation overlaps with any existing observations.
     :param start_observation: Start time of the observation
     :param end_observation: End time of the observation
     :param observatory: Observatory name
+    :param exclude_observation_ids: List of observations to exclude from the check
     :return: List of overlapping observation times
     """
     overlapping_exoplanet = list(
@@ -68,14 +69,14 @@ def _check_overlapping_observation(
             observatory=observatory,
             start_observation__lt=end_observation,
             end_observation__gt=start_observation,
-        )
+        ).exclude(id__in=exclude_observation_ids)
     )
     overlapping_expert = list(
         ExpertObservation.objects.filter(
             observatory=observatory,
             start_observation__lt=end_observation,
             end_observation__gt=start_observation,
-        )
+        ).exclude(id__in=exclude_observation_ids)
     )
     overlapping_times = []
     for overlapping in overlapping_exoplanet + overlapping_expert:
@@ -174,7 +175,9 @@ def verify_filter_selection(filters, observatory):
     return errors
 
 
-def validate_observation_time(start_time, end_time, observatory):
+def validate_observation_time(
+    start_time, end_time, observatory, exclude_observation_ids
+):
     """
     Validate that the start time is before the end time and that the observation does not overlap with existing observations for the selected Observatory.
     Also checks that the start time is in the future.
@@ -197,7 +200,9 @@ def validate_observation_time(start_time, end_time, observatory):
             "year_range": "Start time must be within the next 10 years.",
         }
 
-    overlapping = _check_overlapping_observation(start_time, end_time, observatory)
+    overlapping = _check_overlapping_observation(
+        start_time, end_time, observatory, exclude_observation_ids
+    )
     if len(overlapping) != 0:
         errors = {**errors, "overlapping_observations": overlapping}
 
