@@ -24,8 +24,6 @@ class Command(BaseCommand):
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
             (UserPermission.CAN_DELETE_USERS, "Can delete users"),
             (UserPermission.CAN_EDIT_USERS, "Can edit users"),
-            (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
-            (UserPermission.CAN_DELETE_USERS, "Can delete users"),
             (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
         ]
 

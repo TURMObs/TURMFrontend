@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
 from django.http import JsonResponse
 from django.core.validators import MinValueValidator
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
@@ -112,7 +111,13 @@ class EditUserForm(forms.Form):
     )
     new_lifetime = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={"placeholder": "New Lifetime", "type": "date", "min": datetime.now().date()}),
+        widget=forms.DateInput(
+            attrs={
+                "placeholder": "New Lifetime",
+                "type": "date",
+                "min": datetime.now().date(),
+            }
+        ),
     )
     new_role = forms.ChoiceField(
         choices=[
@@ -126,13 +131,11 @@ class EditUserForm(forms.Form):
     remove_quota = forms.BooleanField(required=False, widget=forms.CheckboxInput())
     remove_lifetime = forms.BooleanField(required=False, widget=forms.CheckboxInput())
 
-
     def clean_user_id(self):
         user_id = self.cleaned_data.get("user_id")
         if not ObservatoryUser.objects.filter(id=user_id).exists():
             raise forms.ValidationError("User does not exist.")
         return user_id
-
 
     def clean_new_alias(self):
         new_alias = self.cleaned_data.get("new_alias").strip()
@@ -140,13 +143,11 @@ class EditUserForm(forms.Form):
             new_alias = self.cleaned_data.get("new_email")
         return new_alias
 
-
     def clean_new_email(self):
         new_email = self.cleaned_data.get("new_email").strip()
         if new_email and new_email == "":
             raise forms.ValidationError("Email cannot be an empty string.")
         return new_email
-
 
     def clean_new_lifetime(self):
         new_lifetime = self.cleaned_data.get("new_lifetime")
@@ -154,14 +155,12 @@ class EditUserForm(forms.Form):
             raise forms.ValidationError("Lifetime must be a future date.")
         return new_lifetime
 
-
     def clean_remove_quota(self):
         if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
             raise forms.ValidationError(
                 "Cannot remove quota and set a new quota at the same time."
             )
         return self.cleaned_data.get("remove_quota")
-
 
     def clean_remove_lifetime(self):
         if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get(
@@ -377,9 +376,7 @@ def edit_user(request):
     edit_form = EditUserForm(request.POST)
     if not edit_form.is_valid():
         print(edit_form.errors)
-        return JsonResponse(
-            {"status": "error", "error": edit_form.errors}, status=400
-        )
+        return JsonResponse({"status": "error", "error": edit_form.errors}, status=400)
     edit_form_data = edit_form.cleaned_data
     user = ObservatoryUser.objects.get(id=edit_form_data["user_id"])
     if edit_form_data["new_alias"]:
@@ -401,7 +398,6 @@ def edit_user(request):
         user.lifetime = None
     user.save()
     return JsonResponse({"status": "success"}, status=200)
-
 
 
 @api_view(["POST"])
