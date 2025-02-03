@@ -105,11 +105,11 @@ class EditUserForm(forms.Form):
     new_quota = forms.IntegerField(
         validators=[MinValueValidator(1)],
         required=False,
-        widget=forms.NumberInput(attrs={"placeholder": "New Quota"}),
+        widget=forms.NumberInput(attrs={"placeholder": "New Quota", "min": 1}),
     )
     new_lifetime = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={"placeholder": "New Lifetime", "type": "date"}),
+        widget=forms.DateInput(attrs={"placeholder": "New Lifetime", "type": "date", "min": datetime.now().date()}),
     )
     new_role = forms.ChoiceField(
         choices=[
@@ -124,50 +124,50 @@ class EditUserForm(forms.Form):
     remove_lifetime = forms.BooleanField(required=False, widget=forms.CheckboxInput())
 
 
-def clean_user_id(self):
-    user_id = self.cleaned_data.get("user_id")
-    if not ObservatoryUser.objects.filter(id=user_id).exists():
-        raise forms.ValidationError("User does not exist.")
-    return user_id
+    def clean_user_id(self):
+        user_id = self.cleaned_data.get("user_id")
+        if not ObservatoryUser.objects.filter(id=user_id).exists():
+            raise forms.ValidationError("User does not exist.")
+        return user_id
 
 
-def clean_new_alias(self):
-    new_alias = self.cleaned_data.get("new_alias").strip()
-    if new_alias == "":
-        new_alias = self.cleaned_data.get("new_email")
-    return new_alias
+    def clean_new_alias(self):
+        new_alias = self.cleaned_data.get("new_alias").strip()
+        if new_alias == "":
+            new_alias = self.cleaned_data.get("new_email")
+        return new_alias
 
 
-def clean_new_email(self):
-    new_email = self.cleaned_data.get("new_email").strip()
-    if new_email and new_email == "":
-        raise forms.ValidationError("Email cannot be an empty string.")
-    return new_email
+    def clean_new_email(self):
+        new_email = self.cleaned_data.get("new_email").strip()
+        if new_email and new_email == "":
+            raise forms.ValidationError("Email cannot be an empty string.")
+        return new_email
 
 
-def clean_new_lifetime(self):
-    new_lifetime = self.cleaned_data.get("new_lifetime")
-    if new_lifetime and new_lifetime <= datetime.now().date():
-        raise forms.ValidationError("Lifetime must be a future date.")
-    return new_lifetime
+    def clean_new_lifetime(self):
+        new_lifetime = self.cleaned_data.get("new_lifetime")
+        if new_lifetime and new_lifetime <= datetime.now().date():
+            raise forms.ValidationError("Lifetime must be a future date.")
+        return new_lifetime
 
 
-def clean_remove_quota(self):
-    if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
-        raise forms.ValidationError(
-            "Cannot remove quota and set a new quota at the same time."
-        )
-    return self.cleaned_data.get("remove_quota")
+    def clean_remove_quota(self):
+        if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
+            raise forms.ValidationError(
+                "Cannot remove quota and set a new quota at the same time."
+            )
+        return self.cleaned_data.get("remove_quota")
 
 
-def clean_remove_lifetime(self):
-    if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get(
-        "new_lifetime"
-    ):
-        raise forms.ValidationError(
-            "Cannot remove lifetime and set a new lifetime at the same time."
-        )
-    return self.cleaned_data.get("remove_lifetime")
+    def clean_remove_lifetime(self):
+        if self.cleaned_data.get("remove_lifetime") and self.cleaned_data.get(
+            "new_lifetime"
+        ):
+            raise forms.ValidationError(
+                "Cannot remove lifetime and set a new lifetime at the same time."
+            )
+        return self.cleaned_data.get("remove_lifetime")
 
 
 class SetPasswordForm(forms.Form):
@@ -414,14 +414,17 @@ def delete_user(request, user_id):
 def edit_user(request):
     edit_form = EditUserForm(request.POST)
     if not edit_form.is_valid():
+        print(edit_form.errors)
         return JsonResponse(
-            {"status": "error", "message": edit_form.errors}, status=400
+            {"status": "error", "error": edit_form.errors}, status=400
         )
     edit_form_data = edit_form.cleaned_data
     user = ObservatoryUser.objects.get(id=edit_form_data["user_id"])
     if edit_form_data["new_alias"]:
         user.username = edit_form_data["new_alias"]
     if edit_form_data["new_email"]:
+        if user.username == user.email and not edit_form_data["new_alias"]:
+            user.username = edit_form_data["new_email"]
         user.email = edit_form_data["new_email"]
     if edit_form_data["new_quota"]:
         user.quota = edit_form_data["new_quota"]
