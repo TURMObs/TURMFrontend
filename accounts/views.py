@@ -74,10 +74,10 @@ class GenerateInvitationForm(forms.Form):
         choices = [(UserGroup.USER, "User")]
 
         if user:
-            if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
-                choices.append((UserGroup.ADMIN, "Admin"))
             if user.has_perm(UserPermission.CAN_INVITE_OPERATORS):
                 choices.append((UserGroup.OPERATOR, "Operator"))
+            if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
+                choices.append((UserGroup.ADMIN, "Admin"))
 
         self.fields["role"].choices = choices
 
@@ -122,8 +122,8 @@ class EditUserForm(forms.Form):
     new_role = forms.ChoiceField(
         choices=[
             (UserGroup.USER, "User"),
-            (UserGroup.ADMIN, "Admin"),
             (UserGroup.OPERATOR, "Operator"),
+            (UserGroup.ADMIN, "Admin"),
         ],
         required=False,
         widget=forms.Select(),

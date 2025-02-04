@@ -3,18 +3,8 @@
 {% block title %}User Management{% endblock %}
 {% block style %}
     <link rel="stylesheet" href="{% static "/css/generate_invitation.css" %}">
+    <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
     <style>
-        .container {
-            margin: 30px;
-        }
-
-        .content_wrapper {
-            background-color: #1e1e1e;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
         .empty-text p {
             text-align: center;
             padding: 20px;
@@ -99,7 +89,6 @@
             font-size: 14px;
         }
 
-
         #invitation-link-modal div {
             background: white;
             padding: 20px;
@@ -135,13 +124,11 @@
             margin-bottom: 0;
         }
 
-
         .modal-input-field input[type="checkbox"] {
             width: 16px;
             height: 16px;
             margin: 0;
         }
-
 
         .wrapper .modal-input-field {
             color: #fff;
@@ -190,7 +177,6 @@
             margin-top: 10px;
         }
 
-
         table {
             margin: 20px 0;
             width: 100%;
@@ -206,14 +192,6 @@
         table th {
             background-color: #222222;
             color: white;
-        }
-
-
-        .tables-background {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
         }
 
         .tables-background table {
@@ -232,7 +210,6 @@
             background-color: #222222;
             color: white;
         }
-
 
         .styled-select {
             background-color: #333333;
@@ -255,6 +232,11 @@
         }
 
     </style>
+    <script src="{% static '/js/turminputs.js' %}"></script>
+    <script> onload = _ => {
+        check_radio_if_none_selected()
+    };
+    </script>
 {% endblock %}
 {% block content %}
     <div class="container">
@@ -267,20 +249,17 @@
                 <div class="form-group">
                     <div class="input-field">{{ invitation_form.email }}</div>
                     <div class="input-field">{{ invitation_form.username }}</div>
-                    <div class="input-field">
-                        <label for="id_role_selector"></label>
-                        <select name="role"
-                                id="id_role_selector"
-                                class="styled-select"
-                                onchange="checkRoleChange">
-                            {% for value, label in invitation_form.role.field.choices %}
-                                <option value="{{ value }}"
-                                        {% if invitation_form.role.value == value %}selected{% endif %}>
-                                    {{ label }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                    {% if invitation_form.role.field.choices|length > 1 %}
+                    <div class="radio_input_div">
+                        {% for value, label in invitation_form.role.field.choices %}
+                            <input id="id_{{ value }}" value="{{ value }}" name="role" type="radio" onclick="checkRoleChange('{{ value }}')">
+                            <label for="id_{{ value }}" id="id_observatory">{{ label }}</label>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                        <input value="user" name="role" type="radio" style="display: none;">
+                    {% endif %}
+
                     <div class="form-group">
                         <div class="checkbox-field">
                             <input type="checkbox"
@@ -310,7 +289,8 @@
                 </div>
             </form>
         </div>
-        <div class="tables-background">
+        <br>
+        <div class="content_wrapper">
             <!-- Open Invitations -->
             <div class="open-invitations">
                 <h3>Open Invitations</h3>
@@ -322,7 +302,7 @@
                             <th>Role</th>
                             <th>Quota</th>
                             <th>Lifetime</th>
-                            <th>Invitation Link</th>
+                            <!-- <th>Invitation Link</th> -->
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -339,7 +319,7 @@
                                     <td>{{ invitation.role }}</td>
                                     <td>{{ invitation.quota }}</td>
                                     <td>{{ invitation.lifetime }}</td>
-                                    <td>{{ invitation.link }}</td>
+                                    <!-- <td>{{ invitation.link }}</td> -->
                                     <td>
                                         {% if invitation.link != "" %}
                                             <button id="copy-invitation-action-{{ invitation.id }}"
@@ -367,7 +347,8 @@
                 </table>
             </div>
         </div>
-        <div class="tables-background">
+        <br>
+        <div class="content_wrapper">
             <!-- All Users -->
             <div class="all-users">
                 <h3>All Users</h3>
@@ -487,8 +468,7 @@
 {% endblock %}
 {% block scripts %}
     <script>
-        function checkRoleChange() {
-            const role = document.getElementById('id_role_selector').value;
+        function checkRoleChange(role) {
             const expertCheckbox = document.getElementById('id_expert');
 
             if (role === '{{ UserGroups.ADMIN }}') {

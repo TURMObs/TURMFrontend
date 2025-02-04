@@ -16,8 +16,7 @@
     <script> onload = _ => {
         check_radio_if_none_selected()
     };
-    </script>
-    <script>
+
     async function fetch_coordinates() {
         let catalog_id  = document.getElementById("id_catalog_id").value
 
@@ -81,7 +80,7 @@
     </script>
 {% endblock %}
 {% block content %}
-    <div class="content_wrapper form_wrapper">
+    <div class="content_wrapper">
         <header class="form_body">
             <div class="container_center">
                 <h1>Create New Observation</h1>

@@ -49,17 +49,15 @@ body {
   flex-direction: row;
 }
 
-.form_wrapper {
-  min-width: 512px;
-  max-width: 960px;
-  padding: 30px 40px;
-}
-
 .content_wrapper {
   margin: 0 auto;
   border: 2px solid rgba(255, 255, 255, 0.2);
   background: var(--tom-dark-grey);
   border-radius: 20px;
+
+  min-width: 512px;
+  max-width: 960px;
+  padding: 30px 40px;
 }
 
 button,
