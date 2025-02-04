@@ -20,31 +20,9 @@
             margin-bottom: 15px;
         }
 
-
         td {
             padding: 10px;
             border: 1px solid #444444
-        }
-
-        button {
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px 15px;
-            transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
-            margin-right: 10px;
-        }
-
-        button:hover {
-            background-color: #da190b;
-            color: white;
-            border-color: white;
-        }
-
-        .green-button:hover {
-            background-color: #4CAF50;
         }
 
         .modal {
@@ -283,7 +261,7 @@
                     </div>
                     <div class="form-group">
                         <button type="button"
-                                class="generate-invitation-button green-button"
+                                class="generate-invitation-button"
                                 onclick="createInvitation()">Generate</button>
                     </div>
                 </div>
@@ -379,26 +357,15 @@
                                     <td>{{ target_user.quota }}</td>
                                     <td>{{ target_user.lifetime }}</td>
                                     <td>{{ target_user.date_joined }}</td>
+                                    <td>
                                     {% if perms.accounts.can_delete_users %}
-                                        <td>
-                                            <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="button"
-                                                        class="delete-button"
-                                                        onclick="deleteUser({{ target_user.id }})">Delete</button>
-                                            </form>
-                                            {% if perms.accounts.can_edit_users %}
-                                                <form id="edit-user-{{ target_user.id }}" style="display: inline;">
-                                                    {% csrf_token %}
-                                                    <button type="button"
-                                                            class="edit-button green-button"
-                                                            onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })">
-                                                        Edit
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                        </td>
+
+                                        <i class="bx bx-trash" onclick="deleteUser({{ target_user.id }})"></i>
                                     {% endif %}
+                                    {% if perms.accounts.can_edit_users %}
+                                        <i class="bx bx-edit" onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })"></i>
+                                    {% endif %}
+                                    </td>
                                 </tr>
                             {% endif %}
                         {% endfor %}
