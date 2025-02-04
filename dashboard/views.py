@@ -1,7 +1,11 @@
 from django.shortcuts import render
 
 from accounts.models import UserPermission
-from observation_data.models import AbstractObservation
+from observation_data.models import (
+    AbstractObservation,
+    ObservationStatus,
+    ObservationType,
+)
 
 
 def dashboard(request):
@@ -10,4 +14,12 @@ def dashboard(request):
     else:
         observations = AbstractObservation.objects.filter(user=request.user)
 
-    return render(request, "dashboard/index.html", {"observations": observations})
+    return render(
+        request,
+        "dashboard/index.html",
+        {
+            "observations": observations,
+            "ObservationStatus": ObservationStatus,
+            "ObservationType": ObservationType,
+        },
+    )

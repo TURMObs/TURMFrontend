@@ -375,7 +375,6 @@ def register_user(request, token):
 def edit_user(request):
     edit_form = EditUserForm(request.POST)
     if not edit_form.is_valid():
-        print(edit_form.errors)
         return JsonResponse({"status": "error", "error": edit_form.errors}, status=400)
     edit_form_data = edit_form.cleaned_data
     user = ObservatoryUser.objects.get(id=edit_form_data["user_id"])

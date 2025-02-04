@@ -56,7 +56,7 @@ class TURMField(Field):
                 return TURMRadioInput(
                     name=model_field.name,
                     choices=[
-                        (str(name).title(), str(name))
+                        (str(name), str(name))
                         for name in model_field.remote_field.model.objects.all()
                     ],
                     *args,
@@ -82,7 +82,7 @@ class TURMField(Field):
         widget = TURMField.model_field_to_input(
             model_field, measurement_unit, *args, **kwargs
         )
-        return TURMField(label=label_name, widget=widget)
+        return TURMField(label_name=label_name, widget=widget)
 
     def add_attrs(self, attr):
         self.widget.add_attrs(attr)

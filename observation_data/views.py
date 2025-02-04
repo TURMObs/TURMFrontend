@@ -77,7 +77,7 @@ def create_observation(request):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-    if "name" in request_data and isinstance(request_data["name"], str):
+    if isinstance(request_data.get("name", ""), str):
         request_data = _nest_observation_request(
             request_data,
             {
@@ -94,6 +94,145 @@ def create_observation(request):
 
     serializer.save()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@require_POST
+@api_view(["POST"])
+def edit_observation(request, observation_id):
+    """
+    Edit an observation which is identified by the observation id.
+    The passed data must satisfy the is_valid() method of the corresponding serializer and include all necessary fields.
+    Note that the one editing the observation must have the permission to edit all observations or the observation request must be owned by the user.
+    :param request: HTTP request with observation data
+    :param observation_id: The id of the observation to be edited
+    :return: HTTP response with the created observation data or error message
+    """
+
+    user = request.user
+
+    if not isinstance(user, ObservatoryUser):
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not isinstance(observation_id, int):
+        return Response(
+            {"error": f"Invalid observation id: {observation_id}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        observation = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist:
+        return Response(
+            {"error": "Observation not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if observation.project_status != ObservationStatus.PENDING:
+        return Response(
+            {"error": "Only pending observations can be edited"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Either the observation request is owned by the user or the user is allowed to edit all observations
+    can_edit = observation.user.id == user.id or user.has_perm(
+        UserPermission.CAN_EDIT_ALL_OBSERVATIONS
+    )
+    if not can_edit:
+        return Response(
+            {"error": "Permission denied"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    request_data = request.data.copy()
+    observation_type = request_data.get("observation_type")
+
+    serializer_class = get_serializer(observation_type)
+    if not serializer_class:
+        return Response(
+            {"error": f"Invalid observation type: {observation_type}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if isinstance(request.data, QueryDict):
+        request_data = convert_query_dict(
+            request.data.copy(), serializer_class.Meta.model
+        )
+
+    observation_type = request_data.get("observation_type")
+    request_data["user"] = request.user.id
+
+    if isinstance(request_data.get("name", ""), str):
+        request_data = _nest_observation_request(
+            request_data,
+            {
+                "ra": "target.ra",
+                "dec": "target.dec",
+                "name": "target.name",
+                "catalog_id": "target.catalog_id",
+            },
+        )
+
+    serializer = serializer_class(observation, data=request_data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    observation = serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@require_POST
+@api_view(["POST"])
+def delete_observation(request, observation_id):
+    """
+    Deletes the observation with the passed id.
+    User must be the owner of the observation or admin to delete the observation.
+    :param request: HTTP request with observation data
+    :return: HTTP response success or error with error message
+    """
+    user = request.user
+
+    if not isinstance(user, ObservatoryUser):
+        return Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not isinstance(observation_id, int):
+        return Response(
+            {"error": "Invalid observation id"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        obs = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist as e:
+        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
+        logger.error(response)
+        return Response({response}, status=status.HTTP_404_NOT_FOUND)
+
+    if not user == obs.user and not user.has_perm(
+        UserPermission.CAN_DELETE_ALL_OBSERVATIONS
+    ):
+        logger.info(
+            f"User {user.get_username()} does not have permission to delete observation {observation_id}."
+        )
+        return Response(
+            {
+                f"User {user.get_username()} does not have permission to delete observation {observation_id}."
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    try:
+        observation_management.delete_observation(observation_id)
+    except BadRequest as e:
+        response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
+        return Response({response}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_202_ACCEPTED)
 
 
 def _nest_observation_request(data, mappings):
@@ -134,58 +273,3 @@ def convert_query_dict(qdict, model: AbstractObservation):
         converted_dict[key] = val[0]
 
     return converted_dict
-
-
-@require_POST
-@api_view(["POST"])
-def delete_observation(request):
-    """
-    Deletes the observation with the passed id.
-    User must be the owner of the observation or admin to delete the observation.
-    :param request: HTTP request with observation data
-    :return: HTTP response success or error with error message
-    """
-    user = request.user
-
-    if not isinstance(user, ObservatoryUser):
-        return Response(
-            {"error": "Invalid user model"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    request_data = request.data
-    observation_id = request_data.get("id")
-
-    if not observation_id:
-        return Response(
-            {"error": "Invalid observation id"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        obs = AbstractObservation.objects.get(id=observation_id)
-    except AbstractObservation.DoesNotExist as e:
-        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
-        logger.error(response)
-        return Response({response}, status=status.HTTP_403_FORBIDDEN)
-
-    if not user == obs.user and not user.has_perm(
-        UserPermission.CAN_DELETE_ALL_OBSERVATIONS
-    ):
-        logger.info(
-            f"User {user.get_username()} does not have permission to delete observation {observation_id}."
-        )
-        return Response(
-            {
-                f"User {user.get_username()} does not have permission to delete observation {observation_id}."
-            },
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-
-    try:
-        observation_management.delete_observation(observation_id)
-    except BadRequest as e:
-        response = f"Tried to delete observation {observation_id} but status is already set to {ObservationStatus.PENDING_DELETION}. Got {str(e)}"
-        return Response({response}, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_202_ACCEPTED)

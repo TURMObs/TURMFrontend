@@ -44,25 +44,25 @@ class Command(BaseCommand):
     @staticmethod
     def populate_exposure_settings():
         ExposureSettings.objects.get_or_create(
-            gain=100, offset=50, binning=1, subFrame=1.0
+            gain=100, offset=50, binning=1, subframe=1.0
         )
 
         ExposureSettings.objects.get_or_create(
-            gain=2750, offset=0, binning=1, subFrame=1.0
+            gain=2750, offset=0, binning=1, subframe=1.0
         )
 
         ExposureSettings.objects.get_or_create(
-            gain=0, offset=50, binning=1, subFrame=0.25
+            gain=0, offset=50, binning=1, subframe=0.25
         )
 
         ExposureSettings.objects.get_or_create(
-            gain=0, offset=0, binning=1, subFrame=0.5
+            gain=0, offset=0, binning=1, subframe=0.5
         )
 
         ObservatoryExposureSettings.objects.get_or_create(
             observatory=Observatory.objects.get(name="TURMX"),
             exposure_settings=ExposureSettings.objects.get(
-                gain=100, offset=50, binning=1, subFrame=1.0
+                gain=100, offset=50, binning=1, subframe=1.0
             ),
             observation_type=ObservationType.IMAGING,
         )
@@ -70,7 +70,7 @@ class Command(BaseCommand):
         ObservatoryExposureSettings.objects.get_or_create(
             observatory=Observatory.objects.get(name="TURMX2"),
             exposure_settings=ExposureSettings.objects.get(
-                gain=2750, offset=0, binning=1, subFrame=1.0
+                gain=2750, offset=0, binning=1, subframe=1.0
             ),
             observation_type=ObservationType.IMAGING,
         )
@@ -83,14 +83,14 @@ class Command(BaseCommand):
             ObservatoryExposureSettings.objects.get_or_create(
                 observatory=Observatory.objects.get(name="TURMX"),
                 exposure_settings=ExposureSettings.objects.get(
-                    gain=0, offset=50, binning=1, subFrame=0.25
+                    gain=0, offset=50, binning=1, subframe=0.25
                 ),
                 observation_type=observation_type,
             )
             ObservatoryExposureSettings.objects.get_or_create(
                 observatory=Observatory.objects.get(name="TURMX2"),
                 exposure_settings=ExposureSettings.objects.get(
-                    gain=0, offset=0, binning=1, subFrame=0.5
+                    gain=0, offset=0, binning=1, subframe=0.5
                 ),
                 observation_type=observation_type,
             )
