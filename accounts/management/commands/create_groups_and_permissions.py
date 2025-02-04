@@ -22,6 +22,7 @@ class Command(BaseCommand):
                 "Can create expert observation",
             ),
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
+            (UserPermission.CAN_EDIT_ALL_OBSERVATIONS, "Can edit all observations"),
             (UserPermission.CAN_DELETE_USERS, "Can delete users"),
             (UserPermission.CAN_EDIT_USERS, "Can edit users"),
             (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
@@ -49,6 +50,9 @@ class Command(BaseCommand):
         can_see_all_observations = Permission.objects.get(
             codename=UserPermission.CAN_SEE_ALL_OBSERVATIONS, content_type=content_type
         )
+        can_edit_all_observations = Permission.objects.get(
+            codename=UserPermission.CAN_EDIT_ALL_OBSERVATIONS, content_type=content_type
+        )
         can_delete_users = Permission.objects.get(
             codename=UserPermission.CAN_DELETE_USERS, content_type=content_type
         )
@@ -68,6 +72,7 @@ class Command(BaseCommand):
             can_create_expert_observation,
             can_edit_users,
             can_see_all_observations,
+            can_edit_all_observations,
             can_delete_users,
             can_delete_all_observations,
         )

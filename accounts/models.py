@@ -21,6 +21,7 @@ class UserPermission:
     CAN_INVITE_OPERATORS = "can_invite_operators"
     CAN_CREATE_EXPERT_OBSERVATION = "can_create_expert_observation"
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
+    CAN_EDIT_ALL_OBSERVATIONS = "can_edit_all_observations"
     CAN_DELETE_USERS = "can_delete_users"
     CAN_EDIT_USERS = "can_edit_users"
     CAN_DELETE_ALL_OBSERVATIONS = "can_delete_all_observations"
@@ -87,6 +88,7 @@ class ObservatoryUser(AbstractUser):
                 "Can create expert observation",
             ),
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
+            (UserPermission.CAN_EDIT_ALL_OBSERVATIONS, "Can edit all observations"),
             (UserPermission.CAN_DELETE_USERS, "Can delete users"),
             (UserPermission.CAN_EDIT_USERS, "Can edit users"),
             (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
