@@ -5,6 +5,13 @@
     <link rel="stylesheet" href="{% static "/css/generate_invitation.css" %}">
     <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
     <style>
+        .button-container {
+            padding-top: 8px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+        }
         .empty-text p {
             text-align: center;
             padding: 20px;
@@ -259,7 +266,7 @@
                         </div>
                         <div class="input-field" id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
                     </div>
-                    <div class="form-group">
+                    <div class="button-container">
                         <button type="button"
                                 class="generate-invitation-button"
                                 onclick="createInvitation()">Generate</button>
