@@ -10,95 +10,70 @@
     <link rel="shortcut icon"
           type="image/png"
           href="{% static 'favicon.ico' %}" />
-    <link rel="stylesheet" href="{% static "/css/base_template.css" %}">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-          rel='stylesheet'>
+    <link rel="stylesheet" href="{% static "/css/main.css" %}">
     <style>
-    * {
-        box-sizing: border-box;
-    }
-    body {
-        height: 100%;
-        margin: 0;
-        background-color: var(--tom-light-grey);
-    }
-
-    .page-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
-
     .navbar {
         margin-bottom: 1em;
         background-color: var(--tom-light-grey);
-
         display: flex;
-
         align-content: center;
         justify-content: center;
-
         padding: 10px;
-
         border-bottom: solid 5px;
         border-color: var(--tom-primary-color);
     }
 
-    .navbar_container {
+    .navbar-container {
         display: flex;
         flex-flow: row;
-
         align-content: center;
         justify-content: space-between;
-
         width: 1140px;
     }
 
-    .navbar_image_container {
+    .navbar-image-container {
         display: flex;
         align-content: center;
     }
 
-    .navbar_image {
+    .navbar-image {
         margin: auto;
     }
 
-    .navbar_link_container {
+    .navbar-link-container {
         margin: auto 0;
-
         display: flex;
         flex-flow: row;
         align-items: center;
-
         column-gap: 2em;
     }
 
-    .navbar_link {
+    .navbar-link {
         text-decoration: none;
         color: var(--tom-white);
-        font-size: 1.25em;
-        font-weight: bold;
-
         padding: 4px;
         border-radius: 8px;
     }
 
-    .logout_button {
-        background: none!important;
-        border: none!important;
+
+    .navbar-link:hover {
+        background: var(--tom-dark-grey);
+    }
+
+    .logout-button-container {
+        cursor: pointer !important;
+    }
+
+    .logout-button {
+        background: none !important;
+        border: none !important;
         box-shadow: none;
-        padding: 0!important;
+        padding: 0 !important;
         text-decoration: none;
         color: var(--tom-white);
-        font-size: 1.25em;
-        font-weight: bold;
     }
 
-    .space {
-        flex-grow: 1;
-    }
-
-    .footer_container {
+    .footer-container {
         display: flex;
         justify-content: center;
 
@@ -111,7 +86,7 @@
         border-color: var(--tom-primary-color);
     }
 
-    .footer_row {
+    .footer-row {
         display: flex;
 
         margin: 2em;
@@ -120,7 +95,7 @@
         justify-content: space-between;
     }
 
-    .footer_column {
+    .footer-column {
         display: flex;
         flex-flow: column;
 
@@ -131,27 +106,27 @@
         line-height: 1.25em;
     }
 
-    .footer_column_entry {
+    .footer-column-entry {
         margin-bottom: .6em;
     }
 
-    .grey_link {
+    .grey-link {
         color: var(--tom-disabled-grey);
 
         font-weight: bold;
         text-decoration: none;
     }
 
-    .grey_link:hover {
+    .grey-link:hover {
         color: var(--tom-white);
     }
 
-    .container_center {
+    .container-center {
         display: flex;
         justify-content: center;
     }
 
-    .container_column {
+    .container-column {
         display: flex;
         flex-flow: column;
     }
@@ -172,10 +147,6 @@
     }
 
     .dropdown-trigger:hover {
-        background: var(--tom-dark-grey);
-    }
-
-    .navbar_link:hover {
         background: var(--tom-dark-grey);
     }
 
@@ -217,7 +188,7 @@
         display: block;
     }
 
-    .min_height {
+    .min-height {
         min-height: 90vh;
     }
     </style>
@@ -225,9 +196,9 @@
     {% block scripts %}{% endblock %}
     <body>
         <header class="navbar">
-            <div class="navbar_container">
-                <div class="navbar_image_container">
-                    <div class="navbar_image">
+            <div class="navbar-container">
+                <div class="navbar-image-container">
+                    <div class="navbar-image">
                         <a href="/" aria-label="TOM | observations">
                             <img src="{% static 'img/LogoWebA_7.png' %}"
                                  alt="TURM"
@@ -236,22 +207,22 @@
                         </a>
                     </div>
                 </div>
-                <div class="navbar_link_container">
-                    <a class="navbar_link"
+                <div class="navbar-link-container">
+                    <a class="navbar-link"
                        href="{% url 'dashboard' %}"
                        aria-label="project view">
-                        <span class="navbar_link">DASHBOARD</span>
+                        <span class="navbar-link heading">DASHBOARD</span>
                     </a>
-                    <a class="navbar_link"
+                    <a class="navbar-link"
                        href="{% url 'create-observation-request' %}"
                        aria-label="new project">
-                        <span class="navbar_link">NEW PROJECT</span>
+                        <span class="navbar-link heading">NEW PROJECT</span>
                     </a>
                     {% if perms.accounts.can_generate_invitation %}
-                        <a class="navbar_link"
+                        <a class="navbar-link"
                            href="{% url 'generate-invitation' %}"
                            aria-label="invite">
-                            <span class="navbar_link">USER MANAGEMENT</span>
+                            <span class="navbar-link heading">USER MANAGEMENT</span>
                         </a>
                     {% endif %}
                     <div class="dropdown">
@@ -259,24 +230,26 @@
                             <i class='bx bxs-user'></i>
                         </div>
                         <div id="userDropdown" class="dropdown-content">
-                            <a class="navbar_link" href="{% url 'dsgvo' %}">SETTINGS</a>
-                            <form action="{% url 'logout' %}" method="post">
+                            <a class="navbar-link heading" href="{% url 'dsgvo' %}">SETTINGS</a>
+                            <form class="logout-button-container"
+                                  action="{% url 'logout' %}"
+                                  method="post">
                                 {% csrf_token %}
-                                <button class="logout_button" type="submit">LOGOUT</button>
+                                <button class="logout-button heading" type="submit">LOGOUT</button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
         </header>
-        <div class="min_height">
+        <div class="min-height">
             {% block content %}{% endblock %}
         </div>
-        <footer class="footer_container">
-            <div class="footer_row">
-                <aside class="footer_column">
-                    <h5 class="footer_column_entry">Contact</h5>
-                    <p class="footer_column_entry">
+        <footer class="footer-container">
+            <div class="footer-row">
+                <aside class="footer-column">
+                    <h5 class="footer-column-entry">Contact</h5>
+                    <p class="footer-column-entry">
                         TURM Observatory
                         <br>
                         Fachbereich Physik
@@ -284,14 +257,14 @@
                         Technische Universität Darmstadt
                     </p>
                 </aside>
-                <div class="footer_column">
+                <div class="footer-column">
                     <p>
-                        <a class="grey_link"
+                        <a class="grey-link"
                            href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a>
                     </p>
                     <br>
                     <p>
-                        <a class="grey_link" href="https://github.com/TURMObs/TURMFrontend/">GitHub Repository</a>
+                        <a class="grey-link" href="https://github.com/TURMObs/TURMFrontend/">GitHub Repository</a>
                     </p>
                 </div>
             </div>

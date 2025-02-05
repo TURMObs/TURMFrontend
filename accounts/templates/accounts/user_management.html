@@ -8,7 +8,7 @@
             margin: 30px;
         }
 
-        .content_wrapper {
+        .content-wrapper {
             background-color: #1e1e1e;
             border-radius: 10px;
             padding: 20px;
@@ -259,7 +259,7 @@
 {% block content %}
     <div class="container">
         <!-- Invitation Form -->
-        <div class="content_wrapper">
+        <div class="content-wrapper">
             <h3>Generate Invitation</h3>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             <form id="invitationForm">
@@ -449,7 +449,7 @@
         </div>
     </div>
     <div id="edit-user-modal" class="modal">
-        <div class="content_wrapper">
+        <div class="content-wrapper">
             <h3 id="edit_modal_title">Edit User</h3>
             <form id="editUserForm">
                 {% csrf_token %}
