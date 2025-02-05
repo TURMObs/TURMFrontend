@@ -57,7 +57,7 @@
             background-color: #4CAF50;
         }
 
-        #modal {
+        .modal {
             display: none;
             position: fixed;
             top: 0;
@@ -70,7 +70,37 @@
             align-items: center;
         }
 
-        #modal div {
+        .modal-checkboxes {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-checkboxes > div {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .lifetime-field {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+
+        .lifetime-field label {
+            display: block;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 2px;
+            font-size: 14px;
+        }
+
+
+        #invitation-link-modal div {
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -78,14 +108,86 @@
             position: relative;
         }
 
-        #modal h3 {
+        #edit-user-modal div {
+            background: #333333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        #invitation-link-modal h3 {
             color: black;
         }
 
-        #modal p {
+        #edit-user-modal h3 {
+            color: white;
+        }
+
+        .modal-input-field {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-bottom: 0;
+        }
+
+        #id_remove_quota, #id_remove_lifetime {
+            margin-bottom: 0;
+        }
+
+
+        .modal-input-field input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+
+        .wrapper .modal-input-field {
+            color: #fff;
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .modal-input-field label {
+            font-size: 14px;
+            color: white;
+            padding: 0;
+            margin: 0;
+            pointer-events: auto;
+            white-space: nowrap;
+        }
+
+        .modal-input-field i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            color: var(--tom-light-grey);
+            transform: translateY(-50%);
+            font-size: 20px;
+        }
+
+        .modal-input-field input {
+            border-radius: 10px;
+            padding: 6px;
+            width: 100%;
+            border: none;
+            color: black;
+            font-size: 14px;
+        }
+
+        .modal p {
             color: black;
             word-wrap: break-word;
             margin-bottom: 20px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 10px;
+        }
+
+        .modal .submit-button {
+            margin-top: 10px;
         }
 
 
@@ -160,47 +262,45 @@
         <div class="content_wrapper">
             <h3>Generate Invitation</h3>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
-            <form method="post"
-                  action="{% url 'generate-user-invitation' %}"
-                  id="invitationForm">
+            <form id="invitationForm">
                 {% csrf_token %}
                 <div class="form-group">
-                    <div class="input-field">{{ form.email }}</div>
-                    <div class="input-field">{{ form.username }}</div>
-                    <div class="form-group">
-                        <div class="input-field">
-                            <label for="id_role_selector"></label>
-                            <select name="role"
-                                    id="id_role_selector"
-                                    class="styled-select"
-                                    onchange="checkRoleChange">
-                                {% for value, label in form.role.field.choices %}
-                                    <option value="{{ value }}"
-                                            {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="input-field">{{ invitation_form.email }}</div>
+                    <div class="input-field">{{ invitation_form.username }}</div>
+                    <div class="input-field">
+                        <label for="id_role_selector"></label>
+                        <select name="role"
+                                id="id_role_selector"
+                                class="styled-select"
+                                onchange="checkRoleChange">
+                            {% for value, label in invitation_form.role.field.choices %}
+                                <option value="{{ value }}"
+                                        {% if invitation_form.role.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="form-group">
                         <div class="checkbox-field">
                             <input type="checkbox"
                                    id="id_expert"
                                    name="expert"
-                                   {% if form.expert.value %}checked{% endif %}>
+                                   {% if invitation_form.expert.value %}checked{% endif %}>
                             <label for="id_expert">Expert</label>
                         </div>
                         <div class="checkbox-field">
                             <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
                             <label for="enableQuota">Max. Simultaneous Requests</label>
                         </div>
-                        <div class="input-field" id="quotaField" style="display: none;">{{ form.quota }}</div>
+                        <div class="input-field" id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
                         <div class="checkbox-field">
                             <input type="checkbox"
                                    id="enableLifetime"
                                    onclick="toggleInput('lifetimeField')">
                             <label for="enableLifetime">Limited Usage Time</label>
                         </div>
-                        <div class="input-field" id="lifetimeField" style="display: none;">{{ form.lifetime }}</div>
+                        <div class="input-field" id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
                     </div>
                     <div class="form-group">
                         <button type="button"
@@ -306,6 +406,16 @@
                                                         class="delete-button"
                                                         onclick="deleteUser({{ target_user.id }})">Delete</button>
                                             </form>
+                                            {% if perms.accounts.can_edit_users %}
+                                                <form id="edit-user-{{ target_user.id }}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="button"
+                                                            class="edit-button green-button"
+                                                            onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })">
+                                                        Edit
+                                                    </button>
+                                                </form>
+                                            {% endif %}
                                         </td>
                                     {% endif %}
                                 </tr>
@@ -316,7 +426,7 @@
             </div>
         </div>
     </div>
-    <div id="modal">
+    <div id="invitation-link-modal" class="modal">
         <div>
             <h3>Invitation Link</h3>
             <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
@@ -336,6 +446,42 @@
                            border-radius: 5px;
                            cursor: pointer;
                            margin-left: 10px">Close</button>
+        </div>
+    </div>
+    <div id="edit-user-modal" class="modal">
+        <div class="content_wrapper">
+            <h3 id="edit_modal_title">Edit User</h3>
+            <form id="editUserForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="modal-input-field">{{ edit_user_form.new_email }}</div>
+                    <div class="modal-input-field">{{ edit_user_form.new_alias }}</div>
+                    <div class="modal-checkboxes">
+                        <div id="id_remove_quota">
+                            <input type="checkbox"
+                                   id="remove_quota"
+                                   name="remove_quota"
+                                   onclick="toggleInput('new-quota-field')">
+                            <label for="remove_quota">Remove Quota</label>
+                        </div>
+                        <div id="id_remove_lifetime">
+                            <input type="checkbox"
+                                   id="remove_lifetime"
+                                   name="remove_lifetime"
+                                   onclick="toggleInput('new-lifetime-field')">
+                            <label for="remove_lifetime">Remove Lifetime</label>
+                        </div>
+                    </div>
+                    <div class="modal-input-field" id="new-quota-field">{{ edit_user_form.new_quota }}</div>
+                    <div class="modal-input-field lifetime-field" id="new-lifetime-field">
+                        <label for="id_new_lifetime">New Lifetime</label>
+                        {{ edit_user_form.new_lifetime }}
+                    </div>
+                </div>
+                <input type="hidden" id="edit-user-id" name="user_id">
+                <button type="button" class="green-button" onclick=submitEditUser()>Save Changes</button>
+                <button type="button" onclick="closeModal()">Close</button>
+            </form>
         </div>
     </div>
 {% endblock %}
@@ -366,7 +512,7 @@
                     createInvitation();
                 }
             }
-        })
+        });
 
         function toggleInput(fieldId) {
             const field = document.getElementById(fieldId);
@@ -414,7 +560,7 @@
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
                     document.getElementById('modal-link').textContent = linkData['link'];
-                    document.getElementById('modal').style.display = 'flex'; // Show the modal
+                    document.getElementById('invitation-link-modal').style.display = 'flex';
                 } else {
                     if (linkData['error']) {
                         alert("Failed to create invitation: " + linkData['error']);
@@ -444,13 +590,23 @@
             });
         }
 
-
         function closeModal() {
-            document.getElementById('modal').style.display = 'none';
+            document.getElementById('invitation-link-modal').style.display = 'none';
+            document.getElementById('edit-user-modal').style.display = 'none';
 
             // Clear form inputs
-            const form = document.getElementById('invitationForm');
-            form.reset();
+            const invitationForm = document.getElementById('invitationForm');
+            invitationForm.reset();
+            const editUserForm = document.getElementById('editUserForm');
+            editUserForm.reset();
+            const newQuotaField = document.getElementById('new-quota-field');
+            newQuotaField.style.content = 'none';
+            const newLifetimeField = document.getElementById('new-lifetime-field');
+            newLifetimeField.style.content = 'none';
+            const removeQuota = document.getElementById('id_remove_quota');
+            removeQuota.style.content = 'none';
+            const removeLifetime = document.getElementById('id_remove_lifetime');
+            removeLifetime.style.content = 'none';
             location.reload();
         }
 
@@ -482,6 +638,84 @@
             } catch (error) {
                 alert("Failed to delete the user. Please try again.");
             }
+        }
+
+        function editUser(user) {
+            const id = user.id;
+            const email = user.email;
+            const username = user.username;
+            const currentQuota = user.quota;
+            const currentLifetime = user.lifetime;
+
+            document.getElementById('edit_modal_title').value = email;
+
+            if (currentQuota === "None") {
+                document.getElementById('id_remove_quota').style.display = 'none';
+            } else {
+                document.getElementById('id_remove_quota').style.display = 'block';
+            }
+
+            if (currentLifetime === "None") {
+                document.getElementById('id_remove_lifetime').style.display = 'none';
+            } else {
+                document.getElementById('id_remove_lifetime').style.display = 'block';
+            }
+
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('edit-user-modal').style.display = 'flex';
+            let title;
+            if (username !== email) {
+                title = `Edit user ${username} (${email})`;
+            } else {
+                title = `Edit user ${email}`;
+            }
+            document.getElementById('edit_modal_title').textContent = title;
+            const modalContent = document.querySelector('#edit-user-modal > div');
+            modalContent.style.display = 'flex';
+            modalContent.style.flexDirection = 'column';
+            modalContent.style.alignItems = 'center';
+        }
+
+        async function submitEditUser() {
+            const form = document.getElementById('editUserForm');
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const formData = new FormData(form);
+            if (document.getElementById('new-quota-field').style.display === 'none') {
+                formData.delete('new_quota');
+            }
+
+            if (document.getElementById('new-lifetime-field').style.display === 'none') {
+                formData.delete('new_lifetime');
+            }
+
+            if (document.getElementById('id_remove_quota').style.display === 'none') {
+                formData.delete('remove_quota');
+            }
+
+            if (document.getElementById('id_remove_lifetime').style.display === 'none') {
+                formData.delete('remove_lifetime');
+            }
+
+            try {
+                const response = await fetch("{% url 'edit-user' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData,
+                });
+
+
+                if (response.ok) {
+                    closeModal();
+                    location.reload();
+                } else {
+                    alert("An error occurred while updating the user.");
+                }
+            } catch (error) {
+                alert("Failed to update the user. Please try again.");
+            }
+
         }
 
 

@@ -23,6 +23,7 @@ class UserPermission:
     CAN_SEE_ALL_OBSERVATIONS = "can_see_all_observations"
     CAN_EDIT_ALL_OBSERVATIONS = "can_edit_all_observations"
     CAN_DELETE_USERS = "can_delete_users"
+    CAN_EDIT_USERS = "can_edit_users"
     CAN_DELETE_ALL_OBSERVATIONS = "can_delete_all_observations"
 
 
@@ -88,6 +89,8 @@ class ObservatoryUser(AbstractUser):
             ),
             (UserPermission.CAN_SEE_ALL_OBSERVATIONS, "Can see all observations"),
             (UserPermission.CAN_EDIT_ALL_OBSERVATIONS, "Can edit all observations"),
+            (UserPermission.CAN_DELETE_USERS, "Can delete users"),
+            (UserPermission.CAN_EDIT_USERS, "Can edit users"),
             (UserPermission.CAN_DELETE_ALL_OBSERVATIONS, "Can delete all observations"),
         ]
 
@@ -109,7 +112,7 @@ def generate_invitation_link(
     :param username: The username of the user to invite. Can be None if the user has no username/alias.
     :param quota: The quota for the user. Can be None if the user has unlimited quota.
     :param lifetime: User lifetime. Can be None if the user has unlimited lifetime.
-    :param role: The role of the user. Can be one of "admin", "group_manager", or "user".
+    :param role: The role of the user. Can be one of "admin", "operator", or "user".
     :param expert: Whether the user is an expert.
 
     :return: The generated invitation link, or None if a user with the given email already exists.
