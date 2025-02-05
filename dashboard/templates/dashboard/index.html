@@ -4,6 +4,11 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
           rel='stylesheet'>
     <style>
+
+    .content_wrapper {
+        max-width: 1440px;
+    }
+
     .container {
         margin: 30px;
     }
@@ -21,18 +26,27 @@
     }
 
     .observations-table {
-        margin: 10px;
-        width: calc(100% - 20px);
-        height: calc(100% - 20px);
-        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+
+        border-collapse: collapse;
+        max-width: 100%;
+        table-layout: fixed;
     }
 
-    .observations-table th, td {
-        padding: 8px;
+    .observations-table th, .observations-table td {
+        padding: .5em;
+        border: 1px solid var(--tom-border-grey);
     }
 
     .observations-table th {
         font-weight: bold;
+        background-color: var(--tom-light-grey);
+    }
+
+    .observations-table td {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .left-align {
@@ -90,18 +104,29 @@
                 </div>
             {% else %}
                 <table class="observations-table">
+                    <colgroup>
+                        <col style="width: 124px">
+                        <col>
+                        <col style="width: 96px">
+                        <col style="width: 96px">
+                        {% if perms.accounts.can_see_all_observations %}<col>{% endif %}
+                        <col style="width: 102px;">
+                        {% if perms.accounts.can_see_all_observations %}<col>{% endif %}
+                        <col style="width: 86px;">
+                        <col style="width: 86px;">
+                        <col style="width: 78px;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th class="left-align">Observatory</th>
                             <th class="left-align">Target</th>
                             <th class="left-align">Type</th>
                             <th class="left-align">Filters</th>
-                            <th class="right-align">Exposure Time</th>
                             {% if perms.accounts.can_see_all_observations %}<th class="left-align">User</th>{% endif %}
                             <th class="right-align">Created</th>
                             <th class="right-align">Status</th>
                             <th class="right-align">Progress</th>
-                            <th class="right-align">Priority</th>
+                            {% if perms.accounts.can_see_all_observations %}<th class="right-align">Priority</th>{% endif %}
                             <th class="right-align">Actions</th>
                         </tr>
                     </thead>
@@ -116,30 +141,36 @@
                                         {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
                                     </div>
                                 </td>
-                                <td class="right-align">{{ observation.exposure_time }}</td>
                                 {% if perms.accounts.can_see_all_observations %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
                                 <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 <td class="right-align">{{ observation.project_status }}</td>
                                 <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
                                 {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
-                                <td class="actions-container">
+                                <td class="right-align">
                                     {% if observation.project_status == ObservationStatus.PENDING %}
-                                        <a href="{% url 'edit-observation-request' observation.id %}"
-                                           class="action-icon">
-                                            <i class="bx bx-edit"></i>
-                                        </a>
-                                        <a href="#"
-                                           onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
-                                           class="action-icon">
-                                            <i class="bx bx-trash"></i>
-                                        </a>
+                                        <div class="actions-container">
+                                            <a href="{% url 'edit-observation-request' observation.id %}"
+                                               class="action-icon">
+                                                <i class="bx bx-edit"></i>
+                                            </a>
+                                            <a href="#"
+                                               onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
+                                               class="action-icon">
+                                                <i class="bx bx-trash"></i>
+                                            </a>
+                                        </div>
                                     {% endif %}
                                 </td>
                                 <tr class="expander-row"
                                     id="expander-{{ observation.id }}"
                                     style="display: none">
-                                    <td colspan="5">
+                                {% if perms.accounts.can_see_all_observations %}
+                                    <td colspan="10">
+                                {% else %}
+                                    <td colspan="8">
+                                {% endif %}
                                         <div class="expander-content">
+                                            <p>Exposure Time: {{ observation.exposure_time }}</p>
                                             {% if observation.observation_type == ObservationType.IMAGING %}
                                                 <p>Frames per filter: {{ observation.frames_per_filter }}</p>
                                             {% elif observation.observation_type == ObservationType.EXOPLANET %}
@@ -174,8 +205,8 @@
                         </tbody>
                     </table>
                 {% endif %}
-            </div>
         </div>
+    </div>
     {% endblock %}
     {% block scripts %}
         <script>
