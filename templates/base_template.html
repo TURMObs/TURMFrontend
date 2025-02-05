@@ -65,6 +65,7 @@
     }
 
     .logout-button {
+        cursor: pointer !important;
         background: none !important;
         border: none !important;
         box-shadow: none;
@@ -230,12 +231,12 @@
                             <i class='bx bxs-user'></i>
                         </div>
                         <div id="userDropdown" class="dropdown-content">
-                            <a class="navbar-link heading" href="{% url 'dsgvo' %}">SETTINGS</a>
+                            <a class="navbar-link heading" href="{% url 'dsgvo' %}">Settings</a>
                             <form class="logout-button-container"
                                   action="{% url 'logout' %}"
                                   method="post">
                                 {% csrf_token %}
-                                <button class="logout-button heading" type="submit">LOGOUT</button>
+                                <button class="logout-button heading" type="submit">Logout</button>
                             </form>
                         </div>
                     </div>

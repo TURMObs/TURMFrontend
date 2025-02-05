@@ -21,9 +21,11 @@
     }
 
     .observations-table {
-        margin: 10px;
-        width: calc(100% - 20px);
-        height: calc(100% - 20px);
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        height: calc(100% - 10px);
+        margin: 10px 0px;
         box-sizing: border-box;
     }
 
@@ -31,36 +33,22 @@
         padding: 8px;
     }
 
-    .observations-table th {
-        font-weight: bold;
+    .observation-row {
+        border-top: 1px solid var(--tom-light-grey);
     }
 
-    .left-align {
-        text-align: left;
-    }
-
-    .filter_set_container {
+    .filter-set-container {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0 1em;
+        gap: 8px;
         align-content: center;
-        justify-content: center;
-    }
-
-    .right-align {
-        text-align: right;
-    }
-
-    .observation-row:hover {
-        background-color: var(--tom-light-grey);
-        cursor: pointer;
     }
 
     .actions-container {
         display: flex;
         flex-direction: row;
-        gap: 1em;
+        gap: 18px;
         align-items: center;
+        width: 90px;
     }
 
     .action-icon {
@@ -70,10 +58,20 @@
         width: 32px;
         height: 32px;
         border-radius: 20%;
+        text-decoration: none;
+        cursor: pointer;
     }
 
     .action-icon:hover {
-        background-color: var(--tom-dark-grey);
+        background-color: var(--tom-light-grey);
+    }
+
+    .expand-row-container {
+        width: 40px;
+    }
+
+    .expander-content {
+        margin-left: 48px;
     }
     </style>
 {% endblock %}
@@ -88,36 +86,48 @@
                 <table class="observations-table">
                     <thead>
                         <tr>
-                            <th class="left-align">Observatory</th>
-                            <th class="left-align">Target</th>
-                            <th class="left-align">Type</th>
-                            <th class="left-align">Filters</th>
-                            <th class="right-align">Exposure Time</th>
-                            {% if perms.accounts.can_see_all_observations %}<th class="left-align">User</th>{% endif %}
-                            <th class="right-align">Created</th>
-                            <th class="right-align">Status</th>
-                            <th class="right-align">Progress</th>
-                            <th class="right-align">Priority</th>
-                            <th></th>
+                            <th class="expand-row-container"></th>
+                            <th class="text-medium text-align-left">Observatory</th>
+                            <th class="text-medium text-align-left">Target</th>
+                            <th class="text-medium text-align-left">Type</th>
+                            <th class="text-medium text-align-left">Filters</th>
+                            <th class="text-medium text-align-right">Exposure Time</th>
+                            {% if perms.accounts.can_see_all_observations %}<th class="text-medium text-align-left">User</th>{% endif %}
+                            <th class="text-medium text-align-right">Created</th>
+                            <th class="text-medium text-align-right">Status</th>
+                            <th class="text-medium text-align-right">Progress</th>
+                            <th class="text-medium text-align-right">Priority</th>
+                            <th class="actions-container"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for observation in observations %}
                             <tr class="observation-row" data-id="{{ observation.id }}">
-                                <td class="left-align">{{ observation.observatory.name }}</td>
-                                <td class="left-align">{{ observation.target.name }}</td>
-                                <td class="left-align">{{ observation.observation_type }}</td>
+                                <td class="expand-row-icon-container">
+                                    <div id="expander-trigger-{{ observation.id }}"
+                                         class="action-icon"
+                                         onclick="toggleExpander('{{ observation.id }}')">
+                                        <i class="bx bx-chevron-right"></i>
+                                    </div>
+                                </td>
+                                <td class="text-align-left">{{ observation.observatory.name }}</td>
+                                <td class="text-align-left">{{ observation.target.name }}</td>
+                                <td class="text-align-left">{{ observation.observation_type }}</td>
                                 <td>
-                                    <div class="filter_set_container">
+                                    <div class="filter-set-container">
                                         {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
                                     </div>
                                 </td>
-                                <td class="right-align">{{ observation.exposure_time }}</td>
-                                {% if perms.accounts.can_see_all_observations %}<td class="left-align">{{ observation.user.username }}</td>{% endif %}
-                                <td class="right-align">{{ observation.created_at|date:"d.m.Y" }}</td>
-                                <td class="right-align">{{ observation.project_status }}</td>
-                                <td class="right-align">{{ observation.project_completion|floatformat:"0" }}%</td>
-                                {% if perms.accounts.can_see_all_observations %}<td class="right-align">{{ observation.priority }}</td>{% endif %}
+                                <td class="text-align-right">{{ observation.exposure_time }}</td>
+                                {% if perms.accounts.can_see_all_observations %}
+                                    <td class="text-align-left">{{ observation.user.username }}</td>
+                                {% endif %}
+                                <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
+                                <td class="text-align-right">{{ observation.project_status }}</td>
+                                <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
+                                {% if perms.accounts.can_see_all_observations %}
+                                    <td class="text-align-right">{{ observation.priority }}</td>
+                                {% endif %}
                                 <td class="actions-container">
                                     {% if observation.project_status == ObservationStatus.PENDING %}
                                         <a href="{% url 'edit-observation-request' observation.id %}"
@@ -175,36 +185,18 @@
     {% endblock %}
     {% block scripts %}
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const rows = document.querySelectorAll('.observation-row');
-            let currentlyExpanded = null;
+        function toggleExpander(id) {
+          const expander = document.getElementById(`expander-${id}`);
+          const icon = document.querySelector(`#expander-trigger-${id} i`);
 
-            rows.forEach(row => {
-                row.addEventListener('click', function() {
-                    // Do not expand the row if the user clicked on the edit icon
-                    if (event.target.classList.contains('bx-edit') || event.target.closest('a')) {
-                        return;
-                    }
-
-                    const id = this.getAttribute('data-id');
-                    const expander = document.getElementById(`expander-${id}`);
-
-                    // Close currently expanded row if it's not the one we're clicking
-                    if (currentlyExpanded && currentlyExpanded !== expander) {
-                        currentlyExpanded.style.display = 'none';
-                    }
-
-                    // Toggle the clicked expander
-                    if (expander.style.display === 'none' || expander.style.display === '') {
-                        expander.style.display = 'table-row';
-                        currentlyExpanded = expander;
-                    } else {
-                        expander.style.display = 'none';
-                        currentlyExpanded = null;
-                    }
-                });
-            });
-        });
+          if (expander.style.display === 'none' || expander.style.display === '') {
+              expander.style.display = 'table-row';
+              icon.className = 'bx bx-chevron-down';
+          } else {
+              expander.style.display = 'none';
+              icon.className = 'bx bx-chevron-right';
+          }
+        }
 
         /**
          * Sends api request to delete observation with the given id.

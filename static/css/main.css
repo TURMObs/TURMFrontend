@@ -31,6 +31,33 @@ body {
     background-position: top center;
 }
 
+/* typography */
+
+.heading {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.text {
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.text-medium {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.text-align-left {
+    text-align: left;
+}
+
+.text-align-right {
+    text-align: right;
+}
+
+/* common classes */
+
 .form-wrapper {
     min-width: 512px;
     max-width: 960px;
@@ -42,9 +69,4 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.2);
     background: var(--tom-dark-grey);
     border-radius: 20px;
-}
-
-.heading {
-    font-size: 20px;
-    font-weight: 600;
 }
