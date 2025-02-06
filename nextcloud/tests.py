@@ -571,6 +571,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         # simulate day 0-8. Check if upload_status matches the one in the matrix
         for i in range(9):
+            print(f"Day {i}")
             upload_observations(self._day(i))
             for j, obs in enumerate(test_obs):
                 should_be_uploaded = expected_uploads[j][i]

@@ -246,11 +246,14 @@ def upload_observations(today: datetime.date = timezone.now().date()):
 
     # Handling of observations, that can be uploaded anytime (all non-scheduled observations)
     pending_observations = AbstractObservation.objects.filter(
-        project_status=ObservationStatus.PENDING
+        Q(project_status=ObservationStatus.PENDING)
+        | Q(project_status=ObservationStatus.UPLOADED)
     )
 
     scheduled_observations = []
+    excluded_observations = []
     for obs in pending_observations:
+        print(f"Checking {obs.id} for scheduling.")
         if (
             isinstance(obs, ScheduledObservation)
             and obs.start_scheduling
@@ -260,6 +263,8 @@ def upload_observations(today: datetime.date = timezone.now().date()):
             )
         ):
             scheduled_observations.append(obs)
+        elif obs.project_status == ObservationStatus.UPLOADED:
+            excluded_observations.append(obs)
 
     pending_observations = pending_observations.exclude(
         id__in=[obs.id for obs in scheduled_observations]
@@ -268,8 +273,12 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
     for obs in scheduled_observations:
         if obs.start_scheduling > today or obs.end_scheduling < today:
+            print(
+                f"Decided against uploading {obs.id} because it is not in the scheduling window."
+            )
             continue
         if today != obs.next_upload:
+            print(f"Decided against uploading {obs.id} because it is not due today.")
             continue
         pending_observations = chain(pending_observations, [obs])
 
