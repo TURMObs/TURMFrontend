@@ -14,6 +14,18 @@
     --tom-info-warning: var(--tom-accent-color);
     --tom-info-error: #5a090d;
     --tom-error-color: #e74c3c;
+
+    --primary: #1078c1;
+    --dark: #101213;
+    --medium: #454545;
+    --medium-dark: #212121;
+    --medium-light: #666666;
+    --medium-lighter: #999999;
+    --light: #ffffff;
+
+    --corner-radius-small: 6px;
+    --corner-radius-medium: 8px;
+    --border-small: 2px;
 }
 
 * {
@@ -39,9 +51,20 @@ body {
     font-weight: 600;
 }
 
+.sub-heading {
+    font-size: 18px;
+    font-weight: 600;
+}
+
 .text {
     font-size: 16px;
     font-weight: normal;
+}
+
+.text-secondary {
+    font-size: 16px;
+    font-weight: normal;
+    color: var(--medium-lighter);
 }
 
 .text-medium {
@@ -59,6 +82,25 @@ body {
 
 /* common classes */
 
+.btn {
+    padding: 8px 4px;
+    min-width: 96px;
+    cursor: pointer;
+    border: none;
+    background-color: var(--light);
+    color: var(--dark);
+    border-radius: 8px;
+}
+
+.btn:hover {
+    background-color: var(--light);
+}
+
+.btn-secondary {
+    background-color: var(--medium);
+    color: white;
+}
+
 .form-wrapper {
     min-width: 512px;
     max-width: 960px;
@@ -68,6 +110,6 @@ body {
 .content-wrapper {
     margin: 0 auto;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    background: var(--tom-dark-gray);
+    background: var(--dark);
     border-radius: 20px;
 }

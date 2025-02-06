@@ -8,16 +8,30 @@ input[type="datetime-local"] {
     width: 100%;
     background: transparent;
     outline: none;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 2em;
+    border: 1px solid var(--medium);
+    border-radius: var(--corner-radius-medium);
     font-size: 16px;
     color: #fff;
     padding: 0.75em 1.5em;
 }
 
+label {
+    margin-left: 4px;
+    margin-bottom: 2px;
+    color: var(--medium-lighter);
+}
+
 .grid_input_div button {
     margin-top: 1.5em;
     width: 100%;
+    height: 53px;
+    padding: 8px 4px;
+    min-width: 96px;
+    cursor: pointer;
+    border: none;
+    background-color: var(--medium);
+    color: var(--light);
+    border-radius: 8px;
 }
 
 .radio_input_div,
@@ -32,6 +46,8 @@ input[type="datetime-local"] {
     align-items: center;
     justify-content: center;
     align-content: center;
+    background-color: var(--medium-dark);
+    border-radius: var(--corner-radius-medium);
 }
 
 .radio_input_div input[type="radio"] {
@@ -40,48 +56,26 @@ input[type="datetime-local"] {
 
 .radio_input_div label {
     display: inline-block;
+    cursor: pointer;
 
     flex: 1;
     text-align: center;
     vertical-align: middle;
-    font-weight: bold;
 
-    margin: auto 0;
-
+    margin: 2px;
     padding: 0.5em;
     font-size: 16px;
-    color: #fff;
-
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-right: 0;
+    color: var(--light);
 }
 
 .radio_input_div label:hover {
-    background-color: var(--tom-light-gray);
-}
-.radio_input_div label:nth-child(2) {
-    /* label all the way on the left */
-    padding: 0.5em 0.5em 0.5em 0.75em;
-    -moz-border-radius-topleft: var(--tom-corner-radius-input);
-    -webkit-border-top-left-radius: var(--tom-corner-radius-input);
-    -moz-border-radius-bottomleft: var(--tom-corner-radius-input);
-    -webkit-border-bottom-left-radius: var(--tom-corner-radius-input);
-}
-.radio_input_div label:last-child {
-    /* label all the way on the right */
-    border: 2px solid rgba(255, 255, 255, 0.2);
-
-    padding: 0.5em 0.75em 0.5em 0.5em;
-
-    -moz-border-radius-topright: var(--tom-corner-radius-input);
-    -webkit-border-top-right-radius: var(--tom-corner-radius-input);
-    -moz-border-radius-bottomright: var(--tom-corner-radius-input);
-    -webkit-border-bottom-right-radius: var(--tom-corner-radius-input);
+    background-color: var(--medium);
+    border-radius: var(--corner-radius-small);
 }
 
 .radio_input_div input[type="radio"]:checked + label {
-    background-color: var(--tom-primary-color);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background-color: var(--medium);
+    border-radius: var(--corner-radius-small);
 }
 
 .radio_input_div input[type="radio"]:checked + label + input + label {
@@ -89,7 +83,8 @@ input[type="datetime-local"] {
 }
 
 .radio_input_div input:checked + label:hover {
-    background-color: var(--tom-primary-color-dark);
+    background-color: var(--medium);
+    border-radius: var(--corner-radius-small);
 }
 
 .measurement_unit {
@@ -104,22 +99,44 @@ input[type="datetime-local"] {
 .checkbox_input_div {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-
-    padding: 0.75em 1.5em;
-
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--tom-corner-radius-input);
-
-    margin-bottom: 1em;
+    justify-content: start;
+    flex-wrap: wrap;
+    border-radius: var(--corner-radius-small);
 }
 
 .checkbox_input_div div {
     display: flex;
-    gap: 0.5em;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+}
 
-    font-weight: bold;
-    margin-bottom: 0;
+input[type="checkbox"] {
+    display: none;
+}
+
+input[type="checkbox"] + label {
+    color: var(--light);
+    height: 40px;
+    cursor: pointer;
+    border-radius: var(--corner-radius-medium);
+    background-color: var(--dark);
+    border: var(--border-small) solid var(--medium);
+    padding: 4px 16px;
+    text-align: center;
+}
+
+input[type="checkbox"]:checked + label {
+    background-color: var(--medium);
+}
+
+input[type="checkbox"]:not(:checked):hover + label {
+    background-color: var(--medium-dark);
+}
+
+input[type="checkbox"]:disabled + label {
+    border: var(--border-small) solid var(--medium-dark);
+    color: var(--medium);
 }
 
 .tooltip {
@@ -160,7 +177,7 @@ input[type="datetime-local"] {
 
     padding: 0.75em 1.5em;
     margin-top: 1em;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: var(--border-small) solid rgba(255, 255, 255, 0.2);
     border-radius: var(--tom-corner-radius-input);
 }
 
