@@ -253,7 +253,6 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     scheduled_observations = []
     excluded_observations = []
     for obs in pending_observations:
-        print(f"Checking {obs.id} for scheduling.")
         if (
             isinstance(obs, ScheduledObservation)
             and obs.start_scheduling
@@ -273,12 +272,8 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
     for obs in scheduled_observations:
         if obs.start_scheduling > today or obs.end_scheduling < today:
-            print(
-                f"Decided against uploading {obs.id} because it is not in the scheduling window."
-            )
             continue
         if today != obs.next_upload:
-            print(f"Decided against uploading {obs.id} because it is not due today.")
             continue
         pending_observations = chain(pending_observations, [obs])
 
