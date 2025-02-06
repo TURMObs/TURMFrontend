@@ -129,6 +129,8 @@ body {
     justify-content: center;
     width: 32px;
     height: 32px;
+    border: none;
+    background: var(--dark);
     border-radius: var(--corner-radius-medium);
     text-decoration: none;
     cursor: pointer;
@@ -141,7 +143,7 @@ body {
 .form-wrapper {
     min-width: 512px;
     max-width: 960px;
-    padding: 30px 40px;
+    padding: 32px;
 }
 
 .content-wrapper {
@@ -149,4 +151,8 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.2);
     background: var(--dark);
     border-radius: 20px;
+}
+
+.content-container {
+    padding: 32px;
 }
