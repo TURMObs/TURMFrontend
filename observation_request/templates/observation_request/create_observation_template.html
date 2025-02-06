@@ -10,7 +10,7 @@
     }
 
     .button-container {
-        padding-top: 8px;
+        padding-top: 24px;
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -112,7 +112,7 @@
             {% endfor %}
             {% csrf_token %}
             <div class="button-container">
-                <button type="submit">Create Observation</button>
+                <button class="btn" type="submit">Create Observation</button>
             </div>
         </form>
     </div>

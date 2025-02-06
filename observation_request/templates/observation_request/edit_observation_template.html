@@ -10,8 +10,13 @@
     <link rel='stylesheet'
           href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
     <style>
+        .modal-header-container {
+            display: flex;
+            justify-content: left;
+        }
+
         .button-container {
-            padding-top: 8px;
+            padding-top: 24px;
             display: flex;
             justify-content: flex-end;
             align-items: center;
@@ -19,7 +24,11 @@
         }
 
         .form-heading {
-            margin-bottom: 8px;
+            margin-top: 24px;
+        }
+
+        .form-container {
+            margin: 8px 0px;
         }
     </style>
 {% endblock %}
@@ -87,23 +96,24 @@
 {% block content %}
     <div class="content-wrapper form-wrapper">
         <header>
-            <div class="container_center">
-                <h1>Edit Observation</h1>
+            <div class="modal-header-container">
+                <p class="heading">Edit Observation</p>
             </div>
         </header>
-        <form class="input_form"
-              id="form"
+        <form id="form"
               onsubmit="submitForm(event, this, '{{ edit_form_url }}', '{% url "dashboard" %}')">
             {% for name, form in forms %}
                 <article>
-                    <h2 class="form-heading">{{ name }}</h2>
-                    <div>{{ form }}</div>
+                    <p class="form-heading sub-heading">{{ name }}</p>
+                    <div class="form-container">{{ form }}</div>
                 </article>
             {% endfor %}
             {% csrf_token %}
             <div class="button-container">
-                <button type="button" onclick="window.location.href='/'">Cancel</button>
-                <button type="submit">Save changes</button>
+                <button class="btn-secondary"
+                        type="button"
+                        onclick="window.location.href='/'">Cancel</button>
+                <button class="btn" type="submit">Save changes</button>
             </div>
         </form>
     </div>

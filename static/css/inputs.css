@@ -82,11 +82,6 @@ label {
     border-left: 0;
 }
 
-.radio_input_div input:checked + label:hover {
-    background-color: var(--medium);
-    border-radius: var(--corner-radius-small);
-}
-
 .measurement_unit {
     margin-left: -100%;
 }
