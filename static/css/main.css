@@ -2,14 +2,14 @@
 @import url("https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css");
 
 :root {
-    --tom-light-grey: #313131;
-    --tom-dark-grey: #242424;
+    --tom-light-gray: #313131;
+    --tom-dark-gray: #242424;
     --tom-white: white;
     --tom-white-dark: #eee;
     --tom-primary-color: #1078c1;
     --tom-primary-color-dark: #2550aa;
     --tom-accent-color: #f5b11dff;
-    --tom-disabled-grey: #777777;
+    --tom-secondary-gray: #777777;
     --tom-info-ok: #66913a;
     --tom-info-warning: var(--tom-accent-color);
     --tom-info-error: #5a090d;
@@ -23,6 +23,7 @@
     box-sizing: border-box;
     font-family: "Poppins", sans-serif;
     font-size: 16px;
+    font-weight: normal;
 }
 
 body {
@@ -67,6 +68,6 @@ body {
 .content-wrapper {
     margin: 0 auto;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    background: var(--tom-dark-grey);
+    background: var(--tom-dark-gray);
     border-radius: 20px;
 }

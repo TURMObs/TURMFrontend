@@ -14,7 +14,7 @@
     <style>
     .navbar {
         margin-bottom: 1em;
-        background-color: var(--tom-light-grey);
+        background-color: var(--tom-light-gray);
         display: flex;
         align-content: center;
         justify-content: center;
@@ -57,7 +57,7 @@
 
 
     .navbar-link:hover {
-        background: var(--tom-dark-grey);
+        background: var(--tom-dark-gray);
     }
 
     .logout-button-container {
@@ -75,50 +75,37 @@
     }
 
     .footer-container {
+        height: 256px;
         display: flex;
         justify-content: center;
-
-        background-color: var(--tom-light-grey);
-
-        margin-top: 2em;
-        height: 256px;
-
-        border-bottom: solid 5px;
+        background-color: var(--tom-light-gray);
+        border-top: solid 5px;
         border-color: var(--tom-primary-color);
     }
 
     .footer-row {
-        display: flex;
-
-        margin: 2em;
         width: 1140px;
-
+        margin: 2em;
+        display: flex;
         justify-content: space-between;
     }
 
     .footer-column {
         display: flex;
         flex-flow: column;
-
         margin: 1em;
-
-        font-size: 1.2em;
-        font-weight: 500;
-        line-height: 1.25em;
     }
 
     .footer-column-entry {
         margin-bottom: .6em;
     }
 
-    .grey-link {
-        color: var(--tom-disabled-grey);
-
-        font-weight: bold;
+    .footer-link {
         text-decoration: none;
+        color: var(--tom-secondary-gray);
     }
 
-    .grey-link:hover {
+    .footer-link:hover {
         color: var(--tom-white);
     }
 
@@ -148,7 +135,7 @@
     }
 
     .dropdown-trigger:hover {
-        background: var(--tom-dark-grey);
+        background: var(--tom-dark-gray);
     }
 
     .dropdown-trigger i {
@@ -163,7 +150,7 @@
         display: none;
         position: absolute;
         right: 0;
-        background-color: var(--tom-dark-grey);
+        background-color: var(--tom-dark-gray);
         border: 2px solid rgba(255, 255, 255, 0.2);
         border-radius: 8px;
         padding: 12px;
@@ -248,25 +235,21 @@
         </div>
         <footer class="footer-container">
             <div class="footer-row">
-                <aside class="footer-column">
-                    <h5 class="footer-column-entry">Contact</h5>
-                    <p class="footer-column-entry">
+                <div class="footer-column">
+                    <p class="text-medium footer-column-entry">Contact</p>
+                    <p class="text footer-column-entry">
                         TURM Observatory
                         <br>
                         Fachbereich Physik
                         <br>
                         Technische Universität Darmstadt
                     </p>
-                </aside>
-                <div class="footer-column">
-                    <p>
-                        <a class="grey-link"
-                           href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a>
-                    </p>
+                </div>
+                <div class="footer-column text-align-right">
+                    <a class="footer-link"
+                       href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a>
                     <br>
-                    <p>
-                        <a class="grey-link" href="https://github.com/TURMObs/TURMFrontend/">GitHub Repository</a>
-                    </p>
+                    <a class="footer-link" href="https://github.com/TURMObs/TURMFrontend/">GitHub Repository</a>
                 </div>
             </div>
         </footer>
