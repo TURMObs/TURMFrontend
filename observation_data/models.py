@@ -151,9 +151,9 @@ class ScheduledObservation(AbstractObservation):
     class Meta:
         abstract = True
 
-    start_scheduling = models.DateTimeField(blank=True, null=True)
-    end_scheduling = models.DateTimeField(blank=True, null=True)
-    next_upload = models.DateTimeField(blank=True, null=True)
+    start_scheduling = models.DateField(blank=True, null=True)
+    end_scheduling = models.DateField(blank=True, null=True)
+    next_upload = models.DateField(blank=True, null=True)
     cadence = models.IntegerField(blank=True, null=True)
 
 

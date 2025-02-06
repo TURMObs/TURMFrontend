@@ -96,7 +96,7 @@ def _update_observation(validated_data, existing_observation, observation_type, 
     if observation_type in priorities:
         validated_data["priority"] = existing_observation.priority
 
-    if issubclass(model, ScheduledObservation):
+    if issubclass(model, ScheduledObservation) and "start_scheduling" in validated_data:
         validated_data["next_upload"] = validated_data["start_scheduling"]
 
     filter_set = validated_data.pop("filter_set")
@@ -189,8 +189,8 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     )
 
     if (
-            not exposure_settings.exists()
-            and instance.observation_type != ObservationType.EXPERT
+        not exposure_settings.exists()
+        and instance.observation_type != ObservationType.EXPERT
     ):
         raise serializers.ValidationError(
             f"Exposure settings for observatory {instance.observatory.name} and observation type {instance.observation_type} not found"
@@ -244,7 +244,11 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
 
 
 def _validate_fields(
-        attrs, validate_times=False, validate_scheduling=False, exclude_observation_ids=None, return_errors=False
+    attrs,
+    validate_times=False,
+    validate_scheduling=False,
+    exclude_observation_ids=None,
+    return_errors=False,
 ):
     if exclude_observation_ids is None:
         exclude_observation_ids = []
@@ -273,7 +277,11 @@ def _validate_fields(
             errors = {**errors, **time_errors}
 
     if validate_scheduling:
-        if not attrs.get("start_scheduling") or not attrs.get("end_scheduling") and not observation_type == ObservationType.EXPERT:
+        if (
+            not attrs.get("start_scheduling")
+            or not attrs.get("end_scheduling")
+            and not observation_type == ObservationType.EXPERT
+        ):
             errors["scheduling"] = "Both scheduling times are required."
         if attrs.get("start_scheduling") and attrs.get("end_scheduling"):
             time_errors = validate_schedule_time(
@@ -452,8 +460,11 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(attrs=attrs, validate_scheduling=True,
-                         exclude_observation_ids=[self.instance.id] if self.instance else [])
+        _validate_fields(
+            attrs=attrs,
+            validate_scheduling=True,
+            exclude_observation_ids=[self.instance.id] if self.instance else [],
+        )
         return attrs
 
     def create(self, validated_data):
@@ -507,9 +518,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         exclude_ids = [self.instance.id] if self.instance else []
         errors = _validate_fields(
-            attrs,
-            exclude_observation_ids=exclude_ids,
-            return_errors=True
+            attrs, exclude_observation_ids=exclude_ids, return_errors=True
         )
         start_observation = attrs.get("start_observation")
         end_observation = attrs.get("end_observation")
@@ -517,21 +526,31 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         end_observation_time = attrs.get("end_observation_time")
         start_scheduling = attrs.get("start_scheduling")
         end_scheduling = attrs.get("end_scheduling")
+        cadence = attrs.get("cadence")
         if start_scheduling or end_scheduling:
-            # Scheduled observations with times instead of dates
+            # Scheduled observations with possible times instead of dates
             if not (start_scheduling and end_scheduling):
                 print(start_scheduling, end_scheduling)
                 errors["scheduling"] = "Both scheduling times are required."
+            if not cadence:
+                errors["cadence"] = "Cadence is required for scheduled observations."
             if start_observation or end_observation:
-                errors["observation_dates"] = "Observation dates not allowed for scheduled observations."
-            if (start_observation_time or end_observation_time) and not (start_observation_time and end_observation_time):
+                errors["observation_dates"] = (
+                    "Observation dates not allowed for scheduled observations."
+                )
+            if (start_observation_time or end_observation_time) and not (
+                start_observation_time and end_observation_time
+            ):
                 errors["observation_time"] = "Both observation times are required."
             if start_observation_time and end_observation_time:
                 time_errors = validate_observation_time(
                     start_observation_time,
                     end_observation_time,
                     attrs.get("observatory"),
-                    exclude_ids,
+                    exclude_observation_ids=exclude_ids,
+                    date_included=False,
+                    start_scheduling=start_scheduling,
+                    end_scheduling=end_scheduling,
                 )
                 if time_errors:
                     errors = {**errors, **time_errors}
@@ -545,10 +564,14 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
 
         else:
             # Unscheduled observations with possible observation date
-            if (start_observation or end_observation) and not (start_observation and end_observation):
+            if (start_observation or end_observation) and not (
+                start_observation and end_observation
+            ):
                 errors["observation_dates"] = "Both observation dates are required."
             if start_observation_time or end_observation_time:
-                errors["observation_time"] = "Observation times not allowed for unscheduled observations."
+                errors["observation_time"] = (
+                    "Observation times not allowed for unscheduled observations."
+                )
             if start_observation and end_observation:
                 time_errors = validate_observation_time(
                     start_observation,
@@ -582,14 +605,12 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         }
 
         if instance.start_scheduling and instance.end_scheduling:
-            additional_fields["targets"] = [{
-                "startDateTime": str(
-                    instance.start_scheduling.replace(tzinfo=None)
-                ).strip(),
-                "endDateTime": str(
-                    instance.end_scheduling.replace(tzinfo=None)
-                ).strip()
-            }]
+            additional_fields["targets"] = [
+                {
+                    "startDateTime": str(instance.start_scheduling).strip(),
+                    "endDateTime": str(instance.end_scheduling).strip(),
+                }
+            ]
 
         exposure_fields = {
             "subFrame": instance.subframe,

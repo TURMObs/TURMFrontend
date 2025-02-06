@@ -56,6 +56,7 @@ def _create_user_and_login(test_instance):
 
 class ObservationCreationTestCase(django.test.TestCase):
     def setUp(self):
+        self.maxDiff = None
         self.user = None
         self.client = django.test.Client()
         _create_user_and_login(self)
@@ -146,7 +147,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def _test_observation_insert(
-            self, observation_type, additional_data=None, flat=False, expected_status=201
+        self, observation_type, additional_data=None, flat=False, expected_status=201
     ):
         data = self.base_request.copy() if not flat else self._get_flat_base_request()
         data["observation_type"] = observation_type
@@ -231,8 +232,8 @@ class ObservationCreationTestCase(django.test.TestCase):
             ObservationType.MONITORING,
             {
                 "frames_per_filter": 100,
-                "start_scheduling": base_time.replace(hour=0, minute=0, second=0).isoformat(),
-                "end_scheduling": (base_time + timedelta(days=1)).replace(hour=1, minute=0, second=0).isoformat(),
+                "start_scheduling": base_time.date(),
+                "end_scheduling": base_time.date() + timedelta(days=2),
                 "cadence": 1,
             },
         )
@@ -243,8 +244,8 @@ class ObservationCreationTestCase(django.test.TestCase):
             ObservationType.MONITORING,
             {
                 "frames_per_filter": 100,
-                "start_scheduling": base_time.replace(hour=0, minute=0, second=0).isoformat(),
-                "end_scheduling": (base_time + timedelta(days=1)).replace(hour=1, minute=0, second=0).isoformat(),
+                "start_scheduling": base_time.date(),
+                "end_scheduling": base_time.date() + timedelta(days=2),
                 "cadence": 1,
             },
             flat=True,
@@ -269,7 +270,9 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_expert_insert(self):
         self.user.is_superuser = True
         self.user.save()
-        self._test_observation_insert(ObservationType.EXPERT, self._get_base_expert_request(), flat=False)
+        self._test_observation_insert(
+            ObservationType.EXPERT, self._get_base_expert_request(), flat=False
+        )
         observation = AbstractObservation.objects.get()
         self.assertEqual(observation.subframe, 0.5)
 
@@ -321,14 +324,14 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def _test_exoplanet_overlap(
-            self,
-            start1,
-            end1,
-            start2,
-            end2,
-            expected_status_code,
-            obs1="TURMX",
-            obs2="TURMX",
+        self,
+        start1,
+        end1,
+        start2,
+        end2,
+        expected_status_code,
+        obs1="TURMX",
+        obs2="TURMX",
     ):
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.EXOPLANET
@@ -464,9 +467,16 @@ class ObservationCreationTestCase(django.test.TestCase):
             obs2="TURMX2",
         )
 
-    def _test_expert_options(self, expected_status_code, start_scheduling=None,
-                             end_scheduling=None, start_observation=None, end_observation=None,
-                             start_observation_time=None, end_observation_time=None):
+    def _test_expert_options(
+        self,
+        expected_status_code,
+        start_scheduling=None,
+        end_scheduling=None,
+        start_observation=None,
+        end_observation=None,
+        start_observation_time=None,
+        end_observation_time=None,
+    ):
         self.user.is_superuser = True
         self.user.save()
         base_request = self._get_base_expert_request()
@@ -483,47 +493,162 @@ class ObservationCreationTestCase(django.test.TestCase):
         if end_observation_time:
             base_request["end_observation_time"] = end_observation_time
 
-        return self._test_observation_insert(ObservationType.EXPERT, base_request, expected_status=expected_status_code)
+        return self._test_observation_insert(
+            ObservationType.EXPERT, base_request, expected_status=expected_status_code
+        )
 
     def test_expert_no_scheduling_no_time(self):
         self._test_expert_options(201)
 
     def test_expert_scheduling_no_time(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        self._test_expert_options(201, start_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
-                                  end_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+        self._test_expert_options(
+            201,
+            start_scheduling=base_time.date(),
+            end_scheduling=base_time.date() + timedelta(days=5),
+        )
 
     def test_expert_scheduling_time(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        self._test_expert_options(201, start_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
-                                    end_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat(),
-                                    start_observation_time=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
-                                    end_observation_time=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+        self._test_expert_options(
+            201,
+            start_scheduling=base_time.date(),
+            end_scheduling=base_time.date() + timedelta(days=5),
+            start_observation_time=base_time.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            .time()
+            .isoformat(),
+            end_observation_time=base_time.replace(
+                hour=1, minute=0, second=0, microsecond=0
+            )
+            .time()
+            .isoformat(),
+        )
 
     def test_expert_no_scheduling_observation_date(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        self._test_expert_options(201, start_observation=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
-                                  end_observation=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+        self._test_expert_options(
+            201,
+            start_observation=base_time.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ).isoformat(),
+            end_observation=base_time.replace(
+                hour=1, minute=0, second=0, microsecond=0
+            ).isoformat(),
+        )
 
     def test_expert_invalid_scheduling(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        errors = self._test_expert_options(400, start_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat(),
-                                  end_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat())
-        self.assertEqual(errors, {"scheduling_range": ["Start scheduling must be before end scheduling."]})
+        errors = self._test_expert_options(
+            400, start_scheduling=base_time.date(), end_scheduling=base_time.date()
+        )
+        self.assertEqual(
+            errors,
+            {"scheduling_range": ["Start scheduling must be before end scheduling."]},
+        )
 
     def test_expert_past_scheduling(self):
         base_time = datetime.now(timezone.utc) - timedelta(days=1)
-        errors = self._test_expert_options(400, start_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
-                                  end_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
-        self.assertEqual(errors, {"start_scheduling": ["Start scheduling must be in the future."]})
+        errors = self._test_expert_options(
+            400,
+            start_scheduling=base_time.date(),
+            end_scheduling=base_time.date() + timedelta(days=5),
+        )
+        self.assertEqual(
+            errors, {"start_scheduling": ["Start scheduling must be in the future."]}
+        )
 
     def test_expert_invalid_scheduling_valid_time(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        errors = self._test_expert_options(400, start_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat(),
-                                  end_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
-                                  start_observation_time=base_time.replace(hour=0, minute=0, second=0, microsecond=0).time().isoformat(),
-                                  end_observation_time=base_time.replace(hour=1, minute=0, second=0, microsecond=0).time().isoformat())
-        self.assertEqual(errors, {"scheduling_range": ["Start scheduling must be before end scheduling."]})
+        errors = self._test_expert_options(
+            400,
+            start_scheduling=base_time.date(),
+            end_scheduling=base_time.date(),
+            start_observation_time=base_time.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            .time()
+            .isoformat(),
+            end_observation_time=base_time.replace(
+                hour=1, minute=0, second=0, microsecond=0
+            )
+            .time()
+            .isoformat(),
+        )
+        self.assertEqual(
+            errors,
+            {"scheduling_range": ["Start scheduling must be before end scheduling."]},
+        )
+
+    def test_expert_scheduling_times_overlap(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = self.base_request.copy()
+        conflicting_start = (base_time + timedelta(days=1)).replace(
+            hour=2, minute=0, second=0, microsecond=0
+        )
+        conflicting_end = (base_time + timedelta(days=1)).replace(
+            hour=7, minute=0, second=0, microsecond=0
+        )
+        data["observation_type"] = ObservationType.EXOPLANET
+        data["start_observation"] = conflicting_start.isoformat()
+        data["end_observation"] = conflicting_end.isoformat()
+        response = self._send_post_request(data)
+        data = self.base_request.copy()
+        data["observation_type"] = ObservationType.EXOPLANET
+        data["start_observation"] = (
+            (base_time + timedelta(days=2))
+            .replace(hour=8, minute=0, second=0, microsecond=0)
+            .isoformat()
+        )
+        data["end_observation"] = (
+            (base_time + timedelta(days=2))
+            .replace(hour=17, minute=0, second=0, microsecond=0)
+            .isoformat()
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        data["observation_type"] = ObservationType.EXOPLANET
+        data["start_observation"] = (
+            (base_time + timedelta(days=6))
+            .replace(hour=2, minute=0, second=0, microsecond=0)
+            .isoformat()
+        )
+        data["end_observation"] = (
+            (base_time + timedelta(days=6))
+            .replace(hour=7, minute=0, second=0, microsecond=0)
+            .isoformat()
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        errors = self._test_expert_options(
+            400,
+            start_scheduling=base_time.date(),
+            end_scheduling=base_time.date() + timedelta(days=5),
+            start_observation_time=base_time.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            .time()
+            .isoformat(),
+            end_observation_time=base_time.replace(
+                hour=3, minute=0, second=0, microsecond=0
+            )
+            .time()
+            .isoformat(),
+        )
+        self.assertIn("overlapping_observations", errors)
+        self.assertEqual(len(errors["overlapping_observations"]), 1)
+        expected_error = {
+            "overlapping_observations": [
+                {
+                    "start_observation": conflicting_start.strftime(
+                        "%Y-%m-%d %H:%M:%S+00:00"
+                    ),
+                    "end_observation": conflicting_end.strftime(
+                        "%Y-%m-%d %H:%M:%S+00:00"
+                    ),
+                }
+            ]
+        }
+        self.assertEqual(errors, expected_error)
 
     def test_invalid_ra_format(self):
         data = self._get_flat_base_request()
@@ -618,8 +743,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["subframe"] = 0
         data["gain"] = 1
         data["exposure_time"] = 1801  # invalid because it's out of range
-        data["start_scheduling"] = start.isoformat()
-        data["end_scheduling"] = end.isoformat()
+        data["start_scheduling"] = start.date()
+        data["end_scheduling"] = end.date() + timedelta(days=5)
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -903,12 +1028,8 @@ class EditObservationTestCase(django.test.TestCase):
             },
             "cadence": 1,
             "exposure_time": 30.0,
-            "start_scheduling": base_time.replace(
-                hour=22, minute=0, second=0
-            ).isoformat(),
-            "end_scheduling": (base_time + timedelta(days=2))
-            .replace(hour=23, minute=0, second=0)
-            .isoformat(),
+            "start_scheduling": base_time.date(),
+            "end_scheduling": base_time.date() + timedelta(days=2),
             "observation_type": ObservationType.MONITORING,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
@@ -931,12 +1052,6 @@ class EditObservationTestCase(django.test.TestCase):
             "priority": 5000,
             "cadence": 1,
             "exposure_time": 30.0,
-            "start_scheduling": base_time.replace(
-                hour=22, minute=0, second=0
-            ).isoformat(),
-            "end_scheduling": (base_time + timedelta(days=2))
-            .replace(hour=23, minute=0, second=0)
-            .isoformat(),
             "observation_type": ObservationType.EXPERT,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
@@ -1134,12 +1249,8 @@ class JsonFormattingTestCase(django.test.TestCase):
             },
             "cadence": 1,
             "exposure_time": 30.0,
-            "start_scheduling": base_time.replace(
-                hour=22, minute=0, second=0
-            ).isoformat(),
-            "end_scheduling": (base_time + timedelta(days=2))
-            .replace(hour=23, minute=0, second=0)
-            .isoformat(),
+            "start_scheduling": base_time.date(),
+            "end_scheduling": base_time.date() + timedelta(days=5),
             "observation_type": ObservationType.MONITORING,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
@@ -1227,7 +1338,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         return errors
 
     def _test_serialization(
-            self, target_name, serializer_class, file_name, remove_start_end=False
+        self, target_name, serializer_class, file_name, remove_start_end=False
     ):
         serializer = serializer_class(
             serializer_class.Meta.model.objects.get(target__name=target_name)
@@ -1297,12 +1408,6 @@ class JsonFormattingTestCase(django.test.TestCase):
             "end_observation": target_day.replace(
                 hour=1, minute=0, second=0
             ).isoformat(),
-            "start_scheduling": target_day.replace(
-                hour=0, minute=0, second=0
-            ).isoformat(),
-            "end_scheduling": target_day.replace(
-                hour=1, minute=0, second=0
-            ).isoformat(),
             "cadence": 1,
             "moon_separation_angle": 30.0,
             "moon_separation_width": 7.0,
@@ -1348,8 +1453,8 @@ class ObservationManagementTestCase(django.test.TestCase):
         nextcloud_manager.prefix = self.old_prefix
 
     def create_test_observation(
-            self,
-            obs_id: int,
+        self,
+        obs_id: int,
     ):
         """
         Creates imaging observations from scratch without checks from serializers
