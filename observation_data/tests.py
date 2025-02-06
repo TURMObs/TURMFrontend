@@ -146,14 +146,15 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def _test_observation_insert(
-            self, observation_type, additional_data=None, flat=False
+            self, observation_type, additional_data=None, flat=False, expected_status=201
     ):
         data = self.base_request.copy() if not flat else self._get_flat_base_request()
         data["observation_type"] = observation_type
         if additional_data:
             data.update(additional_data)
         response = self._send_post_request(data)
-        self.assertEqual(response.status_code, 201, response.json())
+        self.assertEqual(response.status_code, expected_status, response.json())
+        return response.json()
 
     def test_imaging_insert(self):
         self._test_observation_insert(
@@ -249,58 +250,35 @@ class ObservationCreationTestCase(django.test.TestCase):
             flat=True,
         )
 
-    def test_expert_insert(self):
-        base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
+    @staticmethod
+    def _get_base_expert_request():
+        return {
+            "frames_per_filter": 100,
+            "dither_every": 1.0,
+            "binning": 1,
+            "subframe": 0.5,
+            "gain": 1,
+            "offset": 1,
+            "cadence": 1,
+            "moon_separation_angle": 30.0,
+            "moon_separation_width": 7.0,
+            "minimum_altitude": 35,
+            "priority": 100,
+        }
 
+    def test_expert_insert(self):
         self.user.is_superuser = True
         self.user.save()
-        self._test_observation_insert(
-            ObservationType.EXPERT,
-            {
-                "frames_per_filter": 100,
-                "dither_every": 1.0,
-                "binning": 1,
-                "subframe": 0.5,
-                "gain": 1,
-                "offset": 1,
-                "start_observation": start.isoformat(),
-                "end_observation": end.isoformat(),
-                "cadence": 1,
-                "moon_separation_angle": 30.0,
-                "moon_separation_width": 7.0,
-                "minimum_altitude": 35,
-                "priority": 100,
-            },
-        )
+        self._test_observation_insert(ObservationType.EXPERT, self._get_base_expert_request(), flat=False)
         observation = AbstractObservation.objects.get()
         self.assertEqual(observation.subframe, 0.5)
 
     def test_expert_insert_flat(self):
-        base_time = datetime.now(timezone.utc) + timedelta(days=1)
-        start = base_time.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = base_time.replace(hour=1, minute=0, second=0, microsecond=0)
-
         self.user.is_superuser = True
         self.user.save()
         self._test_observation_insert(
             ObservationType.EXPERT,
-            {
-                "frames_per_filter": 100,
-                "dither_every": 1.0,
-                "binning": 1,
-                "subframe": 1.0,
-                "gain": 1,
-                "offset": 1,
-                "start_observation": start.isoformat(),
-                "end_observation": end.isoformat(),
-                "cadence": 1,
-                "moon_separation_angle": 30.0,
-                "moon_separation_width": 7.0,
-                "minimum_altitude": 35,
-                "priority": 100,
-            },
+            self._get_base_expert_request(),
             flat=True,
         )
 
@@ -318,7 +296,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 1
         data["dither_every"] = 1.0
         data["binning"] = 1
-        data["subframe"] = "Full"
+        data["subframe"] = 1.0
         data["gain"] = 1
         response = self._send_post_request(data)
         self.assertEqual(response.status_code, 403, response.json())
@@ -485,6 +463,67 @@ class ObservationCreationTestCase(django.test.TestCase):
             obs1="TURMX",
             obs2="TURMX2",
         )
+
+    def _test_expert_options(self, expected_status_code, start_scheduling=None,
+                             end_scheduling=None, start_observation=None, end_observation=None,
+                             start_observation_time=None, end_observation_time=None):
+        self.user.is_superuser = True
+        self.user.save()
+        base_request = self._get_base_expert_request()
+        if start_scheduling:
+            base_request["start_scheduling"] = start_scheduling
+        if end_scheduling:
+            base_request["end_scheduling"] = end_scheduling
+        if start_observation:
+            base_request["start_observation"] = start_observation
+        if end_observation:
+            base_request["end_observation"] = end_observation
+        if start_observation_time:
+            base_request["start_observation_time"] = start_observation_time
+        if end_observation_time:
+            base_request["end_observation_time"] = end_observation_time
+
+        return self._test_observation_insert(ObservationType.EXPERT, base_request, expected_status=expected_status_code)
+
+    def test_expert_no_scheduling_no_time(self):
+        self._test_expert_options(201)
+
+    def test_expert_scheduling_no_time(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        self._test_expert_options(201, start_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
+                                  end_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+
+    def test_expert_scheduling_time(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        self._test_expert_options(201, start_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
+                                    end_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat(),
+                                    start_observation_time=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
+                                    end_observation_time=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+
+    def test_expert_no_scheduling_observation_date(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        self._test_expert_options(201, start_observation=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
+                                  end_observation=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+
+    def test_expert_invalid_scheduling(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        errors = self._test_expert_options(400, start_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat(),
+                                  end_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat())
+        self.assertEqual(errors, {"scheduling_range": ["Start scheduling must be before end scheduling."]})
+
+    def test_expert_past_scheduling(self):
+        base_time = datetime.now(timezone.utc) - timedelta(days=1)
+        errors = self._test_expert_options(400, start_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
+                                  end_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat())
+        self.assertEqual(errors, {"start_scheduling": ["Start scheduling must be in the future."]})
+
+    def test_expert_invalid_scheduling_valid_time(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        errors = self._test_expert_options(400, start_scheduling=base_time.replace(hour=1, minute=0, second=0, microsecond=0).isoformat(),
+                                  end_scheduling=base_time.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(),
+                                  start_observation_time=base_time.replace(hour=0, minute=0, second=0, microsecond=0).time().isoformat(),
+                                  end_observation_time=base_time.replace(hour=1, minute=0, second=0, microsecond=0).time().isoformat())
+        self.assertEqual(errors, {"scheduling_range": ["Start scheduling must be before end scheduling."]})
 
     def test_invalid_ra_format(self):
         data = self._get_flat_base_request()

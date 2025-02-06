@@ -630,8 +630,11 @@ def get_serializer(observation_type):
     :param observation_type: Type of observation
     :return: Serializer for the observation or None if not found
     """
-    if observation_type in type_serializer_mapping:
-        return type_serializer_mapping[observation_type]
-    if observation_type in serializer_mapping:
-        return serializer_mapping[observation_type]
-    return None
+    try:
+        if observation_type in type_serializer_mapping:
+            return type_serializer_mapping[observation_type]
+        if observation_type in serializer_mapping:
+            return serializer_mapping[observation_type]
+        return None
+    except TypeError:
+        return None

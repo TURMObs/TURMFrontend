@@ -54,7 +54,7 @@ def _assert_matches_regex(name, value, regex):
 
 
 def _check_overlapping_observation(
-    start_observation, end_observation, observatory, exclude_observation_ids
+        start_observation, end_observation, observatory, exclude_observation_ids, start_scheduling=None, end_scheduling=None, date_included=True
 ) -> list:
     """
     Check if an observation overlaps with any existing observations.
@@ -62,8 +62,13 @@ def _check_overlapping_observation(
     :param end_observation: End time of the observation
     :param observatory: Observatory name
     :param exclude_observation_ids: List of observations to exclude from the check
+    :param start_scheduling: Start scheduling. Used for checking overlapping observations for timed observations
+    :param end_scheduling: End scheduling. Used for checking overlapping observations for timed observations
+    :param date_included: Boolean indicating if the date is included in the time. If start_scheduling and end_scheduling are provided, date_included has to be False
     :return: List of overlapping observation times
     """
+    if (start_scheduling or end_scheduling) and date_included:
+        raise ValueError("If start_scheduling and end_scheduling are provided, date_included has to be False")
     overlapping_exoplanet = list(
         ExoplanetObservation.objects.filter(
             observatory=observatory,
@@ -143,13 +148,13 @@ def verify_field_integrity(name, value, observation_type):
             if not isinstance(value, str):
                 return {"Must be a string."}
         case (
-            "observatory"
-            | "user"
-            | "start_observation"
-            | "end_observation"
-            | "start_scheduling"
-            | "end_scheduling"
-            | "observation_type"
+        "observatory"
+        | "user"
+        | "start_observation"
+        | "end_observation"
+        | "start_scheduling"
+        | "end_scheduling"
+        | "observation_type"
         ):
             return None
         case _:
@@ -176,20 +181,34 @@ def verify_filter_selection(filters, observatory):
 
 
 def validate_observation_time(
-    start_time, end_time, observatory, exclude_observation_ids
+        start_time, end_time, observatory, exclude_observation_ids, date_included=True, start_scheduling=None,
+        end_scheduling=None
 ):
     """
     Validate that the start time is before the end time and that the observation does not overlap with existing observations for the selected Observatory.
     Also checks that the start time is in the future.
-    :param start_time: Start time
-    :param end_time: End time
+    :param start_time: Start (date-)time
+    :param end_time: End (date-)time
     :param observatory: Observatory name
+    :param exclude_observation_ids: List of observations to exclude from the check
+    :param date_included: Boolean indicating if the date is included in the time
+    :param start_scheduling: Start scheduling. Used for checking overlapping observations for timed observations
+    :param end_scheduling: End scheduling. Used for checking overlapping observations for timed observations
     :return: Error if the time range is invalid or None if the time range is valid
     """
 
     errors = {}
     if start_time >= end_time:
         errors = {**errors, "time_range": "Start time must be before end time."}
+
+    overlapping = _check_overlapping_observation(
+        start_time, end_time, observatory, exclude_observation_ids, start_scheduling, end_scheduling
+    )
+    if len(overlapping) != 0:
+        errors = {**errors, "overlapping_observations": overlapping}
+
+    if not date_included:
+        return errors
 
     if start_time <= timezone.now():
         errors = {**errors, "start_time": "Start time must be in the future."}
@@ -199,12 +218,6 @@ def validate_observation_time(
             **errors,
             "year_range": "Start time must be within the next 10 years.",
         }
-
-    overlapping = _check_overlapping_observation(
-        start_time, end_time, observatory, exclude_observation_ids
-    )
-    if len(overlapping) != 0:
-        errors = {**errors, "overlapping_observations": overlapping}
 
     return errors
 
