@@ -232,7 +232,7 @@ def update_observations(today: datetime.date = timezone.now().date()):
     update_scheduled_observations(today)
 
 
-def upload_observations(today=timezone.now()):
+def upload_observations(today: datetime.date = timezone.now().date()):
     """
     Uploads all observations with project_status "upload_pending" from the database to the nextcloud and updates the status accordingly.
 
@@ -262,11 +262,10 @@ def upload_observations(today=timezone.now()):
             scheduled_observations.append(obs)
 
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
-    local_day = timezone.now().date()
     for obs in scheduled_observations:
-        if obs.start_scheduling > local_day or obs.end_scheduling < local_day:
+        if obs.start_scheduling > today or obs.end_scheduling < today:
             continue
-        if local_day != obs.next_upload:
+        if today != obs.next_upload:
             continue
         pending_observations = chain(pending_observations, [obs])
 
