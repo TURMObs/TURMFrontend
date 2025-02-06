@@ -745,7 +745,6 @@ class NextcloudSyncTestCase(django.test.TestCase):
         """
         Complex test of a scheduled observation. Time interval of 10 days and cadence 3 but new upload is delayed.
         """
-
         # fmt: off
         nm.initialize_connection()
         nm.mkdir(f"{self.prefix}/TURMX/Projects")

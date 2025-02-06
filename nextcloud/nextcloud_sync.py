@@ -261,6 +261,10 @@ def upload_observations(today: datetime.date = timezone.now().date()):
         ):
             scheduled_observations.append(obs)
 
+    pending_observations = pending_observations.exclude(
+        id__in=[obs.id for obs in scheduled_observations]
+    )
+
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
     for obs in scheduled_observations:
         if obs.start_scheduling > today or obs.end_scheduling < today:

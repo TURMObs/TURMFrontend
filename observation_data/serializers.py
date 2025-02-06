@@ -531,7 +531,6 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         if start_scheduling or end_scheduling:
             # Scheduled observations with possible times instead of dates
             if not (start_scheduling and end_scheduling):
-                print(start_scheduling, end_scheduling)
                 errors["scheduling"] = "Both scheduling times are required."
             if not cadence:
                 errors["cadence"] = "Cadence is required for scheduled observations."
