@@ -92,7 +92,9 @@ def update_non_scheduled_observations():
         if isinstance(obs, ScheduledObservation) and obs.start_scheduling:
             excluded_observations.append(obs)
 
-    observations = observations.exclude(id__in=[obs.id for obs in excluded_observations])
+    observations = observations.exclude(
+        id__in=[obs.id for obs in excluded_observations]
+    )
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
@@ -146,7 +148,9 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
         if not obs.start_scheduling:
             excluded_observations.append(obs)
 
-    observations = observations.exclude(id__in=[obs.id for obs in excluded_observations])
+    observations = observations.exclude(
+        id__in=[obs.id for obs in excluded_observations]
+    )
 
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
@@ -247,7 +251,14 @@ def upload_observations(today=timezone.now()):
 
     scheduled_observations = []
     for obs in pending_observations:
-        if isinstance(obs, ScheduledObservation) and  obs.start_scheduling and (obs.project_status == ObservationStatus.PENDING or obs.project_status == ObservationStatus.UPLOADED):
+        if (
+            isinstance(obs, ScheduledObservation)
+            and obs.start_scheduling
+            and (
+                obs.project_status == ObservationStatus.PENDING
+                or obs.project_status == ObservationStatus.UPLOADED
+            )
+        ):
             scheduled_observations.append(obs)
 
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation

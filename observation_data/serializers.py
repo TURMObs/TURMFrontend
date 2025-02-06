@@ -608,8 +608,12 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         if instance.start_observation and instance.end_observation:
             additional_fields["targets"] = [
                 {
-                    "startDateTime": instance.start_observation.strftime("%Y-%m-%d %H:%M:%S"),
-                    "endDateTime": instance.end_observation.strftime("%Y-%m-%d %H:%M:%S"),
+                    "startDateTime": instance.start_observation.strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
+                    "endDateTime": instance.end_observation.strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
                 }
             ]
 
