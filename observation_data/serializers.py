@@ -508,7 +508,6 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         exclude_ids = [self.instance.id] if self.instance else []
         errors = _validate_fields(
             attrs,
-            validate_scheduling=True,
             exclude_observation_ids=exclude_ids,
             return_errors=True
         )
@@ -518,39 +517,47 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         end_observation_time = attrs.get("end_observation_time")
         start_scheduling = attrs.get("start_scheduling")
         end_scheduling = attrs.get("end_scheduling")
-        if (start_scheduling and not end_scheduling) or (end_scheduling and not start_scheduling):
-            errors["scheduling"] = "Both scheduling times are required."
+        if start_scheduling or end_scheduling:
+            # Scheduled observations with times instead of dates
+            if not (start_scheduling and end_scheduling):
+                print(start_scheduling, end_scheduling)
+                errors["scheduling"] = "Both scheduling times are required."
+            if start_observation or end_observation:
+                errors["observation_dates"] = "Observation dates not allowed for scheduled observations."
+            if (start_observation_time or end_observation_time) and not (start_observation_time and end_observation_time):
+                errors["observation_time"] = "Both observation times are required."
+            if start_observation_time and end_observation_time:
+                time_errors = validate_observation_time(
+                    start_observation_time,
+                    end_observation_time,
+                    attrs.get("observatory"),
+                    exclude_ids,
+                )
+                if time_errors:
+                    errors = {**errors, **time_errors}
 
-        if start_scheduling and not start_observation_time:
-            errors["scheduling_time"] = "Scheduling requires observation time."
-        elif not start_scheduling and start_observation_time:
-            errors["scheduling_time"] = "Observation time requires scheduling."
-        if (start_observation and not end_observation) or (end_observation and not start_observation):
-            errors["observation_date"] = "Both observation dates are required."
-        if (start_observation_time and not end_observation_time) or (
-                end_observation_time and not start_observation_time):
-            errors["observation_time"] = "Both observation times are required."
-        if (start_observation or end_observation) and (start_observation_time or end_observation_time):
-            errors["observation_date_time_conflict"] = "Either provide observation dates or times, not both."
+            schedule_errors = validate_schedule_time(
+                start_scheduling,
+                end_scheduling,
+            )
+            if schedule_errors:
+                errors = {**errors, **schedule_errors}
 
-        if start_observation and end_observation:
-            time_errors = validate_observation_time(
-                start_observation,
-                end_observation,
-                attrs.get("observatory"),
-                exclude_ids,
-            )
-            if time_errors:
-                errors = {**errors, **time_errors}
-        elif start_observation_time and end_observation_time:
-            time_errors = validate_observation_time(
-                start_observation_time,
-                end_observation_time,
-                attrs.get("observatory"),
-                exclude_ids,
-            )
-            if time_errors:
-                errors = {**errors, **time_errors}
+        else:
+            # Unscheduled observations with possible observation date
+            if (start_observation or end_observation) and not (start_observation and end_observation):
+                errors["observation_dates"] = "Both observation dates are required."
+            if start_observation_time or end_observation_time:
+                errors["observation_time"] = "Observation times not allowed for unscheduled observations."
+            if start_observation and end_observation:
+                time_errors = validate_observation_time(
+                    start_observation,
+                    end_observation,
+                    attrs.get("observatory"),
+                    exclude_ids,
+                )
+                if time_errors:
+                    errors = {**errors, **time_errors}
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -572,23 +579,18 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "minimumAltitude": instance.minimum_altitude,
             "priority": instance.priority,
             "cadence": instance.cadence,
-            "targets": [
-                {
-                    "startDateTime": str(
-                        instance.start_observation.replace(tzinfo=None)
-                    ).strip(),
-                    "endDateTime": str(
-                        instance.end_observation.replace(tzinfo=None)
-                    ).strip(),
-                    "startDateTimeScheduling": str(
-                        instance.start_scheduling.replace(tzinfo=None)
-                    ).strip(),
-                    "endDateTimeScheduling": str(
-                        instance.end_scheduling.replace(tzinfo=None)
-                    ).strip(),
-                }
-            ],
         }
+
+        if instance.start_scheduling and instance.end_scheduling:
+            additional_fields["targets"] = [{
+                "startDateTime": str(
+                    instance.start_scheduling.replace(tzinfo=None)
+                ).strip(),
+                "endDateTime": str(
+                    instance.end_scheduling.replace(tzinfo=None)
+                ).strip()
+            }]
+
         exposure_fields = {
             "subFrame": instance.subframe,
             "binning": instance.binning,

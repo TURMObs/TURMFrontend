@@ -146,7 +146,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def _test_observation_insert(
-        self, observation_type, additional_data=None, flat=False
+            self, observation_type, additional_data=None, flat=False
     ):
         data = self.base_request.copy() if not flat else self._get_flat_base_request()
         data["observation_type"] = observation_type
@@ -225,23 +225,25 @@ class ObservationCreationTestCase(django.test.TestCase):
         )
 
     def test_monitoring_insert(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_observation_insert(
             ObservationType.MONITORING,
             {
                 "frames_per_filter": 100,
-                "start_scheduling": "2021-01-01T00:00:00Z",
-                "end_scheduling": "2021-01-01T01:00:00Z",
+                "start_scheduling": base_time.replace(hour=0, minute=0, second=0).isoformat(),
+                "end_scheduling": (base_time + timedelta(days=1)).replace(hour=1, minute=0, second=0).isoformat(),
                 "cadence": 1,
             },
         )
 
     def test_monitoring_insert_flat(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
         self._test_observation_insert(
             ObservationType.MONITORING,
             {
                 "frames_per_filter": 100,
-                "start_scheduling": "2021-01-01T00:00:00Z",
-                "end_scheduling": "2021-01-01T01:00:00Z",
+                "start_scheduling": base_time.replace(hour=0, minute=0, second=0).isoformat(),
+                "end_scheduling": (base_time + timedelta(days=1)).replace(hour=1, minute=0, second=0).isoformat(),
                 "cadence": 1,
             },
             flat=True,
@@ -265,8 +267,6 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "offset": 1,
                 "start_observation": start.isoformat(),
                 "end_observation": end.isoformat(),
-                "start_scheduling": start.isoformat(),
-                "end_scheduling": end.isoformat(),
                 "cadence": 1,
                 "moon_separation_angle": 30.0,
                 "moon_separation_width": 7.0,
@@ -295,8 +295,6 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "offset": 1,
                 "start_observation": start.isoformat(),
                 "end_observation": end.isoformat(),
-                "start_scheduling": start.isoformat(),
-                "end_scheduling": end.isoformat(),
                 "cadence": 1,
                 "moon_separation_angle": 30.0,
                 "moon_separation_width": 7.0,
@@ -345,14 +343,14 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.assertEqual(response.status_code, 201, response.json())
 
     def _test_exoplanet_overlap(
-        self,
-        start1,
-        end1,
-        start2,
-        end2,
-        expected_status_code,
-        obs1="TURMX",
-        obs2="TURMX",
+            self,
+            start1,
+            end1,
+            start2,
+            end2,
+            expected_status_code,
+            obs1="TURMX",
+            obs2="TURMX",
     ):
         data = self.base_request.copy()
         data["observation_type"] = ObservationType.EXOPLANET
@@ -425,12 +423,6 @@ class ObservationCreationTestCase(django.test.TestCase):
             hour=0, minute=0, second=0, microsecond=0
         ).isoformat()
         data["end_observation"] = base_time.replace(
-            hour=1, minute=0, second=0, microsecond=0
-        ).isoformat()
-        data["start_scheduling"] = base_time.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ).isoformat()
-        data["end_scheduling"] = base_time.replace(
             hour=1, minute=0, second=0, microsecond=0
         ).isoformat()
         data["cadence"] = 1
@@ -565,12 +557,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["end_observation"] = base_time.replace(
             hour=1, minute=0, second=0, microsecond=0
         ).isoformat()
-        data["start_scheduling"] = base_time.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ).isoformat()
-        data["end_scheduling"] = base_time.replace(
-            hour=1, minute=0, second=0, microsecond=0
-        ).isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -593,8 +579,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["subframe"] = 0
         data["gain"] = 1
         data["exposure_time"] = 1801  # invalid because it's out of range
-        data["start_observation"] = start.isoformat()
-        data["end_observation"] = end.isoformat()
         data["start_scheduling"] = start.isoformat()
         data["end_scheduling"] = end.isoformat()
         data["cadence"] = 1
@@ -624,8 +608,6 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["exposure_time"] = 1800
         data["start_observation"] = start.isoformat()
         data["end_observation"] = end.isoformat()
-        data["start_scheduling"] = start.isoformat()
-        data["end_scheduling"] = end.isoformat()
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
@@ -821,7 +803,7 @@ class EditObservationTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, ImagingObservation.objects.get().id)
+        return data, ImagingObservation.objects.get().id
 
     def _create_exoplanet_observation(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -896,7 +878,7 @@ class EditObservationTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, MonitoringObservation.objects.get().id)
+        return data, MonitoringObservation.objects.get().id
 
     def _create_expert_observation(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -938,7 +920,7 @@ class EditObservationTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, ExpertObservation.objects.get().id)
+        return data, ExpertObservation.objects.get().id
 
     def test_no_user(self):
         self.client.logout()
@@ -1206,7 +1188,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         return errors
 
     def _test_serialization(
-        self, target_name, serializer_class, file_name, remove_start_end=False
+            self, target_name, serializer_class, file_name, remove_start_end=False
     ):
         serializer = serializer_class(
             serializer_class.Meta.model.objects.get(target__name=target_name)
@@ -1327,8 +1309,8 @@ class ObservationManagementTestCase(django.test.TestCase):
         nextcloud_manager.prefix = self.old_prefix
 
     def create_test_observation(
-        self,
-        obs_id: int,
+            self,
+            obs_id: int,
     ):
         """
         Creates imaging observations from scratch without checks from serializers
