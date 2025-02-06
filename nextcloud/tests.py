@@ -2,6 +2,7 @@ import django
 from django.utils import timezone
 from django.core.management import call_command
 import django.test
+from nc_py_api import NextcloudException
 
 from nextcloud import nextcloud_manager as nm, nextcloud_manager
 from accounts.models import ObservatoryUser
@@ -159,6 +160,11 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.old_prefix = self.prefix
         nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
         self.prefix = f"{self.nc_prefix}{self.prefix}"
+        try:
+            nextcloud_manager.delete(self.prefix)
+            nextcloud_manager.mkdir(self.prefix)
+        except NextcloudException:
+            pass
 
     def tearDown(self):
         nextcloud_manager.prefix = self.old_prefix
