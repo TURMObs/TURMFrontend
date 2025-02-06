@@ -67,6 +67,9 @@
 {% block content %}
     <div class="container">
         <div class="content-wrapper">
+            <button onclick="showModal('Title', 'This is a test message!', { buttons: [{ text: 'Button 1', onClick: () => alert('Button 1 clicked') }, { text: 'Button 2', onClick: () => hideModal()}] })">
+                Show Modal
+            </button>
             {% if observations|length == 0 %}
                 <div class="empty-container">
                     <p class="empty-text">Submitted observations will show up here.</p>

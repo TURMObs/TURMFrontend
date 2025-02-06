@@ -230,6 +230,17 @@
                 </div>
             </div>
         </header>
+        <div id="modal" class="modal">
+            <!-- Modal content -->
+            <div class="modal-container">
+                <div class="modal-content">
+                    <p id="modal-title" class="sub-heading"></p>
+                    <p id="modal-message" class="text"></p>
+                </div>
+                <div id="modal-seperator" class="modal-seperator"></div>
+                <div id="modal-actions" class="modal-actions"></div>
+            </div>
+        </div>
         <div class="min-height">
             {% block content %}{% endblock %}
         </div>
@@ -253,5 +264,6 @@
                 </div>
             </div>
         </footer>
+        <script src="{% static '/js/modal.js' %}"></script>
     </body>
 </html>
