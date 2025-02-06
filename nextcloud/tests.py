@@ -335,8 +335,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
         project_completion: float = 0.0,
         priority: int = 1,
         exposure_time: float = 10.0,
-        start_scheduling: datetime = timezone.now(),
-        end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
+        start_scheduling: datetime.date = timezone.now().date(),
+        end_scheduling: datetime.date = timezone.now().date() + timedelta(days=1),
         dither_every: float = 10.0,
         binning: int = 1,
         gain: int = 10,
@@ -403,10 +403,12 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.user = ObservatoryUser.objects.get(username=admin_username)
         self.client.force_login(self.user)
 
-    def _day(self, d: int):
-        return timezone.now() + timedelta(days=d)
+    @staticmethod
+    def _day(d: int):
+        return timezone.now().date() + timedelta(days=d)
 
-    def _obs_exists_in_nextcloud(self, obs: AbstractObservation) -> bool:
+    @staticmethod
+    def _obs_exists_in_nextcloud(obs: AbstractObservation) -> bool:
         """
         Checks if observation exists in nextcloud. Works by trying to download the observation.
 

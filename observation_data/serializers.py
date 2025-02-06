@@ -4,6 +4,7 @@ For a usage example, see the create_observation view in the views.py file.
 """
 
 from collections import OrderedDict
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.utils import timezone
@@ -604,11 +605,24 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "cadence": instance.cadence,
         }
 
-        if instance.start_scheduling and instance.end_scheduling:
+        if instance.start_observation and instance.end_observation:
             additional_fields["targets"] = [
                 {
-                    "startDateTime": str(instance.start_scheduling).strip(),
-                    "endDateTime": str(instance.end_scheduling).strip(),
+                    "startDateTime": instance.start_observation.strftime("%Y-%m-%d %H:%M:%S"),
+                    "endDateTime": instance.end_observation.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            ]
+
+        if instance.start_observation_time and instance.end_observation_time:
+            base_date = timezone.now().date()
+            start_date = datetime.combine(base_date, instance.start_observation_time)
+            end_date = datetime.combine(base_date, instance.end_observation_time)
+            if start_date > end_date:
+                end_date += timedelta(days=1)
+            additional_fields["targets"] = [
+                {
+                    "startDateTime": start_date.strftime("%H:%M:%S"),
+                    "endDateTime": end_date.strftime("%H:%M:%S"),
                 }
             ]
 

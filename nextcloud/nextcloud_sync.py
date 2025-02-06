@@ -85,7 +85,14 @@ def update_non_scheduled_observations():
 
     observations = AbstractObservation.objects.filter(
         project_status=ObservationStatus.UPLOADED
-    ).not_instance_of(ScheduledObservation)
+    )
+
+    excluded_observations = []
+    for obs in observations:
+        if isinstance(obs, ScheduledObservation) and obs.start_scheduling:
+            excluded_observations.append(obs)
+
+    observations = observations.exclude(id__in=[obs.id for obs in excluded_observations])
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
@@ -117,12 +124,11 @@ def update_non_scheduled_observations():
         obs.save()
 
 
-def update_scheduled_observations(today: datetime = timezone.now()):
+def update_scheduled_observations(today: datetime.date = timezone.now().date()):
     """
     Downloads all scheduled observations from the nextcloud, checks for progress and updates database accordingly.
 
-    :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
-
+    :param today: datetime.date; default=timezone.now().date(). Can be changed for debugging purposes.
     """
     try:
         nm.initialize_connection()
@@ -134,6 +140,13 @@ def update_scheduled_observations(today: datetime = timezone.now()):
         Q(project_status=ObservationStatus.PENDING)
         | Q(project_status=ObservationStatus.UPLOADED)
     )
+
+    excluded_observations = []
+    for obs in observations:
+        if not obs.start_scheduling:
+            excluded_observations.append(obs)
+
+    observations = observations.exclude(id__in=[obs.id for obs in excluded_observations])
 
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
@@ -164,8 +177,8 @@ def update_scheduled_observations(today: datetime = timezone.now()):
 
         if (
             partial_progress != 0.0
-            and timezone.localdate(new_upload) <= timezone.localdate(obs.end_scheduling)
-            and timezone.localdate(today) >= timezone.localdate(obs.next_upload)
+            and new_upload <= obs.end_scheduling
+            and today >= obs.next_upload
         ):
             # Following conditions must be met to schedule a new upload:
             # - there has been progress for the first time
@@ -205,11 +218,11 @@ def update_scheduled_observations(today: datetime = timezone.now()):
         obs.save()
 
 
-def update_observations(today: datetime = timezone.now()):
+def update_observations(today: datetime.date = timezone.now().date()):
     """
     Wrapper method for calling 'download_non_scheduled_observations' and 'download_scheduled_observations'.
 
-    :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
+    :param today: datetime; default=timezone.now().date. Can be changed for debugging purposes.
     """
     update_non_scheduled_observations()
     update_scheduled_observations(today)
@@ -230,22 +243,19 @@ def upload_observations(today=timezone.now()):
     # Handling of observations, that can be uploaded anytime (all non-scheduled observations)
     pending_observations = AbstractObservation.objects.filter(
         project_status=ObservationStatus.PENDING
-    ).not_instance_of(ScheduledObservation)
+    )
+
+    scheduled_observations = []
+    for obs in pending_observations:
+        if isinstance(obs, ScheduledObservation) and  obs.start_scheduling and (obs.project_status == ObservationStatus.PENDING or obs.project_status == ObservationStatus.UPLOADED):
+            scheduled_observations.append(obs)
 
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
-    scheduled_observations = AbstractObservation.objects.instance_of(
-        ScheduledObservation
-    ).filter(
-        Q(project_status=ObservationStatus.PENDING)
-        | Q(project_status=ObservationStatus.UPLOADED)
-    )
-    local_day = timezone.localdate(today)
+    local_day = timezone.now().date()
     for obs in scheduled_observations:
-        if (timezone.localdate(obs.start_scheduling) > local_day) or timezone.localdate(
-            obs.end_scheduling
-        ) < local_day:
+        if obs.start_scheduling > local_day or obs.end_scheduling < local_day:
             continue
-        if local_day != timezone.localdate(obs.next_upload):
+        if local_day != obs.next_upload:
             continue
         pending_observations = chain(pending_observations, [obs])
 
