@@ -48,7 +48,7 @@ base_fields = [
 
 def _create_observation(validated_data, observation_type, model):
     """
-    Create an instance of an observation model.
+    Create a model instance of an observation model.
     :param validated_data: Data to create the observation
     :param observation_type: Type of observation
     :param model: Model to create
@@ -66,7 +66,7 @@ def _create_observation(validated_data, observation_type, model):
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
 
-    if issubclass(model, ScheduledObservation):
+    if issubclass(model, ScheduledObservation) and "start_scheduling" in validated_data:
         validated_data["next_upload"] = validated_data["start_scheduling"]
 
     filter_set = validated_data.pop("filter_set")
@@ -189,8 +189,8 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     )
 
     if (
-        not exposure_settings.exists()
-        and instance.observation_type != ObservationType.EXPERT
+            not exposure_settings.exists()
+            and instance.observation_type != ObservationType.EXPERT
     ):
         raise serializers.ValidationError(
             f"Exposure settings for observatory {instance.observatory.name} and observation type {instance.observation_type} not found"
@@ -244,8 +244,10 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
 
 
 def _validate_fields(
-    attrs, validate_times=False, validate_scheduling=False, exclude_observation_ids=[]
+        attrs, validate_times=False, validate_scheduling=False, exclude_observation_ids=None, return_errors=False
 ):
+    if exclude_observation_ids is None:
+        exclude_observation_ids = []
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
@@ -271,12 +273,18 @@ def _validate_fields(
             errors = {**errors, **time_errors}
 
     if validate_scheduling:
-        time_errors = validate_schedule_time(
-            attrs.get("start_scheduling"),
-            attrs.get("end_scheduling"),
-        )
-        if time_errors:
-            errors = {**errors, **time_errors}
+        if not attrs.get("start_scheduling") or not attrs.get("end_scheduling") and not observation_type == ObservationType.EXPERT:
+            errors["scheduling"] = "Both scheduling times are required."
+        if attrs.get("start_scheduling") and attrs.get("end_scheduling"):
+            time_errors = validate_schedule_time(
+                attrs.get("start_scheduling"),
+                attrs.get("end_scheduling"),
+            )
+            if time_errors:
+                errors = {**errors, **time_errors}
+
+    if return_errors:
+        return errors
 
     if errors:
         raise serializers.ValidationError(errors)
@@ -444,7 +452,8 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(attrs)
+        _validate_fields(attrs=attrs, validate_scheduling=True,
+                         exclude_observation_ids=[self.instance.id] if self.instance else [])
         return attrs
 
     def create(self, validated_data):
@@ -484,6 +493,8 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "offset",
             "start_observation",
             "end_observation",
+            "start_observation_time",
+            "end_observation_time",
             "start_scheduling",
             "end_scheduling",
             "cadence",
@@ -494,11 +505,55 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(
+        exclude_ids = [self.instance.id] if self.instance else []
+        errors = _validate_fields(
             attrs,
-            validate_times=True,
-            exclude_observation_ids=[self.instance.id] if self.instance else [],
+            validate_scheduling=True,
+            exclude_observation_ids=exclude_ids,
+            return_errors=True
         )
+        start_observation = attrs.get("start_observation")
+        end_observation = attrs.get("end_observation")
+        start_observation_time = attrs.get("start_observation_time")
+        end_observation_time = attrs.get("end_observation_time")
+        start_scheduling = attrs.get("start_scheduling")
+        end_scheduling = attrs.get("end_scheduling")
+        if (start_scheduling and not end_scheduling) or (end_scheduling and not start_scheduling):
+            errors["scheduling"] = "Both scheduling times are required."
+
+        if start_scheduling and not start_observation_time:
+            errors["scheduling_time"] = "Scheduling requires observation time."
+        elif not start_scheduling and start_observation_time:
+            errors["scheduling_time"] = "Observation time requires scheduling."
+        if (start_observation and not end_observation) or (end_observation and not start_observation):
+            errors["observation_date"] = "Both observation dates are required."
+        if (start_observation_time and not end_observation_time) or (
+                end_observation_time and not start_observation_time):
+            errors["observation_time"] = "Both observation times are required."
+        if (start_observation or end_observation) and (start_observation_time or end_observation_time):
+            errors["observation_date_time_conflict"] = "Either provide observation dates or times, not both."
+
+        if start_observation and end_observation:
+            time_errors = validate_observation_time(
+                start_observation,
+                end_observation,
+                attrs.get("observatory"),
+                exclude_ids,
+            )
+            if time_errors:
+                errors = {**errors, **time_errors}
+        elif start_observation_time and end_observation_time:
+            time_errors = validate_observation_time(
+                start_observation_time,
+                end_observation_time,
+                attrs.get("observatory"),
+                exclude_ids,
+            )
+            if time_errors:
+                errors = {**errors, **time_errors}
+
+        if errors:
+            raise serializers.ValidationError(errors)
         return attrs
 
     def create(self, validated_data):
