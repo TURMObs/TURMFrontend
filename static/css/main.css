@@ -84,6 +84,17 @@ body {
 
 /* common classes */
 
+.textbox {
+    width: 100%;
+    background: transparent;
+    outline: none;
+    border: 1px solid var(--medium);
+    border-radius: var(--corner-radius-medium);
+    font-size: 16px;
+    color: var(--light);
+    padding: 0.75em 1.5em;
+}
+
 .btn {
     padding: 8px 16px;
     min-width: 96px;
@@ -104,11 +115,26 @@ body {
     cursor: pointer;
     border: none;
     background-color: var(--medium-dark);
-    color: var(--white);
+    color: var(--light);
     border-radius: var(--corner-radius-medium);
 }
 
 .btn-secondary:hover {
+    background-color: var(--medium);
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--corner-radius-medium);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.icon-btn:hover {
     background-color: var(--medium);
 }
 

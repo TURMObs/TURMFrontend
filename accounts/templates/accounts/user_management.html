@@ -36,23 +36,6 @@
             border: 1px solid #444444
         }
 
-        button {
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px 15px;
-            transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
-            margin-right: 10px;
-        }
-
-        button:hover {
-            background-color: #da190b;
-            color: white;
-            border-color: white;
-        }
-
         .green-button:hover {
             background-color: #4CAF50;
         }
@@ -253,14 +236,13 @@
             font-weight: normal;
             color: #f1f1f1;
         }
-
     </style>
 {% endblock %}
 {% block content %}
     <div class="container">
         <!-- Invitation Form -->
         <div class="content-wrapper">
-            <h3>Generate Invitation</h3>
+            <p class="heading">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             <form id="invitationForm">
                 {% csrf_token %}

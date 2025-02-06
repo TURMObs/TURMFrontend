@@ -51,17 +51,6 @@
         width: 90px;
     }
 
-    .action-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 20%;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
     .action-icon:hover {
         background-color: var(--medium);
     }
@@ -131,12 +120,12 @@
                                 <td class="actions-container">
                                     {% if observation.project_status == ObservationStatus.PENDING %}
                                         <a href="{% url 'edit-observation-request' observation.id %}"
-                                           class="action-icon">
+                                           class="icon-btn">
                                             <i class="bx bx-edit"></i>
                                         </a>
                                         <a href="#"
                                            onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
-                                           class="action-icon">
+                                           class="icon-btn">
                                             <i class="bx bx-trash"></i>
                                         </a>
                                     {% endif %}
