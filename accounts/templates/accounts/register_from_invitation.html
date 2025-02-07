@@ -6,20 +6,81 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TURM Login</title>
-        <link rel="stylesheet"
-              href="{% static "/css/register_from_invitation.css" %}">
+        <link rel="stylesheet" href="{% static "/css/main.css" %}">
         <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
               rel='stylesheet'>
+        <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .content-container {
+            width: 420px;
+            border: 2px solid var(--medium);
+            background: var(--dark);
+            border-radius: var(--corner-radius-large);
+            padding: 30px 40px;
+        }
+
+        .form-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 16px;
+        }
+
+        .input-field {
+            position: relative;
+        }
+
+        .given-email-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0px;
+            overflow-wrap: break-word;
+        }
+
+        .input-field input {
+            width: 100%;
+            background: transparent;
+            outline: none;
+            border: 1px solid var(--medium);
+            border-radius: var(--corner-radius-medium);
+            padding: 0.75em 1.5em;
+        }
+
+        .input-field i {
+            position: absolute;
+            color: var(--medium);
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .text-error {
+            color: var(--error);
+        }
+        </style>
     </head>
     <body>
-        <div class= "wrapper">
-            <h1>Create account</h1>
-            <div class= "wrapper-body">
-                <div class= "given-email">
-                    <p>Email: {{ email }}</p>
-                    <box-icon type='solid' name='user'></box-icon>
+        <div class= "content-container">
+            <p class="heading">Create account</p>
+            <div>
+                <div class= "given-email-container">
+                    <i class="bx bxs-envelope text-secondary"></i>
+                    <p class="text-secondary">{{ email }}</p>
                 </div>
-                <form method="post" action="{% url 'signup' token %}">
+                <form class="form-content" method="post" action="{% url 'signup' token %}">
                     {% csrf_token %}
                     <div class="input-field">
                         {{ form.new_password1 }}
@@ -31,7 +92,7 @@
                     </div>
                     {% if form.errors %}
                         {% for error in form.errors.as_data.values %}
-                            {% for error in error.0 %}<div class="error-message">{{ error }}</div>{% endfor %}
+                            {% for error in error.0 %}<p class="text text-error">{{ error }}</p>{% endfor %}
                         {% endfor %}
                     {% endif %}
                     <button type="submit" class= "btn">Register</button>
