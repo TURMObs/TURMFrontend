@@ -11,7 +11,7 @@ input[type="datetime-local"] {
     border: var(--border-sm) solid var(--color-gray-400);
     border-radius: var(--radius-md);
     font-size: var(--font-size-normal);
-    color: #fff;
+    color: var(--color-light);
     padding: 0.75em 1.5em;
 }
 
@@ -142,7 +142,7 @@ input[type="checkbox"]:disabled + label {
     visibility: hidden;
     width: 240px;
     background-color: var(--color-dark);
-    color: #fff;
+    color: var(--color-light);
     text-align: center;
     padding: 8px;
     border-radius: var(--radius-md);
