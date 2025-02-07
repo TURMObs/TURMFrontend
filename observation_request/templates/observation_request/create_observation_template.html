@@ -62,7 +62,7 @@
 
     async function checkResponse(response, catalog_id) {
         if (response.includes("error")) {
-            await showModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database.`);
+            await showModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`);
             return;
         }
 
