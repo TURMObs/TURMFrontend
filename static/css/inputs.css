@@ -18,7 +18,7 @@ input[type="datetime-local"] {
 label {
     margin-left: 4px;
     margin-bottom: 2px;
-    color: var(--color-gray-400)-lighter);
+    color: var(--color-gray-100);
 }
 
 .grid_input_div button {
