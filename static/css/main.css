@@ -226,10 +226,10 @@ body {
 }
 
 .content-wrapper {
-    margin: 0 auto;
-    border: var(--border-md) solid var(--color-gray-500);
+    margin: 24px auto;
+    border: var(--border-md) solid var(--color-gray-400);
     background: var(--color-dark);
-    border-radius: 20px;
+    border-radius: var(--radius-lg);
 }
 
 .content-container {
