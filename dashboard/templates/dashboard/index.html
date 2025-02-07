@@ -194,24 +194,22 @@
          * Sends api request to delete observation with the given id.
          * @param {string} url - The url to send the request to.
          */
-        function delete_observation(url) {
-            if (!confirm("Do you want to delete this observation? This action cannot be undone.")) {
-              return;
+        async function delete_observation(url) {
+            if (await showConfirmModal("Delete observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
+                fetch(url, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": '{{ csrf_token }}',
+                    },
+                    method: "POST",
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload()
+                        return;
+                    }
+                    response.json().then(json_response => alert(json_response["error"]))
+                });
             }
-            fetch(url, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": '{{ csrf_token }}',
-                },
-                method: "POST",
-            }).then(response => {
-                if (response.ok) {
-                    window.location.reload()
-                    return;
-                }
-                response.json().then(json_response => alert(json_response["error"]))
-            });
-
         }
         </script>
     {% endblock %}
