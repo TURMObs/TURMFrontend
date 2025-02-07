@@ -89,6 +89,7 @@ body {
     background: transparent;
     outline: none;
     border: var(--border-sm) solid var(--color-gray-400);
+    border-radius: var(--radius-md);
     font-size: var(--font-size-normal);
     color: var(--color-light);
     padding: 0.75em 1.5em;

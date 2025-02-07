@@ -26,6 +26,28 @@
     }
     </style>
 {% endblock %}
+{% block content %}
+    <div class="content-wrapper form-wrapper">
+        <header>
+            <div class="modal-header-container">
+                <p class="heading">Create New Observation</p>
+            </div>
+        </header>
+        <form id="form"
+              onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
+            {% for name, form in forms %}
+                <article>
+                    <p class="form-heading sub-heading">{{ name }}</p>
+                    <div class="form-container">{{ form }}</div>
+                </article>
+            {% endfor %}
+            {% csrf_token %}
+            <div class="button-container">
+                <button class="btn" type="submit">Create Observation</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
     <script> onload = _ => {
@@ -93,26 +115,4 @@
 
     }
     </script>
-{% endblock %}
-{% block content %}
-    <div class="content-wrapper form-wrapper">
-        <header>
-            <div class="modal-header-container">
-                <p class="heading">Create New Observation</p>
-            </div>
-        </header>
-        <form id="form"
-              onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
-            {% for name, form in forms %}
-                <article>
-                    <p class="form-heading sub-heading">{{ name }}</p>
-                    <div class="form-container">{{ form }}</div>
-                </article>
-            {% endfor %}
-            {% csrf_token %}
-            <div class="button-container">
-                <button class="btn" type="submit">Create Observation</button>
-            </div>
-        </form>
-    </div>
 {% endblock %}

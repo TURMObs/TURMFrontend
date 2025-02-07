@@ -32,6 +32,31 @@
         }
     </style>
 {% endblock %}
+{% block content %}
+    <div class="content-wrapper form-wrapper">
+        <header>
+            <div class="modal-header-container">
+                <p class="heading">Edit Observation</p>
+            </div>
+        </header>
+        <form id="form"
+              onsubmit="submitForm(event, this, '{{ edit_form_url }}', '{% url "dashboard" %}')">
+            {% for name, form in forms %}
+                <article>
+                    <p class="form-heading sub-heading">{{ name }}</p>
+                    <div class="form-container">{{ form }}</div>
+                </article>
+            {% endfor %}
+            {% csrf_token %}
+            <div class="button-container">
+                <button class="btn-secondary"
+                        type="button"
+                        onclick="window.location.href='/'">Cancel</button>
+                <button class="btn" type="submit">Save changes</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
     <script> onload = _ => {
@@ -92,29 +117,4 @@
         check_radio_if_none_selected()
     };
     </script>
-{% endblock %}
-{% block content %}
-    <div class="content-wrapper form-wrapper">
-        <header>
-            <div class="modal-header-container">
-                <p class="heading">Edit Observation</p>
-            </div>
-        </header>
-        <form id="form"
-              onsubmit="submitForm(event, this, '{{ edit_form_url }}', '{% url "dashboard" %}')">
-            {% for name, form in forms %}
-                <article>
-                    <p class="form-heading sub-heading">{{ name }}</p>
-                    <div class="form-container">{{ form }}</div>
-                </article>
-            {% endfor %}
-            {% csrf_token %}
-            <div class="button-container">
-                <button class="btn-secondary"
-                        type="button"
-                        onclick="window.location.href='/'">Cancel</button>
-                <button class="btn" type="submit">Save changes</button>
-            </div>
-        </form>
-    </div>
 {% endblock %}
