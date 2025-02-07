@@ -2,34 +2,32 @@
 @import url("https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css");
 
 :root {
-    --tom-light-gray: #313131;
-    --tom-dark-gray: #242424;
-    --tom-white: white;
-    --tom-white-dark: #eee;
-    --tom-primary-color: #1078c1;
-    --tom-primary-color-dark: #2550aa;
-    --tom-accent-color: #f5b11dff;
-    --tom-secondary-gray: #777777;
-    --tom-info-ok: #66913a;
-    --tom-info-warning: var(--tom-accent-color);
-    --tom-info-error: #5a090d;
-    --tom-error-color: #e74c3c;
+    --color-primary: #1078c1;
+    --color-dark: #242424;
+    --color-gray-100: #bbbbbb;
+    --color-gray-200: #999999;
+    --color-gray-300: #666666;
+    --color-gray-400: #454545;
+    --color-gray-500: #313131;
+    --color-light: #ffffff;
+    --color-error: #ed2f1a;
+    --color-error-dark: #8a1306;
 
-    --primary: #1078c1;
-    --dark: #101213;
-    --medium: #454545;
-    --medium-dark: #2c2c2e;
-    --medium-light: #666666;
-    --medium-lighter: #999999;
-    --medium-lightest: #bbbbbb;
-    --light: #ffffff;
-    --error: #ed2f1a;
-    --error-dark: #8a1306;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
 
-    --corner-radius-small: 6px;
-    --corner-radius-medium: 8px;
-    --corner-radius-large: 16px;
-    --border-small: 2px;
+    --border-sm: 1px;
+    --border-md: 2px;
+    --border-lg: 4px;
+
+    --font-size-normal: 16px;
+    --font-size-sub-heading: 18px;
+    --font-size-heading: 20px;
+
+    --font-weight-regular: 400;
+    --font-weight-semibold: 500;
+    --font-weight-bold: 600;
 }
 
 * {
@@ -38,8 +36,8 @@
     color: white;
     box-sizing: border-box;
     font-family: "Poppins", sans-serif;
-    font-size: 16px;
-    font-weight: normal;
+    font-size: var(--font-size-normal);
+    font-weight: var(--font-weight-regular);
 }
 
 body {
@@ -51,29 +49,29 @@ body {
 /* typography */
 
 .heading {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: var(--font-size-heading);
+    font-weight: var(--font-weight-bold);
 }
 
 .sub-heading {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: var(--font-size-subheading);
+    font-weight: var(--font-weight-semibold);
 }
 
 .text {
-    font-size: 16px;
-    font-weight: normal;
+    font-size: var(--font-size-normal);
+    font-weight: var(--font-weight-regular);
 }
 
 .text-secondary {
-    font-size: 16px;
-    font-weight: normal;
-    color: var(--medium-lighter);
+    font-size: var(--font-size-normal);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-gray-200);
 }
 
 .text-medium {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: var(--font-size-normal);
+    font-weight: var(--font-weight-semibold);
 }
 
 .text-align-left {
@@ -90,10 +88,9 @@ body {
     width: 100%;
     background: transparent;
     outline: none;
-    border: 1px solid var(--medium);
-    border-radius: var(--corner-radius-medium);
-    font-size: 16px;
-    color: var(--light);
+    border: var(--border-sm) solid var(--color-gray-400);
+    font-size: var(--font-size-normal);
+    color: var(--color-light);
     padding: 0.75em 1.5em;
 }
 
@@ -109,8 +106,8 @@ body {
     align-items: center;
     justify-content: center;
     align-content: center;
-    background-color: var(--medium-dark);
-    border-radius: var(--corner-radius-medium);
+    background-color: var(--color-gray-500);
+    border-radius: var(--radius-md);
 }
 
 .radio-input-container input[type="radio"] {
@@ -125,18 +122,18 @@ body {
     vertical-align: middle;
     margin: 2px;
     padding: 0.5em;
-    font-size: 16px;
-    color: var(--light);
+    font-size: var(--font-size-normal);
+    color: var(--color-light);
 }
 
 .radio-input-container label:hover {
-    background-color: var(--medium);
-    border-radius: var(--corner-radius-small);
+    background-color: var(--color-gray-400);
+    border-radius: var(--radius-sm);
 }
 
 .radio-input-container input[type="radio"]:checked + label {
-    background-color: var(--medium);
-    border-radius: var(--corner-radius-small);
+    background-color: var(--color-gray-400);
+    border-radius: var(--radius-sm);
 }
 
 .radio-input-container input[type="radio"]:checked + label + input + label {
@@ -148,9 +145,9 @@ body {
     align-items: center;
     justify-content: center;
     align-content: center;
-    background-color: var(--dark);
-    border: 2px solid var(--light);
-    border-radius: var(--corner-radius-medium);
+    background-color: var(--color-dark);
+    border: var(--border-md) solid var(--color-light);
+    border-radius: var(--radius-md);
 }
 
 .checkbox-input-container input[type="checkbox"] {
@@ -158,7 +155,7 @@ body {
 }
 
 .checkbox-input-container input[type="checkbox"]:checked {
-    background-color: var(--medium-dark);
+    background-color: var(--color-gray-500);
     border: none;
 }
 
@@ -170,8 +167,8 @@ body {
     vertical-align: middle;
     margin: 2px;
     padding: 0.5em;
-    font-size: 16px;
-    color: var(--light);
+    font-size: var(--font-size-normal);
+    color: var(--color-light);
 }
 
 /* buttons */
@@ -181,13 +178,13 @@ body {
     min-width: 96px;
     cursor: pointer;
     border: none;
-    background-color: var(--light);
-    color: var(--dark);
-    border-radius: var(--corner-radius-medium);
+    background-color: var(--color-light);
+    color: var(--color-dark);
+    border-radius: var(--radius-md);
 }
 
 .btn:hover {
-    background-color: var(--medium-lightest);
+    background-color: var(--color-gray-100);
 }
 
 .btn-secondary {
@@ -195,13 +192,13 @@ body {
     min-width: 96px;
     cursor: pointer;
     border: none;
-    background-color: var(--medium-dark);
-    color: var(--light);
-    border-radius: var(--corner-radius-medium);
+    background-color: var(--color-gray-500);
+    color: var(--color-light);
+    border-radius: var(--radius-md);
 }
 
 .btn-secondary:hover {
-    background-color: var(--medium);
+    background-color: var(--color-gray-400);
 }
 
 .icon-btn {
@@ -211,14 +208,14 @@ body {
     width: 32px;
     height: 32px;
     border: none;
-    background: var(--dark);
-    border-radius: var(--corner-radius-medium);
+    background: transparent;
+    border-radius: var(--radius-md);
     text-decoration: none;
     cursor: pointer;
 }
 
 .icon-btn:hover {
-    background-color: var(--medium);
+    background-color: var(--color-gray-400);
 }
 
 .form-wrapper {
@@ -229,8 +226,8 @@ body {
 
 .content-wrapper {
     margin: 0 auto;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    background: var(--dark);
+    border: var(--border-md) solid var(--color-gray-500);
+    background: var(--color-dark);
     border-radius: 20px;
 }
 
@@ -252,12 +249,12 @@ body {
 }
 
 .modal-container {
-    background-color: var(--dark);
+    background-color: var(--color-dark);
     margin: 15% auto;
-    border: 2px solid var(--medium-dark);
+    border: var(--border-md) solid var(--color-gray-500);
     width: 80%;
     max-width: 500px;
-    border-radius: var(--corner-radius-large);
+    border-radius: var(--radius-lg);
     position: relative;
 }
 
@@ -270,7 +267,7 @@ body {
 
 .modal-seperator {
     width: 100%;
-    border: 1px solid var(--medium-dark);
+    border: 1px solid var(--color-gray-500);
 }
 
 .modal-actions {

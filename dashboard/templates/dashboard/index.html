@@ -17,7 +17,6 @@
     .empty-text p {
         text-align: center;
         padding: 20px;
-        font-size: 18px;
     }
 
     .observations-table {
@@ -34,7 +33,7 @@
     }
 
     .observation-row {
-        border-top: 1px solid var(--medium);
+        border-top: var(--border-sm) solid var(--color-gray-400);
     }
 
     .filter-set-container {
@@ -44,15 +43,16 @@
     }
 
     .actions-container {
+        height: 100%;
         display: flex;
         flex-direction: row;
-        gap: 18px;
+        justify-content: space-between;
         align-items: center;
         width: 90px;
     }
 
     .action-icon:hover {
-        background-color: var(--medium);
+        background-color: var(--color-gray-400);
     }
 
     .expand-row-container {
