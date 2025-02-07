@@ -165,6 +165,25 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
                 max(0.0, min((elapsed_time / duration) * 100, 100.0)), 2
             )
 
+        if obs.project_completion == 100.0:
+            # If an observation has reached 100.0% project_completion (i.e. the time windows has passed), it is considered done regardless the actual pictures taken.
+            if obs.project_status == ObservationStatus.UPLOADED:
+                try:
+                    nm.delete(nm.generate_observation_path(obs))
+                    logger.info(
+                        f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
+                    )
+                except NextcloudException as e:
+                    logger.error(
+                        f"Tried to delete observation {obs.id} with target {obs.target.name} because it has reached its scheduled end, but got: {e}"
+                    )
+                    obs.project_status = ObservationStatus.ERROR
+                    obs.save()
+                    continue
+            obs.project_status = ObservationStatus.COMPLETED
+            obs.save()
+            continue
+
         if obs.project_status == ObservationStatus.PENDING:
             # If the status is pending, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
             # No further actions required.
@@ -181,7 +200,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
 
         if (
             partial_progress != 0.0
-            and new_upload <= obs.end_scheduling
+            and new_upload < obs.end_scheduling
             and today >= obs.next_upload
         ):
             # Following conditions must be met to schedule a new upload:
@@ -190,21 +209,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
             # - there isn't already an upload scheduled in the future
             obs.next_upload = new_upload
 
-        if obs.project_completion == 100.0:
-            # If an observation has reached 100.0% project_completion (i.e. the time windows has passed), it is considered done regardless the actual pictures taken.
-            try:
-                obs.project_status = ObservationStatus.COMPLETED
-                nm.delete(nc_path)
-                logger.info(
-                    f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
-                )
-            except NextcloudException as e:
-                logger.error(
-                    f"Tried to delete observation {obs.id} with target {obs.target.name} because it has reached its scheduled end, but got: {e}"
-                )
-                obs.project_status = ObservationStatus.ERROR
-                obs.save()
-        elif partial_progress == 100.0:
+        if partial_progress == 100.0:
             # If an observation has reached 100.0% partial completion, it is deleted from the nextcloud since no images have to be taken until it is uploaded again
             try:
                 obs.project_status = ObservationStatus.PENDING  # set status to pending to indicate observation currently does NOT exist in the nextcloud.
@@ -217,7 +222,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
                     f"Tried to delete observation {obs.id} with target {obs.target.name} because partial progress is 100, but got: {e}"
                 )
                 obs.project_status = ObservationStatus.ERROR
-                obs.save()
+            obs.save()
 
         obs.save()
 
