@@ -73,7 +73,7 @@
         }
 
 
-        #invitation-link-modal div {
+        /* #invitation-link-modal div {
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -95,21 +95,21 @@
 
         #edit-user-modal h3 {
             color: white;
-        }
+        } */
 
-        .modal-input-field {
+        /* .modal-input-field {
             display: flex;
             align-items: center;
             gap: 2px;
             margin-bottom: 0;
-        }
+        } */
 
         #id_remove_quota, #id_remove_lifetime {
             margin-bottom: 0;
         }
 
 
-        .modal-input-field input[type="checkbox"] {
+        /* .modal-input-field input[type="checkbox"] {
             width: 16px;
             height: 16px;
             margin: 0;
@@ -161,7 +161,7 @@
 
         .modal .submit-button {
             margin-top: 10px;
-        }
+        } */
 
 
         table {
@@ -249,9 +249,7 @@
                             <div class="input-field" id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
                         </div>
                         <div class="form-group">
-                            <button type="button"
-                                    class="generate-invitation-button green-button"
-                                    onclick="createInvitation()">Generate</button>
+                            <button type="button" class="btn" onclick="createInvitation()">Generate</button>
                         </div>
                     </div>
                 </div>
@@ -342,16 +340,6 @@
                                     <td>{{ target_user.lifetime }}</td>
                                     <td>{{ target_user.date_joined }}</td>
                                     <td>
-                                        {% if perms.accounts.can_delete_users %}
-                                            <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="button"
-                                                        class="icon-btn"
-                                                        onclick="deleteUser({{ target_user.id }})">
-                                                    <i class="bx bx-trash"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
                                         {% if perms.accounts.can_edit_users %}
                                             <form id="edit-user-{{ target_user.id }}" style="display: inline;">
                                                 {% csrf_token %}
@@ -362,6 +350,16 @@
                                                 </button>
                                             </form>
                                         {% endif %}
+                                        {% if perms.accounts.can_delete_users %}
+                                            <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="button"
+                                                        class="icon-btn"
+                                                        onclick="deleteUser({{ target_user.id }})">
+                                                    <i class="bx bx-trash"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endif %}
@@ -369,28 +367,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-    <div id="invitation-link-modal" class="modal">
-        <div>
-            <h3>Invitation Link</h3>
-            <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
-            <button onclick="copyLinkToClipboard(document.getElementById('modal-link').textContent, document.getElementById('modalCopyButton'))"
-                    id="modalCopyButton"
-                    style="padding: 10px 20px;
-                           background-color: #4CAF50;
-                           color: white;
-                           border: none;
-                           border-radius: 5px;
-                           cursor: pointer">Copy Link</button>
-            <button onclick="closeModal()"
-                    style="padding: 10px 20px;
-                           background-color: #f44336;
-                           color: white;
-                           border: none;
-                           border-radius: 5px;
-                           cursor: pointer;
-                           margin-left: 10px">Close</button>
         </div>
     </div>
     <div id="edit-user-modal" class="modal">
@@ -446,10 +422,6 @@
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-
             if (event.key === 'Enter') {
                 const focusedElement = document.activeElement;
 
@@ -504,8 +476,10 @@
                 });
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
-                    document.getElementById('modal-link').textContent = linkData['link'];
-                    document.getElementById('invitation-link-modal').style.display = 'flex';
+                  const link = linkData['link'];
+                    if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link")) {
+                        navigator.clipboard.writeText(link);
+                    }
                 } else {
                     if (linkData['error']) {
                       await showModal("Failed to create invitation", `Got an error for email "${email}".\n${linkData['error']}`);
@@ -518,25 +492,7 @@
             }
         }
 
-        function copyLinkToClipboard(link, copyButton) {
-            navigator.clipboard.writeText(link).then(() => {
-                const originalBackgroundColor = copyButton.style.backgroundColor;
-                const originalText = copyButton.textContent;
-
-                // Provide feedback by changing the button color and text
-                copyButton.style.backgroundColor = '#45a049';
-                copyButton.textContent = 'Link copied!';
-
-                // Reset button color and text after a short delay
-                setTimeout(() => {
-                    copyButton.style.backgroundColor = originalBackgroundColor;
-                    copyButton.textContent = originalText;
-                }, 1000);
-            });
-        }
-
         function closeModal() {
-            document.getElementById('invitation-link-modal').style.display = 'none';
             document.getElementById('edit-user-modal').style.display = 'none';
 
             // Clear form inputs

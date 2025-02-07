@@ -1,5 +1,6 @@
 async function showConfirmModal(title, message, confirmText = "Confirm") {
   const result = await showModal(title, message, {
+    allowDismiss: false,
     buttons: [
       {
         id: "cancel",
