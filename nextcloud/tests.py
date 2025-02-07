@@ -939,6 +939,19 @@ class NextcloudSyncTestCase(django.test.TestCase):
             frames_per_filter=100,
         )
 
+        # noinspection PyTypeChecker
+        self._create_expert_observation(
+            obs_id=2,
+            target_name="E2",
+            start_scheduling=None,
+            end_scheduling=None,
+            cadence=None,
+            start_observation_time=None,
+            end_observation_time=None,
+            observatory=turmx,
+            frames_per_filter=100,
+        )
+
         # day 0/1
         upload_observations(self._day(0))
         obs0 = self._get_obs_by_id(0)
@@ -981,9 +994,9 @@ class NextcloudSyncTestCase(django.test.TestCase):
         obs0 = self._get_obs_by_id(0)
         obs1 = self._get_obs_by_id(1)
         self.assertFalse(self._obs_exists_in_nextcloud(obs0))
-        self.assertTrue(self._obs_exists_in_nextcloud(obs1))
+        self.assertFalse(self._obs_exists_in_nextcloud(obs1))
         self.assertEqual(obs0.project_status, ObservationStatus.PENDING)
-        self.assertEqual(obs1.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(obs1.project_status, ObservationStatus.PENDING)
 
         # day 2/3
         upload_observations(self._day(2))
@@ -999,9 +1012,9 @@ class NextcloudSyncTestCase(django.test.TestCase):
         obs0 = self._get_obs_by_id(0)
         obs1 = self._get_obs_by_id(1)
         self.assertFalse(self._obs_exists_in_nextcloud(obs0))
-        self.assertTrue(self._obs_exists_in_nextcloud(obs1))
+        self.assertFalse(self._obs_exists_in_nextcloud(obs1))
         self.assertEqual(obs0.project_status, ObservationStatus.PENDING)
-        self.assertEqual(obs1.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(obs1.project_status, ObservationStatus.PENDING)
 
         # day 3/4
         upload_observations(self._day(3))

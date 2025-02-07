@@ -11,6 +11,7 @@ from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
     ObservationStatus,
+    ObservationType,
 )
 from observation_data.serializers import get_serializer
 import logging
@@ -208,6 +209,38 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
             # - the new upload is before the end of scheduling
             # - there isn't already an upload scheduled in the future
             obs.next_upload = new_upload
+
+        if (
+            partial_progress != 100.0
+            and obs.observation_type == ObservationType.EXPERT
+            and obs.start_observation_time
+            and obs.project_status == ObservationStatus.UPLOADED
+            and today >= obs.next_upload
+        ):
+            try:
+                nm_dict = nm.download_dict(nc_path)
+            except NextcloudException as e:
+                logger.error(
+                    f"Failed to download observation {obs.id} with target {obs.target.name} because progress is 0, but got: {e}"
+                )
+                obs.project_status = ObservationStatus.ERROR
+                obs.save()
+                continue
+            target_date = timezone.make_aware(
+                datetime.datetime.strptime(
+                    nm_dict["targets"][0]["endDateTime"], "%Y-%m-%d %H:%M:%S"
+                ),
+                timezone.get_current_timezone(),
+            )
+            date_now = timezone.make_aware(
+                datetime.datetime.combine(today, timezone.now().time()),
+                timezone.get_current_timezone(),
+            )
+            if target_date <= date_now:
+                # Further progress is impossible, since the observation time has already passed.
+                partial_progress = 100.0
+                if new_upload < obs.end_scheduling:
+                    obs.next_upload = new_upload
 
         if partial_progress == 100.0:
             # If an observation has reached 100.0% partial completion, it is deleted from the nextcloud since no images have to be taken until it is uploaded again
