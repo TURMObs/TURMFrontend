@@ -54,16 +54,15 @@
             });
 
             const text = await response.text();
-            check_response(text, catalog_id);
+            await checkResponse(text, catalog_id);
         } catch (error) {
-            showModal("Failed to resolve coordinates", `An error while trying to get a response from SIMBAD server. Got: ${error.message}`)
+            await showModal("Failed to resolve coordinates", `An error while trying to get a response from SIMBAD server. Got: ${error.message}`);
         }
     }
 
-    function check_response(response, catalog_id) {
-
+    async function checkResponse(response, catalog_id) {
         if (response.includes("error")) {
-            showModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database.`)
+            await showModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database.`);
             return;
         }
 

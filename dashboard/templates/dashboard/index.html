@@ -67,9 +67,6 @@
 {% block content %}
     <div class="container">
         <div class="content-wrapper">
-            <button onclick="showModal('Title', 'This is a test message!', { buttons: [{ text: 'Button 1', onClick: () => alert('Button 1 clicked') }, { text: 'Button 2', onClick: () => hideModal()}] })">
-                Show Modal
-            </button>
             {% if observations|length == 0 %}
                 <div class="empty-container">
                     <p class="empty-text">Submitted observations will show up here.</p>
@@ -196,19 +193,25 @@
          */
         async function delete_observation(url) {
             if (await showConfirmModal("Delete observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
-                fetch(url, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": '{{ csrf_token }}',
-                    },
-                    method: "POST",
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.reload()
-                        return;
-                    }
-                    response.json().then(json_response => alert(json_response["error"]))
-                });
+              try {
+                  const response = await fetch(url, {
+                      headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": '{{ csrf_token }}',
+                      },
+                      method: "POST",
+                  });
+
+                  if (response.ok) {
+                      window.location.reload();
+                      return;
+                  }
+
+                  const jsonResponse = await response.json();
+                  await showModal("Failed to delete observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
+              } catch (err) {
+                  await showModal("Failed to delete observation", "An unkown error occurred while deleting your observation. Please try again.");
+              }
             }
         }
         </script>

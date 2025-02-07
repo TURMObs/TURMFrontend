@@ -491,7 +491,7 @@
                 });
                 let data = await response.json();
                 if (data['has_invitation'] === true) {
-                    if (!confirm("An invitation already exists for this email. Do you want to override the invitation?")) {
+                    if (!await showConfirmModal("Override Invitation", `An invitation already exists for this email. Do you want to override the invitation?`, "Override")) {
                         return;
                     }
                 }
@@ -508,13 +508,13 @@
                     document.getElementById('invitation-link-modal').style.display = 'flex';
                 } else {
                     if (linkData['error']) {
-                        alert("Failed to create invitation: " + linkData['error']);
+                      await showModal("Failed to create invitation", `Got an error for email "${email}".\n${linkData['error']}`);
                     } else {
-                        alert("Failed to create invitation. Please try again.");
+                        await showModal("Failed to create invitation", "An unknown error occurred. Please try again.");
                     }
                 }
             } catch (error) {
-                alert("Failed to create invitation. Please try again.");
+                await showModal("Failed to create invitation", "An unknown error occurred. Please try again.");
             }
         }
 
@@ -556,7 +556,7 @@
         }
 
         async function deleteUser(userId) {
-            if (!confirm("Are you sure you want to mark this user for deletion?")) {
+            if (!await showConfirmModal("Delete account", "Are you sure you want to mark this user for deletion?"), "Delete") {
                 return;
             }
 
@@ -575,13 +575,13 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message || "User marked for deletion!");
+                    await showModal("User Deleted", data.message || "User was successfully marked for deletion.");
                     form.closest('tr').remove(); // Remove the row from the table
                 } else {
-                    alert(data.error || "An error occurred while marking the user for deletion.");
+                    await showModal("Error occurred", data.error || "An error occurred while marking the user for deletion.");
                 }
             } catch (error) {
-                alert("Failed to delete the user. Please try again.");
+                await showModal("Error occurred", "An unknown error occurred while marking the user for deletion. Please try again.");
             }
         }
 
@@ -655,12 +655,11 @@
                     closeModal();
                     location.reload();
                 } else {
-                    alert("An error occurred while updating the user.");
+                    await showModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
                 }
             } catch (error) {
-                alert("Failed to update the user. Please try again.");
+                await showModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
             }
-
         }
 
 
@@ -680,13 +679,13 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message || "Invitation deleted successfully!");
+                    await showModal("Deleted Invitation", data.message || "Invitation deleted successfully!");
                     location.reload();
                 } else {
-                    alert(data.error || "An error occurred while deleting the invitation.");
+                    await showModal("Failed to delete Invitation", data.error || "An error occurred while deleting the invitation.");
                 }
             } catch (error) {
-                alert("Failed to delete the invitation. Please try again.");
+                await showModal("Failed to delete Invitation", "An unknown error occurred while deleting the invitation.");
             }
         }
     </script>
