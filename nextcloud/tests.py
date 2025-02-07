@@ -16,7 +16,7 @@ from nextcloud.nextcloud_sync import (
 import filecmp
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from dotenv import load_dotenv
 import unittest
 
@@ -349,6 +349,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
         offset: float = 10,
         start_observation: datetime = timezone.now(),
         end_observation: datetime = (timezone.now() + timedelta(days=1)),
+        start_observation_time: time = None,
+        end_observation_time: time = None,
         cadence: int = 1,
         moon_separation_angle: float = 10.0,
         moon_separation_width: int = 1,
@@ -383,6 +385,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
             offset=offset,
             start_observation=start_observation,
             end_observation=end_observation,
+            start_observation_time=start_observation_time,
+            end_observation_time=end_observation_time,
             cadence=cadence,
             moon_separation_angle=moon_separation_angle,
             moon_separation_width=moon_separation_width,
@@ -423,6 +427,42 @@ class NextcloudSyncTestCase(django.test.TestCase):
         :return: True if Observation exists in nextcloud; else false
         """
         return nm.file_exists(generate_observation_path(obs))
+
+    def _assert_observation_datetime(
+        self, obs: AbstractObservation, expected_start: datetime, expected_end: datetime
+    ):
+        """
+        Downloads the observation from nextcloud and checks if the start and end times are as expected.
+        :param obs: AbstractObservation to check
+        :param expected_start: expected start time
+        :param expected_end: expected end time
+        """
+        try:
+            obs_dict = nm.download_dict(generate_observation_path(obs))
+            self.assertEqual(
+                obs_dict["targets"][0]["startDateTime"],
+                expected_start.strftime("%Y-%m-%d %H:%M:%S"),
+            )
+            self.assertEqual(
+                obs_dict["targets"][0]["endDateTime"],
+                expected_end.strftime("%Y-%m-%d %H:%M:%S"),
+            )
+        except NextcloudException as e:
+            self.fail(f"Failed to download observation from nextcloud: {e}")
+
+    def _set_accepted_amount(self, obs: AbstractObservation, amount: int):
+        """
+        Downloads the observation from nextcloud and sets the accepted amount to the given value. Uploads the observation afterwards.
+        :param obs: AbstractObservation to change
+        :param amount: new accepted amount
+        """
+
+        try:
+            obs_dict = nm.download_dict(generate_observation_path(obs))
+            obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = amount
+            nm.upload_dict(generate_observation_path(obs), obs_dict)
+        except NextcloudException as e:
+            self.fail(f"Failed to interact with nextcloud: {e}")
 
     def test_calc_progress(self):
         # insert a specific Observation into the db and retrieve it as dict
@@ -869,6 +909,76 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         nm.delete(self.prefix)
         # fmt: on
+
+    def test_update_scheduled_4(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+
+        self._create_expert_observation(
+            obs_id=0,
+            target_name="E0",
+            start_scheduling=self._day(0),
+            end_scheduling=self._day(4),
+            cadence=2,
+            start_observation_time=time(22, 0),
+            end_observation_time=time(2, 30),
+            observatory=turmx,
+            frames_per_filter=100,
+        )
+
+        self._create_expert_observation(
+            obs_id=1,
+            target_name="E1",
+            start_scheduling=self._day(0),
+            end_scheduling=self._day(4),
+            cadence=1,
+            start_observation_time=time(20, 0),
+            end_observation_time=time(23, 50),
+            observatory=turmx,
+            frames_per_filter=100,
+        )
+
+        # day 0/1
+        upload_observations(self._day(0))
+        obs0 = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs0))
+        self._assert_observation_datetime(
+            obs0,
+            datetime.combine(self._day(0), time(22, 0)),
+            datetime.combine(self._day(1), time(2, 30)),
+        )
+        obs1 = self._get_obs_by_id(1)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs1))
+        self._assert_observation_datetime(
+            obs1,
+            datetime.combine(self._day(0), time(20, 0)),
+            datetime.combine(self._day(0), time(23, 50)),
+        )
+
+        self._set_accepted_amount(obs0, 100)
+        self._set_accepted_amount(obs1, 50)
+
+        update_observations(self._day(1))
+        obs0 = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs0))
+        self.assertEqual(obs0.project_completion, 0.25)
+        self.assertEqual(obs0.project_status, ObservationStatus.PENDING)
+        obs1 = self._get_obs_by_id(1)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs1))
+
+        # day 1/2
+        upload_observations(self._day(1))
+        self.assertFalse(self._obs_exists_in_nextcloud(obs0))
+        self._set_accepted_amount(obs1, 100)
+        update_observations(self._day(2))
+        self.assertFalse(self._obs_exists_in_nextcloud(obs1))
+        self.assertEqual(obs1.project_completion, 50.0)
+
+        # day 2/3
+        upload_observations(self._day(2))
+        self.assertTrue(self._obs_exists_in_nextcloud(obs0))
+        self.assertTrue(self._obs_exists_in_nextcloud(obs1))
 
     def test_handling_non_existent_non_scheduled(self):
         """

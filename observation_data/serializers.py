@@ -624,8 +624,8 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
                 end_date += timedelta(days=1)
             additional_fields["targets"] = [
                 {
-                    "startDateTime": start_date.strftime("%H:%M:%S"),
-                    "endDateTime": end_date.strftime("%H:%M:%S"),
+                    "startDateTime": start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "endDateTime": end_date.strftime("%Y-%m-%d %H:%M:%S"),
                 }
             ]
 

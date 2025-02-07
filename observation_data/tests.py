@@ -260,7 +260,6 @@ class ObservationCreationTestCase(django.test.TestCase):
             "subframe": 0.5,
             "gain": 1,
             "offset": 1,
-            "cadence": 1,
             "moon_separation_angle": 30.0,
             "moon_separation_width": 7.0,
             "minimum_altitude": 35,
@@ -472,10 +471,12 @@ class ObservationCreationTestCase(django.test.TestCase):
         expected_status_code,
         start_scheduling=None,
         end_scheduling=None,
+        cadence=1,
         start_observation=None,
         end_observation=None,
         start_observation_time=None,
         end_observation_time=None,
+        test_data=False,
     ):
         self.user.is_superuser = True
         self.user.save()
@@ -484,6 +485,8 @@ class ObservationCreationTestCase(django.test.TestCase):
             base_request["start_scheduling"] = start_scheduling
         if end_scheduling:
             base_request["end_scheduling"] = end_scheduling
+        if cadence:
+            base_request["cadence"] = cadence
         if start_observation:
             base_request["start_observation"] = start_observation
         if end_observation:
@@ -493,12 +496,23 @@ class ObservationCreationTestCase(django.test.TestCase):
         if end_observation_time:
             base_request["end_observation_time"] = end_observation_time
 
-        return self._test_observation_insert(
+        response = self._test_observation_insert(
             ObservationType.EXPERT, base_request, expected_status=expected_status_code
         )
 
+        if test_data:
+            obs = ExpertObservation.objects.get()
+            self.assertEqual(obs.start_scheduling, start_scheduling)
+            self.assertEqual(obs.end_scheduling, end_scheduling)
+            self.assertEqual(obs.start_observation, start_observation)
+            self.assertEqual(obs.end_observation, end_observation)
+            self.assertEqual(obs.start_observation_time, start_observation_time)
+            self.assertEqual(obs.end_observation_time, end_observation_time)
+
+        return response
+
     def test_expert_no_scheduling_no_time(self):
-        self._test_expert_options(201)
+        self._test_expert_options(201, test_data=True)
 
     def test_expert_scheduling_no_time(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -506,6 +520,23 @@ class ObservationCreationTestCase(django.test.TestCase):
             201,
             start_scheduling=base_time.date(),
             end_scheduling=base_time.date() + timedelta(days=5),
+            cadence=1,
+            test_data=True,
+        )
+
+    # noinspection PyTypeChecker
+    def test_expert_scheduling_no_cadence(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        errors = self._test_expert_options(
+            400,
+            start_scheduling=base_time.date(),
+            end_scheduling=base_time.date() + timedelta(days=5),
+            cadence=None,
+        )
+        self.assertEqual(
+            errors,
+            {"cadence": ["Cadence is required for scheduled observations."]},
+            errors,
         )
 
     def test_expert_scheduling_time(self):
@@ -516,14 +547,11 @@ class ObservationCreationTestCase(django.test.TestCase):
             end_scheduling=base_time.date() + timedelta(days=5),
             start_observation_time=base_time.replace(
                 hour=0, minute=0, second=0, microsecond=0
-            )
-            .time()
-            .isoformat(),
+            ).time(),
             end_observation_time=base_time.replace(
                 hour=1, minute=0, second=0, microsecond=0
-            )
-            .time()
-            .isoformat(),
+            ).time(),
+            test_data=True,
         )
 
     def test_expert_no_scheduling_observation_date(self):
@@ -532,10 +560,11 @@ class ObservationCreationTestCase(django.test.TestCase):
             201,
             start_observation=base_time.replace(
                 hour=0, minute=0, second=0, microsecond=0
-            ).isoformat(),
+            ),
             end_observation=base_time.replace(
                 hour=1, minute=0, second=0, microsecond=0
-            ).isoformat(),
+            ),
+            test_data=True,
         )
 
     def test_expert_invalid_scheduling(self):
