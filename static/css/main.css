@@ -84,7 +84,7 @@ body {
     text-align: right;
 }
 
-/* common classes */
+/* inputs */
 
 .textbox {
     width: 100%;
@@ -96,6 +96,85 @@ body {
     color: var(--light);
     padding: 0.75em 1.5em;
 }
+
+.radio-input-container,
+.checkbox-input-container {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.radio-input-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    background-color: var(--medium-dark);
+    border-radius: var(--corner-radius-medium);
+}
+
+.radio-input-container input[type="radio"] {
+    display: none;
+}
+
+.radio-input-container label {
+    display: inline-block;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    vertical-align: middle;
+    margin: 2px;
+    padding: 0.5em;
+    font-size: 16px;
+    color: var(--light);
+}
+
+.radio-input-container label:hover {
+    background-color: var(--medium);
+    border-radius: var(--corner-radius-small);
+}
+
+.radio-input-container input[type="radio"]:checked + label {
+    background-color: var(--medium);
+    border-radius: var(--corner-radius-small);
+}
+
+.radio-input-container input[type="radio"]:checked + label + input + label {
+    border-left: 0;
+}
+
+.checkbox-input-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    background-color: var(--dark);
+    border: 2px solid var(--light);
+    border-radius: var(--corner-radius-medium);
+}
+
+.checkbox-input-container input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-input-container input[type="checkbox"]:checked {
+    background-color: var(--medium-dark);
+    border: none;
+}
+
+.checkbox-input-container label {
+    display: inline-block;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    vertical-align: middle;
+    margin: 2px;
+    padding: 0.5em;
+    font-size: 16px;
+    color: var(--light);
+}
+
+/* buttons */
 
 .btn {
     padding: 8px 16px;
@@ -159,7 +238,8 @@ body {
     padding: 32px;
 }
 
-/* MODAL TODO */
+/* modal */
+
 .modal {
     display: none;
     position: fixed;

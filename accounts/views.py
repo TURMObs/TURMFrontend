@@ -37,9 +37,13 @@ class LoginForm(forms.Form):
 
 
 class GenerateInvitationForm(forms.Form):
-    email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    email = forms.EmailField(
+        widget=forms.TextInput(attrs={"placeholder": "Email", "class": "textbox"})
+    )
     username = forms.CharField(
-        widget=forms.TextInput(attrs={"placeholder": "User Alias (optional)"}),
+        widget=forms.TextInput(
+            attrs={"placeholder": "User Alias (optional)", "class": "textbox"}
+        ),
         required=False,
     )
     quota = forms.IntegerField(

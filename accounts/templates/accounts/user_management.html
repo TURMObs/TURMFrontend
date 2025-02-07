@@ -13,11 +13,6 @@
             font-size: 18px;
         }
 
-        .input-field {
-            margin-bottom: 15px;
-            margin-top: 5px;
-        }
-
         .form-group {
             margin-bottom: 15px;
         }
@@ -27,6 +22,13 @@
             width: 100%;
             gap: 32px;
             grid-template-columns: 1fr 1fr;
+            margin: 16px 0;
+        }
+
+        .generate-invitation-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .modal {
@@ -71,100 +73,12 @@
             font-size: 14px;
         }
 
-
-        /* #invitation-link-modal div {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            position: relative;
-        }
-
-        #edit-user-modal div {
-            background: #333333;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            position: relative;
-        }
-
-        #invitation-link-modal h3 {
-            color: black;
-        }
-
-        #edit-user-modal h3 {
-            color: white;
-        } */
-
-        /* .modal-input-field {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            margin-bottom: 0;
-        } */
-
         #id_remove_quota, #id_remove_lifetime {
             margin-bottom: 0;
         }
 
-
-        /* .modal-input-field input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            margin: 0;
-        }
-
-
-        .wrapper .modal-input-field {
-            color: #fff;
-            position: relative;
-            margin-bottom: 4px;
-        }
-
-        .modal-input-field label {
-            font-size: 14px;
-            color: white;
-            padding: 0;
-            margin: 0;
-            pointer-events: auto;
-            white-space: nowrap;
-        }
-
-        .modal-input-field i {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            color: var(--tom-light-gray);
-            transform: translateY(-50%);
-            font-size: 20px;
-        }
-
-        .modal-input-field input {
-            border-radius: 10px;
-            padding: 6px;
-            width: 100%;
-            border: none;
-            color: black;
-            font-size: 14px;
-        }
-
-        .modal p {
-            color: black;
-            word-wrap: break-word;
-            margin-bottom: 20px;
-        }
-
-        .modal .form-group {
-            margin-bottom: 10px;
-        }
-
-        .modal .submit-button {
-            margin-top: 10px;
-        } */
-
-
         table {
-            margin: 20px 0;
+            margin: 16px 0;
             width: 100%;
             border-collapse: collapse;
             border-spacing: 0;
@@ -181,6 +95,7 @@
 
         table th, td {
             padding: 8px;
+            text-align: left;
         }
 
         .styled-select {
@@ -204,52 +119,47 @@
             <!-- Invitation Form -->
             <p class="heading">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
-            <form id="invitationForm">
+            <form id="invitationForm" class="generate-invitation-form">
                 {% csrf_token %}
-                <div class="generate-invitation-form">
-                    <div>
-                        <div class="input-field">{{ invitation_form.email }}</div>
-                        <div class="input-field">{{ invitation_form.username }}</div>
+                <div class="generate-invitation-options">
+                    {{ invitation_form.email }}
+                    {{ invitation_form.username }}
+                    <div class="radio-input-container">
+                        {% for value, label in invitation_form.role.field.choices %}
+                            <input type="radio"
+                                   id="role_{{ value }}"
+                                   name="role"
+                                   value="{{ value }}"
+                                   {% if invitation_form.role.value == value %}checked{% endif %}
+                                   onchange="checkRoleChange(this)">
+                            <label for="role_{{ value }}">{{ label }}</label>
+                        {% endfor %}
                     </div>
-                    <div>
-                        <div class="input-field">
-                            <label for="id_role_selector"></label>
-                            <select name="role"
-                                    id="id_role_selector"
-                                    class="styled-select"
-                                    onchange="checkRoleChange">
-                                {% for value, label in invitation_form.role.field.choices %}
-                                    <option value="{{ value }}"
-                                            {% if invitation_form.role.value == value %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <div class="checkbox-input-container">
+                            <input type="checkbox"
+                                   id="id_expert"
+                                   name="expert"
+                                   {% if invitation_form.expert.value %}checked{% endif %}>
+                            <label for="id_expert">Expert</label>
                         </div>
-                        <div class="form-group">
-                            <div class="checkbox-field">
-                                <input type="checkbox"
-                                       id="id_expert"
-                                       name="expert"
-                                       {% if invitation_form.expert.value %}checked{% endif %}>
-                                <label for="id_expert">Expert</label>
-                            </div>
-                            <div class="checkbox-field">
-                                <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
-                                <label for="enableQuota">Max. Simultaneous Requests</label>
-                            </div>
-                            <div class="input-field" id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
-                            <div class="checkbox-field">
-                                <input type="checkbox"
-                                       id="enableLifetime"
-                                       onclick="toggleInput('lifetimeField')">
-                                <label for="enableLifetime">Limited Usage Time</label>
-                            </div>
-                            <div class="input-field" id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
+                        <div class="checkbox-field">
+                            <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
+                            <label for="enableQuota">Max. Simultaneous Requests</label>
                         </div>
-                        <div class="form-group">
-                            <button type="button" class="btn" onclick="createInvitation()">Generate</button>
+                        <div id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
+                        <div class="checkbox-field">
+                            <input type="checkbox"
+                                   id="enableLifetime"
+                                   onclick="toggleInput('lifetimeField')">
+                            <label for="enableLifetime">Limited Usage Time</label>
                         </div>
+                        <div id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn" onclick="createInvitation()">Generate</button>
                     </div>
                 </div>
             </form>
@@ -264,14 +174,13 @@
                             <th>Role</th>
                             <th>Quota</th>
                             <th>Lifetime</th>
-                            <th>Invitation Link</th>
-                            <th>Actions</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% if invitations %}
                             {% for invitation in invitations %}
-                                <tr>
+                                <tr class="table-row">
                                     <td>{{ invitation.email }}</td>
                                     {% if invitation.username != invitation.email %}
                                         <td>{{ invitation.username }}</td>
@@ -281,7 +190,6 @@
                                     <td>{{ invitation.role }}</td>
                                     <td>{{ invitation.quota }}</td>
                                     <td>{{ invitation.lifetime }}</td>
-                                    <td>{{ invitation.link }}</td>
                                     <td>
                                         {% if invitation.link != "" %}
                                             <button id="copy-invitation-action-{{ invitation.id }}"
@@ -322,7 +230,7 @@
                             <th>Quota</th>
                             <th>Lifetime</th>
                             <th>Date Joined</th>
-                            {% if perms.accounts.can_delete_users %}<th>Actions</th>{% endif %}
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -641,7 +549,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    await showModal("Deleted Invitation", data.message || "Invitation deleted successfully!");
+                    await showModal("Deleted Invitation", data.message || "Invitation deleted successfully.");
                     location.reload();
                 } else {
                     await showModal("Failed to delete Invitation", data.error || "An error occurred while deleting the invitation.");
