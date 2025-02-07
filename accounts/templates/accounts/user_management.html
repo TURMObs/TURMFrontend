@@ -287,16 +287,18 @@
                                         {% if invitation.link != "" %}
                                             <button id="copy-invitation-action-{{ invitation.id }}"
                                                     type="button"
-                                                    class="green-button"
+                                                    class="icon-btn"
                                                     onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
-                                                Copy Link
+                                                <i class="bx bx-copy"></i>
                                             </button>
                                         {% endif %}
                                         <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
                                             {% csrf_token %}
                                             <button type="button"
-                                                    class="delete-button"
-                                                    onclick="deleteInvitation({{ invitation.id }})">Delete</button>
+                                                    class="icon-btn"
+                                                    onclick="deleteInvitation({{ invitation.id }})">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
                                         </form>
                                     </td>
                                 </tr>
@@ -478,7 +480,7 @@
                 if (generateResponse.ok) {
                   const link = linkData['link'];
                     if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link")) {
-                        navigator.clipboard.writeText(link);
+                        copyLinkToClipboard(link, null);
                     }
                 } else {
                     if (linkData['error']) {
@@ -490,6 +492,11 @@
             } catch (error) {
                 await showModal("Failed to create invitation", "An unknown error occurred. Please try again.");
             }
+        }
+
+        function copyLinkToClipboard(link, element) {
+          navigator.clipboard.writeText(link);
+          //TODO: Restore ability to show some kind of signal to the user that it was copied
         }
 
         function closeModal() {

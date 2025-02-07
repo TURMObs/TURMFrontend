@@ -1,5 +1,5 @@
 {% extends "base_template.html" %}
-{% block title %}User Data Settings{% endblock %}
+{% block title %}Account{% endblock %}
 {% block style %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,12 +20,10 @@
 {% endblock %}
 {% block content %}
     <div class="container">
-        <div class="container_center">
-            <div class="content-wrapper flex">
-                <p class="heading">User Data Settings</p>
-                <button id="downloadBtn" class="btn">Download User Data</button>
-                <button id="deleteBtn" class="btn">Delete User Data</button>
-            </div>
+        <div class="content-wrapper form-wrapper flex">
+            <p class="heading">Account</p>
+            <button id="downloadBtn" class="btn">Download User Data</button>
+            <button id="deleteBtn" class="btn">Delete User Data</button>
         </div>
     </div>
     <meta name="csrf-token" content="{{ csrf_token }}">
