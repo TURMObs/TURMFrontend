@@ -6,26 +6,84 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TURM Login</title>
-        <link rel="stylesheet" href="{% static "/css/authentication_index.css" %}">
-        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-              rel='stylesheet'>
+        <link rel="stylesheet" href="{% static "/css/main.css" %}">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }
+
+            .content-container {
+                width: 420px;
+                border: 2px solid var(--medium);
+                background: var(--dark);
+                border-radius: var(--corner-radius-large);
+                padding: 30px 40px;
+            }
+
+            .form-content {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 16px;
+            }
+
+            .input-field {
+                position: relative;
+            }
+
+            .given-email-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 16px 0px;
+                overflow-wrap: break-word;
+            }
+
+            .input-field input {
+                width: 100%;
+                background: transparent;
+                outline: none;
+                border: 1px solid var(--medium);
+                border-radius: var(--corner-radius-medium);
+                padding: 0.75em 1.5em;
+            }
+
+            .input-field i {
+                position: absolute;
+                color: var(--medium);
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .text-error {
+                color: var(--error);
+            }
+        </style>
     </head>
     <body>
-        <div class= "wrapper">
-            <form method="post" action="{% url 'login-user' %}">
+        <div class= "content-container">
+            <form class="form-content" method="post" action="{% url 'login-user' %}">
+                <p class="heading">Login</p>
                 {% csrf_token %}
-                <h1>Login</h1>
                 <div class="input-field">
-                    {{ form.email.errors }}
                     {{ form.email }}
                     <i class='bx bxs-user'></i>
                 </div>
                 <div class="input-field">
-                    {{ form.password.errors }}
                     {{ form.password }}
                     <i class='bx bxs-lock-alt'></i>
                 </div>
-                {% if error is not None %}<p class="error-message">Invalid username or password</p>{% endif %}
+                {% if error is not None %}<p class="text text-error">Invalid username or password</p>{% endif %}
                 <button type="submit" class="btn">Login</button>
             </form>
         </div>
