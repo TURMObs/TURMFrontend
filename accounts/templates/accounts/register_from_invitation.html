@@ -30,8 +30,8 @@
                         <i class='bx bxs-lock-alt'></i>
                     </div>
                     {% if form.errors %}
-                        {% for error_list in form.errors.values%}
-                            {% for error in error_list%}<div class="error-message">{{ error }}</div>{% endfor %}
+                        {% for error_list in form.errors.values %}
+                            {% for error in error_list %}<div class="error-message">{{ error }}</div>{% endfor %}
                         {% endfor %}
                     {% endif %}
                     <button type="submit" class= "btn">Register</button>
