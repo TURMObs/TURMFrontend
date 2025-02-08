@@ -1,0 +1,138 @@
+{
+  "observatories": [
+    {
+      "name": "TURMX",
+      "horizon_offset": 0.0,
+      "min_stars": -1,
+      "max_HFR": 4.0,
+      "max_guide_error": 1000.0
+    },
+    {
+      "name": "TURMX2",
+      "horizon_offset": 0.0,
+      "min_stars": -1,
+      "max_HFR": 6.0,
+      "max_guide_error": 1000.0
+    }
+  ],
+  "exposure_settings": [
+    {
+      "TURMX": {
+        "IMAGING": {
+          "gain": 100,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 1.0
+        },
+        "EXOPLANET": {
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 0.25
+        },
+        "VARIABLE": {
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 0.25
+        },
+        "MONITORING": {
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 0.25
+        }
+      }
+    },
+    {
+      "TURMX2": {
+        "IMAGING": {
+          "gain": 2750,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 1.0
+        },
+        "EXOPLANET": {
+          "gain": 0,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 0.5
+        },
+        "VARIABLE": {
+          "gain": 0,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 0.5
+        },
+        "MONITORING": {
+          "gain": 0,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 0.5
+        }
+      }
+    }
+  ],
+  "filters": [
+    {
+      "name": "Luminance",
+      "filter": "L",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Red",
+      "filter": "R",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Green",
+      "filter": "G",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Blue",
+      "filter": "B",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Hydrogen",
+      "filter": "H",
+      "moon_separation_angle": 70,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Oxygen",
+      "filter": "O",
+      "moon_separation_angle": 70,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sulfur",
+      "filter": "S",
+      "moon_separation_angle": 70,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sloan_R",
+      "filter": "SR",
+      "moon_separation_angle": 50,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sloan_G",
+      "filter": "SG",
+      "moon_separation_angle": 50,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sloan_I",
+      "filter": "SI",
+      "moon_separation_angle": 50,
+      "moon_separation_width": 7
+    }
+  ]
+}

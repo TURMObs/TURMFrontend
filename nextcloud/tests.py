@@ -1,3 +1,5 @@
+import io
+
 import django
 from django.utils import timezone
 from django.core.management import call_command
@@ -148,8 +150,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def setUp(self):
         nm.initialize_connection()
-        call_command("populate_observatories")
-
+        call_command("load_configuration", "./config.json", stdout=io.StringIO())
         self.maxDiff = None
         self.client = django.test.Client()
         self.user = None

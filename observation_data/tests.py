@@ -1,3 +1,4 @@
+import io
 import json
 import os
 from datetime import datetime, timezone, timedelta
@@ -26,6 +27,8 @@ from observation_data.models import (
     VariableObservation,
     Observatory,
     CelestialTarget,
+    ObservatoryExposureSettings,
+    ExposureSettings,
 )
 from observation_data.observation_management import (
     process_pending_deletion,
@@ -59,7 +62,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user = None
         self.client = django.test.Client()
         _create_user_and_login(self)
-        call_command("populate_observatories")
+        call_command("load_configuration", "./config.json", stdout=io.StringIO())
         self.base_request = self._get_base_request()
 
     @staticmethod
@@ -758,7 +761,7 @@ class EditObservationTestCase(django.test.TestCase):
         self.user = None
         self.client = django.test.Client()
         _create_user_and_login(self)
-        call_command("populate_observatories")
+        call_command("load_configuration", "./config.json", stdout=io.StringIO())
         self.base_request = self._get_base_request()
 
     @staticmethod
@@ -1035,7 +1038,7 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.client = django.test.Client()
         _create_user_and_login(self)
         try:
-            call_command("populate_observatories")
+            call_command("load_configuration", "./config.json", stdout=io.StringIO())
             self._create_imaging_observations()
             self._create_exoplanet_observation()
             self._create_monitoring_observation()
@@ -1316,7 +1319,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.old_prefix = self.prefix
         nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
         self.prefix = f"{self.nc_prefix}{self.prefix}"
-        call_command("populate_observatories")
+        call_command("load_configuration", "./config.json", stdout=io.StringIO())
 
         self.user = None
         self.maxDiff = None
@@ -1497,3 +1500,176 @@ class ObservationManagementTestCase(django.test.TestCase):
         )
         self.assertEqual(response.status_code, 202)
         self.assertEqual(0, AbstractObservation.objects.count())
+
+
+class ConfigurationLoadingTestCase(django.test.TestCase):
+    def _assert_exposure_settings_exists(self, exp_setting):
+        self.assertTrue(
+            ObservatoryExposureSettings.objects.filter(
+                observatory__name=exp_setting["observatory"],
+                observation_type=exp_setting["observation_type"],
+                exposure_settings__gain=exp_setting["gain"],
+                exposure_settings__offset=exp_setting["offset"],
+                exposure_settings__binning=exp_setting["binning"],
+                exposure_settings__subframe=exp_setting["subframe"],
+            ).exists()
+        )
+
+    def test_observatories(self):
+        Observatory.objects.create(
+            name="TEST",
+            horizon_offset=0.0,
+            min_stars=-1.0,
+            max_HFR=4.0,
+            max_guide_error=1000.0,
+        )
+        out = io.StringIO()
+        call_command("load_configuration", "./config.json", stdout=out)
+        output = out.getvalue()
+        self.assertIn("Created observatory TURMX.", output)
+        self.assertIn("Created observatory TURMX2.", output)
+        self.assertIn("Observatory TEST existed and was not changed.", output)
+        self.assertEqual(Observatory.objects.count(), 3)
+        observatories = Observatory.objects.all()
+        self.assertEqual(observatories[1].name, "TURMX")
+        self.assertEqual(observatories[1].horizon_offset, 0.0)
+        self.assertEqual(observatories[1].min_stars, -1.0)
+        self.assertEqual(observatories[1].max_HFR, 4.0)
+        self.assertEqual(observatories[1].max_guide_error, 1000.0)
+
+        self.assertEqual(observatories[2].name, "TURMX2")
+        self.assertEqual(observatories[2].horizon_offset, 0.0)
+        self.assertEqual(observatories[2].min_stars, -1.0)
+        self.assertEqual(observatories[2].max_HFR, 6.0)
+        self.assertEqual(observatories[2].max_guide_error, 1000.0)
+
+        call_command("load_configuration", "./config.json", "--delete", stdout=out)
+        self.assertEqual(Observatory.objects.count(), 2)
+        observatories = Observatory.objects.all()
+        self.assertEqual(observatories[0].name, "TURMX")
+        self.assertEqual(observatories[0].horizon_offset, 0.0)
+        self.assertEqual(observatories[0].min_stars, -1.0)
+        self.assertEqual(observatories[0].max_HFR, 4.0)
+        self.assertEqual(observatories[0].max_guide_error, 1000.0)
+
+        self.assertEqual(observatories[1].name, "TURMX2")
+        self.assertEqual(observatories[1].horizon_offset, 0.0)
+        self.assertEqual(observatories[1].min_stars, -1.0)
+        self.assertEqual(observatories[1].max_HFR, 6.0)
+        self.assertEqual(observatories[1].max_guide_error, 1000.0)
+
+    def test_exposure_settings(self):
+        Observatory.objects.create(
+            name="TURMX",
+            horizon_offset=0.0,
+            min_stars=-1.0,
+            max_HFR=4.0,
+            max_guide_error=1000.0,
+        )
+        ObservatoryExposureSettings.objects.create(
+            observatory=Observatory.objects.get(name="TURMX"),
+            observation_type=ObservationType.IMAGING,
+            exposure_settings=ExposureSettings.objects.create(
+                gain=100, offset=50, binning=1, subframe=1.0
+            ),
+        )
+        out = io.StringIO()
+        call_command("load_configuration", "./config.json", stdout=out)
+        output = out.getvalue()
+        self.assertIn(
+            "Exposure settings for Imaging at TURMX already exist. Set --overwrite to overwrite.",
+            output,
+        )
+        self.assertIn("Created exposure settings for Exoplanet at TURMX.", output)
+        self.assertIn("Created exposure settings for Variable at TURMX.", output)
+        self.assertIn("Created exposure settings for Monitor at TURMX.", output)
+        self.assertIn("Created exposure settings for Imaging at TURMX2.", output)
+        self.assertIn("Created exposure settings for Exoplanet at TURMX2.", output)
+        self.assertIn("Created exposure settings for Variable at TURMX2.", output)
+        self.assertIn("Created exposure settings for Monitor at TURMX2.", output)
+        self.assertIn(
+            "Exposure settings for Imaging at TURMX existed and were not changed.",
+            output,
+        )
+        exposure_settings = ObservatoryExposureSettings.objects.all()
+        self.assertEqual(exposure_settings.count(), 8)
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX",
+                "observation_type": ObservationType.IMAGING,
+                "gain": 100,
+                "offset": 50,
+                "binning": 1,
+                "subframe": 1.0,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX",
+                "observation_type": ObservationType.EXOPLANET,
+                "gain": 0,
+                "offset": 50,
+                "binning": 1,
+                "subframe": 0.25,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX",
+                "observation_type": ObservationType.VARIABLE,
+                "gain": 0,
+                "offset": 50,
+                "binning": 1,
+                "subframe": 0.25,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX",
+                "observation_type": ObservationType.MONITORING,
+                "gain": 0,
+                "offset": 50,
+                "binning": 1,
+                "subframe": 0.25,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX2",
+                "observation_type": ObservationType.IMAGING,
+                "gain": 2750,
+                "offset": 0,
+                "binning": 1,
+                "subframe": 1.0,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX2",
+                "observation_type": ObservationType.EXOPLANET,
+                "gain": 0,
+                "offset": 0,
+                "binning": 1,
+                "subframe": 0.5,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX2",
+                "observation_type": ObservationType.VARIABLE,
+                "gain": 0,
+                "offset": 0,
+                "binning": 1,
+                "subframe": 0.5,
+            }
+        )
+        self._assert_exposure_settings_exists(
+            {
+                "observatory": "TURMX2",
+                "observation_type": ObservationType.MONITORING,
+                "gain": 0,
+                "offset": 0,
+                "binning": 1,
+                "subframe": 0.5,
+            }
+        )
