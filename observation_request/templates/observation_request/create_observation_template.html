@@ -78,13 +78,13 @@
             const text = await response.text();
             await checkResponse(text, catalog_id);
         } catch (error) {
-            await showModal("Failed to resolve coordinates", `An error while trying to get a response from SIMBAD server. Got: ${error.message}`);
+            await showAlertModal("Failed to resolve coordinates", `An error while trying to get a response from SIMBAD server. Got: ${error.message}`);
         }
     }
 
     async function checkResponse(response, catalog_id) {
         if (response.includes("error")) {
-            await showModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`);
+            await showAlertModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`);
             return;
         }
 

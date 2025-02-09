@@ -1,5 +1,5 @@
 async function showConfirmModal(title, message, confirmText = "Confirm") {
-  const result = await showModal(title, message, {
+  const result = await showModal(title, createModalText(message), {
     allowDismiss: false,
     buttons: [
       {
@@ -16,21 +16,37 @@ async function showConfirmModal(title, message, confirmText = "Confirm") {
   return result === "confirm";
 }
 
+async function showAlertModal(title, message) {
+  await showModal(title, createModalText(message), {
+    allowDismiss: true,
+    buttons: [],
+  });
+}
+
+function createModalText(message) {
+  const modalMessage = document.createElement("p");
+  modalMessage.className = "text";
+  modalMessage.textContent = message;
+  return modalMessage;
+}
+
 async function showModal(
   title,
-  message,
+  content,
   options = { allowDismiss: true, buttons: [] },
 ) {
   return new Promise((resolve) => {
     const modal = document.getElementById("modal");
-    const modalMessage = document.getElementById("modal-message");
+    const modalContent = document.getElementById("modal-content");
     const modalTitle = document.getElementById("modal-title");
     const modalSeperator = document.getElementById("modal-seperator");
     const modalActions = document.getElementById("modal-actions");
 
     showElement(modal, "block");
     modalTitle.textContent = title;
-    modalMessage.textContent = message;
+
+    modalContent.innerHTML = "";
+    modalContent.appendChild(content);
 
     if (options.buttons && options.buttons.length > 0) {
       showElement(modalSeperator, "flex");

@@ -13,6 +13,12 @@
             font-size: var(--font-size-subheading);
         }
 
+        .edit-user-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
         .generate-invitation-form {
             display: grid;
             width: 100%;
@@ -26,52 +32,6 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-checkboxes {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal-checkboxes > div {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .lifetime-field {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 5px;
-        }
-
-        .lifetime-field label {
-            display: block;
-            text-align: left;
-            width: 100%;
-            margin-bottom: 2px;
-            font-size: 14px;
-        }
-
-        #id_remove_quota, #id_remove_lifetime {
-            margin-bottom: 0;
         }
 
         table {
@@ -294,42 +254,6 @@
             </div>
         </div>
     </div>
-    <div id="edit-user-modal" class="modal">
-        <div class="content-wrapper">
-            <h3 id="edit_modal_title">Edit User</h3>
-            <form id="editUserForm">
-                {% csrf_token %}
-                <div>
-                    <div class="modal-input-field">{{ edit_user_form.new_email }}</div>
-                    <div class="modal-input-field">{{ edit_user_form.new_alias }}</div>
-                    <div class="modal-checkboxes">
-                        <div id="id_remove_quota">
-                            <input type="checkbox"
-                                   id="remove_quota"
-                                   name="remove_quota"
-                                   onclick="toggleInput('new-quota-field')">
-                            <label for="remove_quota">Remove Quota</label>
-                        </div>
-                        <div id="id_remove_lifetime">
-                            <input type="checkbox"
-                                   id="remove_lifetime"
-                                   name="remove_lifetime"
-                                   onclick="toggleInput('new-lifetime-field')">
-                            <label for="remove_lifetime">Remove Lifetime</label>
-                        </div>
-                    </div>
-                    <div class="modal-input-field" id="new-quota-field">{{ edit_user_form.new_quota }}</div>
-                    <div class="modal-input-field lifetime-field" id="new-lifetime-field">
-                        <label for="id_new_lifetime">New Lifetime</label>
-                        {{ edit_user_form.new_lifetime }}
-                    </div>
-                </div>
-                <input type="hidden" id="edit-user-id" name="user_id">
-                <button type="button" class="green-button" onclick=submitEditUser()>Save Changes</button>
-                <button type="button" onclick="closeModal()">Close</button>
-            </form>
-        </div>
-    </div>
 {% endblock %}
 {% block scripts %}
     <script>
@@ -409,38 +333,19 @@
                     }
                 } else {
                     if (linkData['error']) {
-                      await showModal("Failed to create invitation", `Got an error for email "${email}".\n${linkData['error']}`);
+                        await showAlertModal("Failed to create invitation", `Got an error for email "${email}".\n${linkData['error']}`);
                     } else {
-                        await showModal("Failed to create invitation", "An unknown error occurred. Please try again.");
+                        await showAlertModal("Failed to create invitation", "An unknown error occurred. Please try again.");
                     }
                 }
             } catch (error) {
-                await showModal("Failed to create invitation", "An unknown error occurred. Please try again.");
+                await showAlertModal("Failed to create invitation", "An unknown error occurred. Please try again.");
             }
         }
 
         function copyLinkToClipboard(link, element) {
-          navigator.clipboard.writeText(link);
-          //TODO: Restore ability to show some kind of signal to the user that it was copied
-        }
-
-        function closeModal() {
-            document.getElementById('edit-user-modal').style.display = 'none';
-
-            // Clear form inputs
-            const invitationForm = document.getElementById('invitationForm');
-            invitationForm.reset();
-            const editUserForm = document.getElementById('editUserForm');
-            editUserForm.reset();
-            const newQuotaField = document.getElementById('new-quota-field');
-            newQuotaField.style.content = 'none';
-            const newLifetimeField = document.getElementById('new-lifetime-field');
-            newLifetimeField.style.content = 'none';
-            const removeQuota = document.getElementById('id_remove_quota');
-            removeQuota.style.content = 'none';
-            const removeLifetime = document.getElementById('id_remove_lifetime');
-            removeLifetime.style.content = 'none';
-            location.reload();
+            //TODO: Restore ability to show some kind of signal to the user that it was copied
+            navigator.clipboard.writeText(link);
         }
 
         async function deleteUser(userId) {
@@ -450,7 +355,6 @@
 
             const form = document.getElementById(`delete-user-${userId}`);
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
-
             try {
                 const response = await fetch("{% url 'delete-user' 0 %}".replace("0", userId), {
                     method: 'DELETE',
@@ -463,70 +367,114 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    await showModal("User Deleted", data.message || "User was successfully marked for deletion.");
+                    await showAlertModal("User Deleted", data.message || "User was successfully marked for deletion.");
                     form.closest('tr').remove(); // Remove the row from the table
                 } else {
-                    await showModal("Error occurred", data.error || "An error occurred while marking the user for deletion.");
+                    await showAlertModal("Error occurred", data.error || "An error occurred while marking the user for deletion.");
                 }
             } catch (error) {
-                await showModal("Error occurred", "An unknown error occurred while marking the user for deletion. Please try again.");
+                await showAlertModal("Error occurred", "An unknown error occurred while marking the user for deletion. Please try again.");
             }
         }
 
-        function editUser(user) {
+        async function editUser(user) {
             const id = user.id;
             const email = user.email;
             const username = user.username;
             const currentQuota = user.quota;
             const currentLifetime = user.lifetime;
 
-            document.getElementById('edit_modal_title').value = email;
-
-            if (currentQuota === "None") {
-                document.getElementById('id_remove_quota').style.display = 'none';
-            } else {
-                document.getElementById('id_remove_quota').style.display = 'block';
-            }
-
-            if (currentLifetime === "None") {
-                document.getElementById('id_remove_lifetime').style.display = 'none';
-            } else {
-                document.getElementById('id_remove_lifetime').style.display = 'block';
-            }
-
-            document.getElementById('edit-user-id').value = id;
-            document.getElementById('edit-user-modal').style.display = 'flex';
             let title;
             if (username !== email) {
-                title = `Edit user ${username} (${email})`;
+                title = `Editing User ${username} (${email})`;
             } else {
-                title = `Edit user ${email}`;
+                title = `Editing User ${email}`;
             }
-            document.getElementById('edit_modal_title').textContent = title;
-            const modalContent = document.querySelector('#edit-user-modal > div');
-            modalContent.style.display = 'flex';
-            modalContent.style.flexDirection = 'column';
-            modalContent.style.alignItems = 'center';
+
+            const form = createEditUserForm(id, email, username, currentQuota, currentLifetime);
+            const result = await showModal(title, form, {
+                allowDismiss: false,
+                buttons: [
+                    {
+                        id: "cancel",
+                        text: "Cancel",
+                        secondary: true,
+                    },
+                    {
+                        id: "save",
+                        text: "Save Changes",
+                    },
+                ],
+            });
+
+            if (result === "save") {
+                await submitEditUser(form);
+            }
         }
 
-        async function submitEditUser() {
-            const form = document.getElementById('editUserForm');
-            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        function createEditUserForm(id, email, username, currentQuota, currentLifetime) {
+            const form = document.createElement('form');
+            form.id = 'editUserForm';
+            form.className = 'edit-user-form';
+            form.innerHTML = `
+                {% csrf_token %}
+                <input type="hidden" id="edit-user-id" name="user_id" value="${id}">
+                <div>
+                    <label class="text-secondary" for="id_new_email">Email</label>
+                    <input class="textbox" type="email" id="id_new_email" name="new_email" value="${email}" placeholder="New Email">
+                </div>
+                <div>
+                    <label class="text-secondary" for="id_new_alias">Alias</label>
+                    <input class="textbox" type="text" id="id_new_alias" name="new_alias" value="${username}" placeholder="New Alias">
+                </div>
+                <div>
+                    <label class="text-secondary" for="id_new_quota">Quota</label>
+                    <div class="optional-field-container">
+                        <input id="id_set_quota" name="set_quota" class="position-absolute checkbox" type="checkbox" onclick="toggleInput('new_quota')">
+                        <label id="label_new_quota" for="id_new_quota" class="text-secondary">New Quota</label>
+                        <input id="id_new_quota" class="textbox" type="number" name="new_quota" value="${currentQuota}">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-secondary" for="id_new_lifetime">Lifetime</label>
+                    <div class="optional-field-container">
+                        <input id="id_set_lifetime" name="set_lifetime" class="position-absolute checkbox" type="checkbox" onclick="toggleInput('new_lifetime')">
+                        <label id="label_new_lifetime" for="id_new_lifetime" class="text-secondary">New Lifetime</label>
+                        <input id="id_new_lifetime" class="textbox" type="date" name="new_lifetime" value="${currentLifetime}">
+                    </div>
+                </div>
+            `;
+
+            if (currentQuota === 'None') {
+                form.querySelector('#id_new_quota').style.display = 'none';
+            } else {
+                form.querySelector('#label_new_quota').style.display = 'none';
+                form.querySelector('#id_set_quota').checked = true;
+            }
+            if (currentLifetime === 'None') {
+                form.querySelector('#id_new_lifetime').style.display = 'none';
+            } else {
+                form.querySelector('#label_new_lifetime').style.display = 'none';
+                form.querySelector('#id_set_lifetime').checked = true;
+            }
+
+            return form;
+        }
+
+        async function submitEditUser(form) {
+            const csrfToken = form.elements["csrfmiddlewaretoken"].value;
             const formData = new FormData(form);
-            if (document.getElementById('new-quota-field').style.display === 'none') {
+            if (form.elements['id_set_quota'].checked) {
+                formData.delete('set_quota');
+            } else {
                 formData.delete('new_quota');
+                formData.append('remove_quota', 'on');
             }
-
-            if (document.getElementById('new-lifetime-field').style.display === 'none') {
+            if (form.elements['id_set_lifetime'].checked) {
+                formData.delete('set_lifetime');
+            } else {
                 formData.delete('new_lifetime');
-            }
-
-            if (document.getElementById('id_remove_quota').style.display === 'none') {
-                formData.delete('remove_quota');
-            }
-
-            if (document.getElementById('id_remove_lifetime').style.display === 'none') {
-                formData.delete('remove_lifetime');
+                formData.append('remove_lifetime', 'on');
             }
 
             try {
@@ -537,16 +485,13 @@
                     },
                     body: formData,
                 });
-
-
                 if (response.ok) {
-                    closeModal();
                     location.reload();
                 } else {
-                    await showModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
+                    await showAlertModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
                 }
             } catch (error) {
-                await showModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
+                await showAlertModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
             }
         }
 
@@ -567,13 +512,13 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    await showModal("Deleted Invitation", data.message || "Invitation deleted successfully.");
+                    await showAlertModal("Deleted Invitation", data.message || "Invitation deleted successfully.");
                     location.reload();
                 } else {
-                    await showModal("Failed to delete Invitation", data.error || "An error occurred while deleting the invitation.");
+                    await showAlertModal("Failed to delete Invitation", data.error || "An error occurred while deleting the invitation.");
                 }
             } catch (error) {
-                await showModal("Failed to delete Invitation", "An unknown error occurred while deleting the invitation.");
+                await showAlertModal("Failed to delete Invitation", "An unknown error occurred while deleting the invitation.");
             }
         }
     </script>

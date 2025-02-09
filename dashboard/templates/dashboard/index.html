@@ -208,9 +208,9 @@
                   }
 
                   const jsonResponse = await response.json();
-                  await showModal("Failed to delete observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
+                  await showAlertModal("Failed to delete observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
               } catch (err) {
-                  await showModal("Failed to delete observation", "An unkown error occurred while deleting your observation. Please try again.");
+                  await showAlertModal("Failed to delete observation", "An unkown error occurred while deleting your observation. Please try again.");
               }
             }
         }
