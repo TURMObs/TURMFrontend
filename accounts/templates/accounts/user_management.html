@@ -174,18 +174,8 @@
                                {% if invitation_form.expert.value %}checked{% endif %}>
                         <label for="id_expert" class="text-secondary">Expert</label>
                     </div>
-                    <!-- <div class="checkbox-field">
-                            <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
-                            <label for="enableQuota">Max. Simultaneous Requests</label>
-                        </div>
-                        <div id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
-                        <div class="checkbox-field">
-                            <input type="checkbox" id="enableLifetime" onclick="toggleInput('lifetimeField')">
-                            <label for="enableLifetime">Limited Usage Time</label>
-                        </div>
-                        <div id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div> -->
                     <div class="generate-invitation-submit">
-                        <button type="button" class="btn" onclick="createInvitation()">Generate</button>
+                        <button type="button" class="btn" onclick="createInvitation()">Generate Invitation</button>
                     </div>
                 </div>
             </form>
