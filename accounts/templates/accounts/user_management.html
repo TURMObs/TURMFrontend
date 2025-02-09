@@ -13,14 +13,11 @@
             font-size: var(--font-size-subheading);
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
         .generate-invitation-form {
             display: grid;
             width: 100%;
-            gap: 32px;
+            column-gap: 32px;
+            row-gap: 16px;
             grid-template-columns: 1fr 1fr;
             margin: 16px 0;
         }
@@ -97,11 +94,42 @@
             padding: 8px;
             text-align: left;
         }
+
+        .generate-invitation-submit {
+            grid-column: 2;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .optional-field-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            height: 48px;
+            border: var(--border-sm) solid var(--color-gray-400);
+            border-radius: var(--radius-md);
+            padding-right: 24px;
+        }
+
+        .optional-field-container > *:last-child {
+            flex: 1;
+        }
+
+        .optional-field-container input:not([type="checkbox"]) {
+            margin-left: 32px;
+            border: none;
+        }
+
+        .optional-field-container label {
+            margin-left: 56px;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container">
-        <div class="content-wrapper content-container">
+        <div class="content-wrapper form-wrapper content-container">
             <!-- Invitation Form -->
             <p class="heading">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
@@ -122,29 +150,41 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div>
-                    <div class="form-group">
-                        <div class="checkbox-input-container">
-                            <input type="checkbox"
-                                   id="id_expert"
-                                   name="expert"
-                                   {% if invitation_form.expert.value %}checked{% endif %}>
-                            <label for="id_expert">Expert</label>
-                        </div>
-                        <div class="checkbox-field">
+                <div class="generate-invitation-options">
+                    <div class="optional-field-container">
+                        <input class="position-absolute checkbox"
+                               type="checkbox"
+                               id="enableQuota"
+                               onclick="toggleInput('quota')">
+                        <label for="id_quota" id="label_quota" class="text-secondary">Quota</label>
+                        <div id="quotaField">{{ invitation_form.quota }}</div>
+                    </div>
+                    <div class="optional-field-container">
+                        <input class="position-absolute checkbox"
+                               type="checkbox"
+                               id="enableLifetime"
+                               onclick="toggleInput('lifetime')">
+                        <label for="id_lifetime" id="label_lifetime" class="text-secondary">Lifetime</label>
+                        <div id="lifetimeField">{{ invitation_form.lifetime }}</div>
+                    </div>
+                    <div class="toggle">
+                        <input type="checkbox"
+                               id="id_expert"
+                               name="expert"
+                               {% if invitation_form.expert.value %}checked{% endif %}>
+                        <label for="id_expert" class="text-secondary">Expert</label>
+                    </div>
+                    <!-- <div class="checkbox-field">
                             <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
                             <label for="enableQuota">Max. Simultaneous Requests</label>
                         </div>
                         <div id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
                         <div class="checkbox-field">
-                            <input type="checkbox"
-                                   id="enableLifetime"
-                                   onclick="toggleInput('lifetimeField')">
+                            <input type="checkbox" id="enableLifetime" onclick="toggleInput('lifetimeField')">
                             <label for="enableLifetime">Limited Usage Time</label>
                         </div>
-                        <div id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
-                    </div>
-                    <div class="form-group">
+                        <div id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div> -->
+                    <div class="generate-invitation-submit">
                         <button type="button" class="btn" onclick="createInvitation()">Generate</button>
                     </div>
                 </div>
@@ -269,7 +309,7 @@
             <h3 id="edit_modal_title">Edit User</h3>
             <form id="editUserForm">
                 {% csrf_token %}
-                <div class="form-group">
+                <div>
                     <div class="modal-input-field">{{ edit_user_form.new_email }}</div>
                     <div class="modal-input-field">{{ edit_user_form.new_alias }}</div>
                     <div class="modal-checkboxes">
@@ -327,8 +367,10 @@
         });
 
         function toggleInput(fieldId) {
-            const field = document.getElementById(fieldId);
+            const field = document.getElementById("id_" + fieldId);
+            const label = document.getElementById("label_" + fieldId);
             field.style.display = field.style.display === 'none' ? 'block' : 'none';
+            label.style.display = label.style.display === 'none' ? 'block' : 'none';
         }
 
         async function createInvitation() {

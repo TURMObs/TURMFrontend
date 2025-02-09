@@ -47,14 +47,27 @@ class GenerateInvitationForm(forms.Form):
         required=False,
     )
     quota = forms.IntegerField(
-        widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
+        widget=forms.NumberInput(
+            attrs={
+                "placeholder": "Quota",
+                "class": "textbox",
+                "style": "display: none;",
+            }
+        ),
         min_value=1,
         max_value=100,
         initial=5,
         required=False,
     )
     lifetime = forms.DateField(
-        widget=forms.DateInput(attrs={"type": "date", "min": datetime.now().date()}),
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+                "min": datetime.now().date(),
+                "class": "textbox",
+                "style": "display: none;",
+            }
+        ),
         initial=(datetime.now() + timedelta(days=90)),
         required=False,
     )
