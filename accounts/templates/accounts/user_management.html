@@ -3,14 +3,8 @@
 {% block title %}User Management{% endblock %}
 {% block style %}
     <style>
-        .container {
-            margin: 0px 32px;
-        }
-
-        .empty-text p {
-            text-align: center;
-            padding: 20px;
-            font-size: var(--font-size-subheading);
+        .left-8 {
+            left: 8px;
         }
 
         .edit-user-form {
@@ -63,27 +57,51 @@
 
         .optional-field-container {
             width: 100%;
-            display: flex;
-            align-items: center;
             gap: 8px;
             position: relative;
             height: 48px;
             border: var(--border-sm) solid var(--color-gray-400);
             border-radius: var(--radius-md);
-            padding-right: 24px;
-        }
-
-        .optional-field-container > *:last-child {
-            flex: 1;
-        }
-
-        .optional-field-container input:not([type="checkbox"]) {
-            margin-left: 32px;
-            border: none;
         }
 
         .optional-field-container label {
-            margin-left: 56px;
+            position: absolute;
+            cursor: pointer;
+            left: 56px;
+            top: 12px;
+            height: 100%;
+            width: calc(100% - 56px);
+        }
+
+        .optional-field-container input[type="checkbox"] {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+        }
+
+        .optional-field-container input:not([type="checkbox"]) {
+            border: none;
+            position: absolute;
+            left: 32px;
+            width: calc(100% - 32px);
+        }
+
+        .expert-field-container {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            align-items: center;
+            height: 48px;
+            padding: 8px 8px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            border: var(--border-sm) solid var(--color-gray-400);
+        }
+
+        .expert-field-container label {
+            cursor: pointer;
+            flex: 1;
         }
 
         .copy-popover {
@@ -107,7 +125,7 @@
     </style>
 {% endblock %}
 {% block content %}
-    <div class="container">
+    <div>
         <div class="content-wrapper form-wrapper content-container">
             <!-- Invitation Form -->
             <p class="heading">Generate Invitation</p>
@@ -131,27 +149,28 @@
                 </div>
                 <div class="generate-invitation-options">
                     <div class="optional-field-container">
-                        <input class="position-absolute checkbox"
+                        <input class="checkbox"
                                type="checkbox"
-                               id="enableQuota"
+                               id="set_quota"
                                onclick="toggleInput('quota')">
-                        <label for="id_quota" id="label_quota" class="text-secondary">Quota</label>
+                        <label for="set_quota" id="label_quota" class="text-secondary">Quota</label>
                         <div id="quotaField">{{ invitation_form.quota }}</div>
                     </div>
                     <div class="optional-field-container">
-                        <input class="position-absolute checkbox"
+                        <input class="checkbox"
                                type="checkbox"
-                               id="enableLifetime"
+                               id="set_lifetime"
                                onclick="toggleInput('lifetime')">
-                        <label for="id_lifetime" id="label_lifetime" class="text-secondary">Lifetime</label>
+                        <label for="set_lifetime" id="label_lifetime" class="text-secondary">Lifetime</label>
                         <div id="lifetimeField">{{ invitation_form.lifetime }}</div>
                     </div>
-                    <div class="toggle">
+                    <div class="expert-field-container">
                         <input type="checkbox"
                                id="id_expert"
                                name="expert"
+                               class="checkbox"
                                {% if invitation_form.expert.value %}checked{% endif %}>
-                        <label for="id_expert" class="text-secondary">Expert</label>
+                        <label for="id_expert" class="text">Expert</label>
                     </div>
                     <div class="generate-invitation-submit">
                         <button type="button" class="btn" onclick="createInvitation()">Generate Invitation</button>
@@ -349,6 +368,7 @@
                   const link = linkData['link'];
                     if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link")) {
                         navigator.clipboard.writeText(link);
+                        location.reload();
                     }
                 } else {
                     if (linkData['error']) {
@@ -473,16 +493,16 @@
                 <div>
                     <label class="text-secondary" for="id_new_quota">Quota</label>
                     <div class="optional-field-container">
-                        <input id="id_set_quota" name="set_quota" class="position-absolute checkbox" type="checkbox" onclick="toggleInput('new_quota')">
-                        <label id="label_new_quota" for="id_new_quota" class="text-secondary">New Quota</label>
+                        <input id="id_set_quota" name="set_quota" class="checkbox" type="checkbox" onclick="toggleInput('new_quota')">
+                        <label id="label_set_quota" for="id_set_quota" class="text-secondary">New Quota</label>
                         <input id="id_new_quota" class="textbox" type="number" name="new_quota" value="${currentQuota}">
                     </div>
                 </div>
                 <div>
                     <label class="text-secondary" for="id_new_lifetime">Lifetime</label>
                     <div class="optional-field-container">
-                        <input id="id_set_lifetime" name="set_lifetime" class="position-absolute checkbox" type="checkbox" onclick="toggleInput('new_lifetime')">
-                        <label id="label_new_lifetime" for="id_new_lifetime" class="text-secondary">New Lifetime</label>
+                        <input id="id_set_lifetime" name="set_lifetime" class="checkbox" type="checkbox" onclick="toggleInput('new_lifetime')">
+                        <label id="label_set_lifetime" for="id_set_lifetime" class="text-secondary">New Lifetime</label>
                         <input id="id_new_lifetime" class="textbox" type="date" name="new_lifetime" value="${currentLifetime}">
                     </div>
                 </div>
