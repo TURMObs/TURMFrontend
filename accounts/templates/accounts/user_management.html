@@ -349,7 +349,7 @@
         }
 
         async function deleteUser(userId) {
-            if (!await showConfirmModal("Delete account", "Are you sure you want to mark this user for deletion?"), "Delete") {
+            if (!await showConfirmModal("Delete Account", "Are you sure you want to mark this user for deletion?"), "Delete") {
                 return;
             }
 
@@ -367,7 +367,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    await showAlertModal("User Deleted", data.message || "User was successfully marked for deletion.");
+                    await showAlertModal("User was deleted", data.message || "User was successfully marked for deletion.");
                     form.closest('tr').remove(); // Remove the row from the table
                 } else {
                     await showAlertModal("Error occurred", data.error || "An error occurred while marking the user for deletion.");

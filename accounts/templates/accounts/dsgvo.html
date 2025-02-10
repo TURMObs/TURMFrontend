@@ -45,7 +45,7 @@
         document.getElementById('deleteBtn').addEventListener('click', async function () {
             const user_id = {{ request.user.id }}
 
-            if (await showConfirmModal("Delete account", "Are you sure you want to delete your user data? This action cannot be undone.", "Delete")) {
+            if (await showConfirmModal("Delete Account", "Are you sure you want to delete your user data? This action cannot be undone.", "Delete")) {
               try {
                   const response = await fetch(`{{ subpath }}/accounts/delete-user/${user_id}`, {
                       method: 'DELETE',

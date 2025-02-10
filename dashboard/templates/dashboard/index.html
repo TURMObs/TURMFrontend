@@ -258,7 +258,7 @@
          * @param {string} url - The url to send the request to.
          */
         async function delete_observation(url) {
-            if (await showConfirmModal("Delete observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
+            if (await showConfirmModal("Delete Observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
               try {
                   const response = await fetch(url, {
                       headers: {
@@ -274,9 +274,9 @@
                   }
 
                   const jsonResponse = await response.json();
-                  await showAlertModal("Failed to delete observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
+                  await showAlertModal("Failed to delete Observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
               } catch (err) {
-                  await showAlertModal("Failed to delete observation", "An unkown error occurred while deleting your observation. Please try again.");
+                  await showAlertModal("Failed to delete Observation", "An unkown error occurred while deleting your observation. Please try again.");
               }
             }
         }
