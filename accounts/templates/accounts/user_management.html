@@ -85,6 +85,25 @@
         .optional-field-container label {
             margin-left: 56px;
         }
+
+        .copy-popover {
+            position: absolute;
+            background-color: var(--color-gray-400);
+            padding: 4px 8px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .copy-popover.show {
+            opacity: 1;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -170,7 +189,7 @@
                                         {% if invitation.link != "" %}
                                             <button id="copy-invitation-action-{{ invitation.id }}"
                                                     type="button"
-                                                    class="icon-btn"
+                                                    class="icon-btn position-relative"
                                                     onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
                                                 <i class="bx bx-copy"></i>
                                             </button>
@@ -329,7 +348,7 @@
                 if (generateResponse.ok) {
                   const link = linkData['link'];
                     if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link")) {
-                        copyLinkToClipboard(link, null);
+                        navigator.clipboard.writeText(link);
                     }
                 } else {
                     if (linkData['error']) {
@@ -344,8 +363,32 @@
         }
 
         function copyLinkToClipboard(link, element) {
-            //TODO: Restore ability to show some kind of signal to the user that it was copied
-            navigator.clipboard.writeText(link);
+            navigator.clipboard.writeText(link).then(() => {
+                if (element) {
+                    const popover = document.createElement('div');
+                    popover.className = 'copy-popover';
+                    popover.innerHTML = '<i class="bx bx-check"></i> Copied!';
+                    element.appendChild(popover);
+
+                    setTimeout(() => {
+                        popover.classList.add('show');
+
+                        const buttonRect = element.getBoundingClientRect();
+                        popover.style.left = `${buttonRect.width + 4}px`;
+                        popover.style.top = '50%';
+                        popover.style.transform = 'translateY(-50%)';
+                    }, 50);
+
+                    setTimeout(() => {
+                        popover.classList.remove('show');
+                        setTimeout(() => {
+                            element.removeChild(popover);
+                        }, 300);
+                    }, 1500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
         }
 
         async function deleteUser(userId) {

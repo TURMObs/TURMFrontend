@@ -15,7 +15,7 @@
 
     --status-pending: #ffa500;
     --status-active: #1e90ff;
-    --status-completed: #32cd32;
+    --status-success: #32cd32;
     --status-failed: #ff4500;
     --status-neutral: #808080;
 
@@ -318,6 +318,10 @@ body {
 
 .position-absolute {
     position: absolute;
+}
+
+.position-relative {
+    position: relative;
 }
 
 /* modal */
