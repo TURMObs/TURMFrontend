@@ -89,8 +89,8 @@
                         <i class='bx bxs-lock-alt'></i>
                     </div>
                     {% if form.errors %}
-                        {% for error in form.errors.as_data.values %}
-                            {% for error in error.0 %}<p class="text text-error">{{ error }}</p>{% endfor %}
+                        {% for error_list in form.errors.values %}
+                            {% for error in error_list %}<div class="text text-error">{{ error }}</div>{% endfor %}
                         {% endfor %}
                     {% endif %}
                     <button type="submit" class= "btn">Register</button>
