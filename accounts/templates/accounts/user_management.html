@@ -223,7 +223,7 @@
                                     <td>{{ target_user.get_role }}</td>
                                     <td>{{ target_user.quota }}</td>
                                     <td>{{ target_user.lifetime }}</td>
-                                    <td>{{ target_user.date_joined }}</td>
+                                    <td>{{ target_user.date_joined|date:"d.m.Y" }}</td>
                                     <td>
                                         {% if perms.accounts.can_edit_users %}
                                             <form id="edit-user-{{ target_user.id }}" style="display: inline;">
