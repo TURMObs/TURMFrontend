@@ -60,30 +60,6 @@
     .status-error { background-color: var(--status-failed); }
     .status-pending-deletion { background-color: var(--status-neutral); }
 
-    .progress-circle {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: conic-gradient(
-            var(--status-active) calc(var(--progress) * 3.6deg),
-            var(--color-gray-200) calc(var(--progress) * 3.6deg)
-        );
-        position: relative;
-        margin-right: 6px;
-    }
-
-    .progress-circle::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 8px;
-        height: 8px;
-        background: var(--color-gray-500);
-        border-radius: 50%;
-    }
-
     .filter-set-container {
         display: flex;
         gap: 8px;
@@ -126,8 +102,9 @@
                             <th class="text-medium text-align-left">Filters</th>
                             <th class="text-medium text-align-right">Exposure Time</th>
                             {% if perms.accounts.can_see_all_observations %}<th class="text-medium text-align-left">User</th>{% endif %}
-                            <th class="text-medium text-align-right">Created</th>
                             <th class="text-medium text-align-right">Status</th>
+                            <th class="text-medium text-align-right">Progress</th>
+                            <th class="text-medium text-align-right">Created</th>
                             <th class="text-medium text-align-right">Priority</th>
                             <th class="actions-container"></th>
                         </tr>
@@ -154,32 +131,24 @@
                                 {% if perms.accounts.can_see_all_observations %}
                                     <td class="text-align-left">{{ observation.user.username }}</td>
                                 {% endif %}
-                                <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 <td class="text-align-right">
                                     <div class="project-status-container">
-                                        {% if observation.project_status == ObservationStatus.UPLOADED and observation.project_completion != 0 %}
-                                            <div class="progress-circle"
-                                                 style="--progress: {{ observation.project_completion|floatformat:'0' }}">
-                                                <div class="progress-circle-inner"></div>
-                                            </div>
-                                            <span class="text">In Progress ({{ observation.project_completion|floatformat:'0' }}%)</span>
-                                        {% else %}
-                                            {% if observation.project_status == ObservationStatus.PENDING %}
-                                                <span class="project-status-dot status-pending"></span>
-                                            {% elif observation.project_status == ObservationStatus.UPLOADED %}
-                                                <span class="project-status-dot status-uploaded"></span>
-                                            {% elif observation.project_status == ObservationStatus.COMPLETED %}
-                                                <span class="project-status-dot status-completed"></span>
-                                            {% elif observation.project_status == ObservationStatus.ERROR %}
-                                                <span class="project-status-dot status-error"></span>
-                                            {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
-                                                <span class="project-status-dot status-pending-deletion"></span>
-                                            {% endif %}
-                                            <span class="text">{{ observation.project_status }}</span>
+                                        {% if observation.project_status == ObservationStatus.PENDING %}
+                                            <span class="project-status-dot status-pending"></span>
+                                        {% elif observation.project_status == ObservationStatus.UPLOADED %}
+                                            <span class="project-status-dot status-uploaded"></span>
+                                        {% elif observation.project_status == ObservationStatus.COMPLETED %}
+                                            <span class="project-status-dot status-completed"></span>
+                                        {% elif observation.project_status == ObservationStatus.ERROR %}
+                                            <span class="project-status-dot status-error"></span>
+                                        {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
+                                            <span class="project-status-dot status-pending-deletion"></span>
                                         {% endif %}
+                                        <span class="text">{{ observation.project_status }}</span>
                                     </div>
                                 </td>
-                                <!-- <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td> -->
+                                <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
+                                <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                                 {% if perms.accounts.can_see_all_observations %}
                                     <td class="text-align-right">{{ observation.priority }}</td>
                                 {% endif %}
