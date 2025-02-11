@@ -4,12 +4,11 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
           rel='stylesheet'>
     <style>
-    .container {
-        margin: 0px 32px;
-    }
-
     .empty-container {
+        min-height: 128px;
         display: flex;
+        flex-direction: column;
+        gap: 16px;
         justify-content: center;
         align-items: center;
     }
@@ -20,20 +19,7 @@
     }
 
     .observations-table {
-        border-collapse: collapse;
-        border-spacing: 0;
-        width: 100%;
-        height: calc(100% - 10px);
-        margin: 10px 0px;
-        box-sizing: border-box;
-    }
-
-    .observations-table th, td {
-        padding: 8px;
-    }
-
-    .observation-row {
-        border-top: var(--border-sm) solid var(--color-gray-400);
+        margin: 16px 0px;
     }
 
     .project-status-container {
@@ -85,126 +71,126 @@
     </style>
 {% endblock %}
 {% block content %}
-    <div class="container">
-        <div class="content-wrapper">
-            {% if observations|length == 0 %}
-                <div class="empty-container">
-                    <p class="empty-text">Submitted observations will show up here.</p>
-                </div>
-            {% else %}
-                <table class="observations-table">
-                    <thead>
-                        <tr>
-                            <th class="expand-row-container"></th>
-                            <th class="text-medium text-align-left">Observatory</th>
-                            <th class="text-medium text-align-left">Target</th>
-                            <th class="text-medium text-align-left">Type</th>
-                            <th class="text-medium text-align-left">Filters</th>
-                            <th class="text-medium text-align-right">Exposure Time</th>
-                            {% if perms.accounts.can_see_all_observations %}<th class="text-medium text-align-left">User</th>{% endif %}
-                            <th class="text-medium text-align-right">Status</th>
-                            <th class="text-medium text-align-right">Progress</th>
-                            <th class="text-medium text-align-right">Created</th>
-                            <th class="text-medium text-align-right">Priority</th>
-                            <th class="actions-container"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for observation in observations %}
-                            <tr class="observation-row" data-id="{{ observation.id }}">
-                                <td class="expand-row-icon-container">
-                                    <div id="expander-trigger-{{ observation.id }}"
-                                         class="icon-btn"
-                                         onclick="toggleExpander('{{ observation.id }}')">
-                                        <i class="bx bx-chevron-right"></i>
-                                    </div>
-                                </td>
-                                <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                <td class="text-align-left">{{ observation.target.name }}</td>
-                                <td class="text-align-left">{{ observation.observation_type }}</td>
-                                <td>
-                                    <div class="filter-set-container">
-                                        {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
-                                    </div>
-                                </td>
-                                <td class="text-align-right">{{ observation.exposure_time }}</td>
-                                {% if perms.accounts.can_see_all_observations %}
-                                    <td class="text-align-left">{{ observation.user.username }}</td>
-                                {% endif %}
-                                <td class="text-align-right">
-                                    <div class="project-status-container">
-                                        {% if observation.project_status == ObservationStatus.PENDING %}
-                                            <span class="project-status-dot status-pending"></span>
-                                        {% elif observation.project_status == ObservationStatus.UPLOADED %}
-                                            <span class="project-status-dot status-uploaded"></span>
-                                        {% elif observation.project_status == ObservationStatus.COMPLETED %}
-                                            <span class="project-status-dot status-completed"></span>
-                                        {% elif observation.project_status == ObservationStatus.ERROR %}
-                                            <span class="project-status-dot status-error"></span>
-                                        {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
-                                            <span class="project-status-dot status-pending-deletion"></span>
-                                        {% endif %}
-                                        <span class="text">{{ observation.project_status }}</span>
-                                    </div>
-                                </td>
-                                <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
-                                <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
-                                {% if perms.accounts.can_see_all_observations %}
-                                    <td class="text-align-right">{{ observation.priority }}</td>
-                                {% endif %}
-                                <td class="actions-container">
-                                    {% if observation.project_status == ObservationStatus.PENDING %}
-                                        <a href="{% url 'edit-observation-request' observation.id %}"
-                                           class="icon-btn">
-                                            <i class="bx bx-edit"></i>
-                                        </a>
-                                        <a href="#"
-                                           onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
-                                           class="icon-btn">
-                                            <i class="bx bx-trash"></i>
-                                        </a>
-                                    {% endif %}
-                                </td>
-                                <tr class="expander-row"
-                                    id="expander-{{ observation.id }}"
-                                    style="display: none">
-                                    <td colspan="5">
-                                        <div class="expander-content">
-                                            {% if observation.observation_type == ObservationType.IMAGING %}
-                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                            {% elif observation.observation_type == ObservationType.EXOPLANET %}
-                                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                            {% elif observation.observation_type == ObservationType.VARIABLE %}
-                                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
-                                            {% elif observation.observation_type == ObservationType.MONITORING %}
-                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                <p>Cadence: {{ observation.cadence }}</p>
-                                            {% elif observation.observation_type == ObservationType.EXPERT %}
-                                                <p>Frames per filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Dither every: {{ observation.dither_every }}</p>
-                                                <p>Binning: {{ observation.binning }}</p>
-                                                <p>Gain: {{ observation.gain }}</p>
-                                                <p>Offset: {{ observation.offset }}</p>
-                                                <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                                <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                <p>Cadence: {{ observation.cadence }}</p>
-                                                <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
-                                                <p>Moon separation width: {{ observation.moon_separation_width }}</p>
-                                                <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% endif %}
+    <div class="page-content page-lg">
+        {% if observations|length == 0 %}
+            <div class="empty-container">
+                <p class="empty-text">Submitted observations will show up here.</p>
+                <a class="btn-secondary text-decoration-none"
+                   href="{% url 'create-observation-request' %}">Create New Observation</a>
             </div>
+        {% else %}
+            <table class="table observations-table">
+                <thead>
+                    <tr>
+                        <th class="expand-row-container"></th>
+                        <th class="text-align-left">Observatory</th>
+                        <th class="text-align-left">Target</th>
+                        <th class="text-align-left">Type</th>
+                        <th class="text-align-left">Filters</th>
+                        <th class="text-align-right">Exposure Time</th>
+                        {% if perms.accounts.can_see_all_observations %}<th class="text-align-left">User</th>{% endif %}
+                        <th class="text-align-right">Status</th>
+                        <th class="text-align-right">Progress</th>
+                        <th class="text-align-right">Created</th>
+                        {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">Priority</th>{% endif %}
+                        <th class="actions-container"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for observation in observations %}
+                        <tr class="table-row" data-id="{{ observation.id }}">
+                            <td class="expand-row-icon-container">
+                                <div id="expander-trigger-{{ observation.id }}"
+                                     class="icon-btn"
+                                     onclick="toggleExpander('{{ observation.id }}')">
+                                    <i class="bx bx-chevron-right"></i>
+                                </div>
+                            </td>
+                            <td class="text-align-left">{{ observation.observatory.name }}</td>
+                            <td class="text-align-left">{{ observation.target.name }}</td>
+                            <td class="text-align-left">{{ observation.observation_type }}</td>
+                            <td>
+                                <div class="filter-set-container">
+                                    {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
+                                </div>
+                            </td>
+                            <td class="text-align-right">{{ observation.exposure_time }}</td>
+                            {% if perms.accounts.can_see_all_observations %}
+                                <td class="text-align-left">{{ observation.user.username }}</td>
+                            {% endif %}
+                            <td class="text-align-right">
+                                <div class="project-status-container">
+                                    {% if observation.project_status == ObservationStatus.PENDING %}
+                                        <span class="project-status-dot status-pending"></span>
+                                    {% elif observation.project_status == ObservationStatus.UPLOADED %}
+                                        <span class="project-status-dot status-uploaded"></span>
+                                    {% elif observation.project_status == ObservationStatus.COMPLETED %}
+                                        <span class="project-status-dot status-completed"></span>
+                                    {% elif observation.project_status == ObservationStatus.ERROR %}
+                                        <span class="project-status-dot status-error"></span>
+                                    {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
+                                        <span class="project-status-dot status-pending-deletion"></span>
+                                    {% endif %}
+                                    <span class="text">{{ observation.project_status }}</span>
+                                </div>
+                            </td>
+                            <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
+                            <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
+                            {% if perms.accounts.can_see_all_observations %}
+                                <td class="text-align-right">{{ observation.priority }}</td>
+                            {% endif %}
+                            <td class="actions-container">
+                                {% if observation.project_status == ObservationStatus.PENDING %}
+                                    <a href="{% url 'edit-observation-request' observation.id %}"
+                                       class="icon-btn">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="#"
+                                       onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
+                                       class="icon-btn">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                            <tr class="expander-row"
+                                id="expander-{{ observation.id }}"
+                                style="display: none">
+                                <td colspan="5">
+                                    <div class="expander-content">
+                                        {% if observation.observation_type == ObservationType.IMAGING %}
+                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                        {% elif observation.observation_type == ObservationType.EXOPLANET %}
+                                            <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                            <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                        {% elif observation.observation_type == ObservationType.VARIABLE %}
+                                            <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                        {% elif observation.observation_type == ObservationType.MONITORING %}
+                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                            <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                            <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                            <p>Cadence: {{ observation.cadence }}</p>
+                                        {% elif observation.observation_type == ObservationType.EXPERT %}
+                                            <p>Frames per filter: {{ observation.frames_per_filter }}</p>
+                                            <p>Dither every: {{ observation.dither_every }}</p>
+                                            <p>Binning: {{ observation.binning }}</p>
+                                            <p>Gain: {{ observation.gain }}</p>
+                                            <p>Offset: {{ observation.offset }}</p>
+                                            <p>Start observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                            <p>End observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                            <p>Start scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                            <p>End scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                            <p>Cadence: {{ observation.cadence }}</p>
+                                            <p>Moon separation angle: {{ observation.moon_separation_angle }}</p>
+                                            <p>Moon separation width: {{ observation.moon_separation_width }}</p>
+                                            <p>Minimum altitude: {{ observation.minimum_altitude }}</p>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
         </div>
     {% endblock %}
     {% block scripts %}

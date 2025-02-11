@@ -2,25 +2,19 @@
 {% block title %}Account{% endblock %}
 {% block style %}
     <style>
-        .container {
-            height: 90vh;
-        }
-
         .flex {
-            padding: 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 16px;
         }
     </style>
 {% endblock %}
 {% block content %}
-    <div class="container">
-        <div class="content-wrapper form-wrapper flex">
-            <p class="heading">Account</p>
-            <button id="downloadBtn" class="btn">Download User Data</button>
-            <button id="deleteBtn" class="btn">Delete User Data</button>
-        </div>
+    <div class="page-content page-md flex">
+        <p class="heading">Account</p>
+        <button id="downloadBtn" class="btn-secondary">Download User Data</button>
+        <button id="deleteBtn" class="btn-secondary">Delete User Data</button>
     </div>
     <meta name="csrf-token" content="{{ csrf_token }}">
     <script>

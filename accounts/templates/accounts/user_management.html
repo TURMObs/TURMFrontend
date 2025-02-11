@@ -3,10 +3,6 @@
 {% block title %}User Management{% endblock %}
 {% block style %}
     <style>
-        .left-8 {
-            left: 8px;
-        }
-
         .edit-user-form {
             display: flex;
             flex-direction: column;
@@ -28,25 +24,12 @@
             gap: 16px;
         }
 
-        table {
+        .data-table {
             margin: 16px 0;
-            width: 100%;
-            border-collapse: collapse;
-            border-spacing: 0;
-            box-sizing: border-box;
-        }
-
-        .table-row {
-            border-top: var(--border-sm) solid var(--color-gray-400);
         }
 
         .table-row-highlight {
             background-color: var(--color-gray-500);
-        }
-
-        table th, td {
-            padding: 8px;
-            text-align: left;
         }
 
         .generate-invitation-submit {
@@ -125,7 +108,7 @@
 {% endblock %}
 {% block content %}
     <div>
-        <div class="content-wrapper form-wrapper content-container">
+        <div class="page-content page-md">
             <!-- Invitation Form -->
             <p class="heading">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
@@ -179,14 +162,14 @@
             <!-- Open Invitations -->
             <div>
                 <p class="heading">Open Invitations</p>
-                <table>
+                <table class="table data-table">
                     <thead>
                         <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
+                            <th class="text-align-left">Email</th>
+                            <th class="text-align-left">Alias</th>
+                            <th class="text-align-left">Role</th>
+                            <th class="text-align-right">Quota</th>
+                            <th class="text-align-right">Lifetime</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -194,28 +177,28 @@
                         {% if invitations %}
                             {% for invitation in invitations %}
                                 <tr class="table-row">
-                                    <td>{{ invitation.email }}</td>
+                                    <td class="text-align-left">{{ invitation.email }}</td>
                                     {% if invitation.username != invitation.email %}
                                         <td>{{ invitation.username }}</td>
                                     {% else %}
                                         <td></td>
                                     {% endif %}
-                                    <td>{{ invitation.role }}</td>
-                                    <td>
+                                    <td class="text-align-left">{{ invitation.role }}</td>
+                                    <td class="text-align-right">
                                         {% if invitation.quota %}
                                             {{ invitation.quota }}
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td class="text-align-right">
                                         {% if invitation.lifetime %}
                                             {{ invitation.lifetime }}
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td class="text-align-left">
                                         {% if invitation.link != "" %}
                                             <button id="copy-invitation-action-{{ invitation.id }}"
                                                     type="button"
@@ -246,15 +229,15 @@
             <!-- All Users -->
             <div>
                 <p class="heading">All Users</p>
-                <table>
+                <table class="table data-table">
                     <thead>
                         <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Date Joined</th>
+                            <th class="text-align-left">Email</th>
+                            <th class="text-align-left">Alias</th>
+                            <th class="text-align-left">Role</th>
+                            <th class="text-align-right">Quota</th>
+                            <th class="text-align-right">Lifetime</th>
+                            <th class="text-align-right">Date Joined</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -263,28 +246,28 @@
                             {% if target_user.deletion_pending == False %}
                                 <tr id="user-{{ target_user.id }}"
                                     class="table-row {% if target_user.id == current_user.id %}table-row-highlight{% endif %}">
-                                    <td>{{ target_user.email }}</td>
+                                    <td class="text-align-left">{{ target_user.email }}</td>
                                     {% if target_user.username != target_user.email %}
                                         <td>{{ target_user.username }}</td>
                                     {% else %}
                                         <td></td>
                                     {% endif %}
-                                    <td>{{ target_user.get_role }}</td>
-                                    <td>
+                                    <td class="text-align-left">{{ target_user.get_role }}</td>
+                                    <td class="text-align-right">
                                         {% if target_user.quota %}
                                             {{ target_user.quota }}
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td class="text-align-right">
                                         {% if target_user.lifetime %}
                                             {{ target_user.lifetime }}
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>{{ target_user.date_joined|date:"d.m.Y" }}</td>
+                                    <td class="text-align-right">{{ target_user.date_joined|date:"d.m.Y" }}</td>
                                     <td>
                                         {% if perms.accounts.can_edit_users %}
                                             <form id="edit-user-{{ target_user.id }}" style="display: inline;">
