@@ -50,12 +50,14 @@ class Command(BaseCommand):
             Observatory.objects.all().delete()
 
         created_observatories = []
+        skipped_overwrite = []
         obs_mapping = {}
         for observatory in data["observatories"]:
             if (
                 not overwrite
                 and Observatory.objects.filter(name=observatory["name"]).exists()
             ):
+                skipped_overwrite.append(observatory["name"])
                 self.stdout.write(
                     f"Observatory {observatory['name']} already exists. Set --overwrite to overwrite."
                 )
@@ -75,7 +77,10 @@ class Command(BaseCommand):
             pk__in=[obs.pk for obs in created_observatories]
         )
         for obs in untouched_observatories:
-            self.stdout.write(f"Observatory {obs.name} existed and was not changed.")
+            if obs.name not in skipped_overwrite:
+                self.stdout.write(
+                    f"Observatory {obs.name} existed and was not changed."
+                )
 
         return obs_mapping
 
@@ -85,6 +90,7 @@ class Command(BaseCommand):
             ObservatoryExposureSettings.objects.all().delete()
 
         created_exposure_settings = []
+        skipped_overwrite = []
         for observatory in data["observatories"]:
             observatory_name = observatory["name"]
             for settings in observatory["exposure_settings"]:
@@ -117,6 +123,7 @@ class Command(BaseCommand):
                         observatory=obs, observation_type=observation_type
                     ).exists()
                 ):
+                    skipped_overwrite.append((obs.name, observation_type))
                     self.stdout.write(
                         f"Exposure settings for {observation_type} at {obs.name} already exist. Set --overwrite to overwrite."
                     )
@@ -139,21 +146,24 @@ class Command(BaseCommand):
             pk__in=[obs.pk for obs in created_exposure_settings]
         )
         for obs in untouched_exposure_settings:
-            self.stdout.write(
-                f"Exposure settings for {obs.observation_type} at {obs.observatory.name} existed and were not changed."
-            )
+            if (obs.observatory.name, obs.observation_type) not in skipped_overwrite:
+                self.stdout.write(
+                    f"Exposure settings for {obs.observation_type} at {obs.observatory.name} existed and were not changed."
+                )
 
     def populate_filters(self, overwrite, delete, data, observatory_mapping):
         if delete:
             Filter.objects.all().delete()
 
         created_filters = []
+        skipped_overwrite = []
         for f in data["filters"]:
             filter_type = f["type"]
             if (
                 not overwrite
                 and Filter.objects.filter(filter_type=filter_type).exists()
             ):
+                skipped_overwrite.append(filter_type)
                 self.stdout.write(
                     f"Filter {filter_type} already exists. Set --overwrite to overwrite."
                 )
@@ -177,4 +187,7 @@ class Command(BaseCommand):
             pk__in=[f.pk for f in created_filters]
         )
         for f in untouched_filters:
-            self.stdout.write(f"Filter {f.filter_type} existed and was not changed.")
+            if f.filter_type not in skipped_overwrite:
+                self.stdout.write(
+                    f"Filter {f.filter_type} existed and was not changed."
+                )

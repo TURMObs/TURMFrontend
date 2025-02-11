@@ -1591,10 +1591,6 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
         self.assertIn("Created exposure settings for Exoplanet at TURMX2.", output)
         self.assertIn("Created exposure settings for Variable at TURMX2.", output)
         self.assertIn("Created exposure settings for Monitor at TURMX2.", output)
-        self.assertIn(
-            "Exposure settings for Imaging at TURMX existed and were not changed.",
-            output,
-        )
         exposure_settings = ObservatoryExposureSettings.objects.all()
         self.assertEqual(exposure_settings.count(), 8)
         self._assert_exposure_settings_exists(
