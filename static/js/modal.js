@@ -39,7 +39,7 @@ async function showModal(
     const modal = document.getElementById("modal");
     const modalContent = document.getElementById("modal-content");
     const modalTitle = document.getElementById("modal-title");
-    const modalSeperator = document.getElementById("modal-seperator");
+    const modalSeparator = document.getElementById("modal-separator");
     const modalActions = document.getElementById("modal-actions");
 
     showElement(modal, "block");
@@ -49,7 +49,7 @@ async function showModal(
     modalContent.appendChild(content);
 
     if (options.buttons && options.buttons.length > 0) {
-      showElement(modalSeperator, "flex");
+      showElement(modalSeparator, "flex");
       showElement(modalActions, "flex");
       modalActions.innerHTML = "";
       for (var button of options.buttons) {
@@ -69,7 +69,7 @@ async function showModal(
         modalActions.appendChild(buttonElement);
       }
     } else {
-      hideElement(modalSeperator);
+      hideElement(modalSeparator);
       hideElement(modalActions);
     }
 

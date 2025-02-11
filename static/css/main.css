@@ -355,7 +355,7 @@ body {
   padding: 24px;
 }
 
-.modal-seperator {
+.modal-separator {
   width: 100%;
   border: var(--border-sm) solid var(--color-gray-500);
 }
