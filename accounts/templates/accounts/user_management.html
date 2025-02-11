@@ -153,7 +153,7 @@
                                type="checkbox"
                                id="set_quota"
                                onclick="toggleInput('quota')">
-                        <label for="set_quota" id="label_quota" class="text-secondary">Quota</label>
+                        <label for="set_quota" id="label_quota" class="text-secondary">Set Quota</label>
                         <div id="quotaField">{{ invitation_form.quota }}</div>
                     </div>
                     <div class="optional-field-container">
@@ -161,7 +161,7 @@
                                type="checkbox"
                                id="set_lifetime"
                                onclick="toggleInput('lifetime')">
-                        <label for="set_lifetime" id="label_lifetime" class="text-secondary">Lifetime</label>
+                        <label for="set_lifetime" id="label_lifetime" class="text-secondary">Set Lifetime</label>
                         <div id="lifetimeField">{{ invitation_form.lifetime }}</div>
                     </div>
                     <div class="expert-field-container">
@@ -202,8 +202,20 @@
                                         <td></td>
                                     {% endif %}
                                     <td>{{ invitation.role }}</td>
-                                    <td>{{ invitation.quota }}</td>
-                                    <td>{{ invitation.lifetime }}</td>
+                                    <td>
+                                        {% if invitation.quota %}
+                                            {{ invitation.quota }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if invitation.lifetime %}
+                                            {{ invitation.lifetime }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if invitation.link != "" %}
                                             <button id="copy-invitation-action-{{ invitation.id }}"
@@ -259,8 +271,20 @@
                                         <td></td>
                                     {% endif %}
                                     <td>{{ target_user.get_role }}</td>
-                                    <td>{{ target_user.quota }}</td>
-                                    <td>{{ target_user.lifetime }}</td>
+                                    <td>
+                                        {% if target_user.quota %}
+                                            {{ target_user.quota }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if target_user.lifetime %}
+                                            {{ target_user.lifetime }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
                                     <td>{{ target_user.date_joined|date:"d.m.Y" }}</td>
                                     <td>
                                         {% if perms.accounts.can_edit_users %}
