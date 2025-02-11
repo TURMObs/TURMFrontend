@@ -38,18 +38,19 @@ class Command(BaseCommand):
         if not os.path.exists(path):
             raise CommandError(f"File at {path} does not exist.")
 
-        self.load_observatories(overwrite, delete, path)
-        self.populate_exposure_settings(overwrite, delete, path)
-        self.populate_filters()
-
-    def load_observatories(self, overwrite, delete, path):
-        if delete:
-            Observatory.objects.all().delete()
-
         with open(path, "r") as f:
             data = json.load(f)
 
+        obs_mapping = self.load_observatories(overwrite, delete, data)
+        self.populate_exposure_settings(overwrite, delete, data)
+        self.populate_filters(overwrite, delete, data, obs_mapping)
+
+    def load_observatories(self, overwrite, delete, data):
+        if delete:
+            Observatory.objects.all().delete()
+
         created_observatories = []
+        obs_mapping = {}
         for observatory in data["observatories"]:
             if (
                 not overwrite
@@ -68,6 +69,7 @@ class Command(BaseCommand):
                 max_guide_error=observatory["max_guide_error"],
             )
             created_observatories.append(obs)
+            obs_mapping[observatory["name"]] = observatory["filters"]
 
         untouched_observatories = Observatory.objects.exclude(
             pk__in=[obs.pk for obs in created_observatories]
@@ -75,13 +77,12 @@ class Command(BaseCommand):
         for obs in untouched_observatories:
             self.stdout.write(f"Observatory {obs.name} existed and was not changed.")
 
-    def populate_exposure_settings(self, overwrite, delete, path):
+        return obs_mapping
+
+    def populate_exposure_settings(self, overwrite, delete, data):
         if delete:
             ExposureSettings.objects.all().delete()
             ObservatoryExposureSettings.objects.all().delete()
-
-        with open(path, "r") as f:
-            data = json.load(f)
 
         created_exposure_settings = []
         for observatory in data["observatories"]:
@@ -142,59 +143,38 @@ class Command(BaseCommand):
                 f"Exposure settings for {obs.observation_type} at {obs.observatory.name} existed and were not changed."
             )
 
-    @staticmethod
-    def populate_filters():
-        for filter_type in [
-            Filter.FilterType.LUMINANCE,
-            Filter.FilterType.RED,
-            Filter.FilterType.GREEN,
-            Filter.FilterType.BLUE,
-        ]:
-            Filter.objects.get_or_create(
-                filter_type=filter_type,
-                moon_separation_angle=100,
-                moon_separation_width=7,
-            )
+    def populate_filters(self, overwrite, delete, data, observatory_mapping):
+        if delete:
+            Filter.objects.all().delete()
 
-        for filter_type in [
-            Filter.FilterType.HYDROGEN,
-            Filter.FilterType.OXYGEN,
-            Filter.FilterType.SULFUR,
-        ]:
-            Filter.objects.get_or_create(
+        created_filters = []
+        for f in data["filters"]:
+            filter_type = f["type"]
+            if (
+                not overwrite
+                and Filter.objects.filter(filter_type=filter_type).exists()
+            ):
+                self.stdout.write(
+                    f"Filter {filter_type} already exists. Set --overwrite to overwrite."
+                )
+                continue
+            created = Filter.objects.create(
                 filter_type=filter_type,
-                moon_separation_angle=70,
-                moon_separation_width=7,
+                moon_separation_angle=f["moon_separation_angle"],
+                moon_separation_width=f["moon_separation_width"],
             )
+            created_filters.append(created)
+            self.stdout.write(f"Created filter {f['name']}.")
+            for obs, filters in observatory_mapping.items():
+                if f["name"] in filters:
+                    obs = Observatory.objects.get(name=obs)
+                    obs.filter_set.add(created)
+                    self.stdout.write(
+                        f"Added filter {f['name']} to observatory {obs.name}."
+                    )
 
-        for filter_type in [
-            Filter.FilterType.SLOAN_R,
-            Filter.FilterType.SLOAN_G,
-            Filter.FilterType.SLOAN_I,
-        ]:
-            Filter.objects.get_or_create(
-                filter_type=filter_type,
-                moon_separation_angle=50,
-                moon_separation_width=7,
-            )
-
-        # link filters to observatories
-        turmx = Observatory.objects.get(name="TURMX")
-        turmx2 = Observatory.objects.get(name="TURMX2")
-        for filter_type in [
-            Filter.FilterType.LUMINANCE,
-            Filter.FilterType.RED,
-            Filter.FilterType.GREEN,
-            Filter.FilterType.BLUE,
-            Filter.FilterType.HYDROGEN,
-            Filter.FilterType.OXYGEN,
-            Filter.FilterType.SULFUR,
-        ]:
-            turmx.filter_set.add(Filter.objects.get(filter_type=filter_type))
-            turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
-        for filter_type in [
-            Filter.FilterType.SLOAN_R,
-            Filter.FilterType.SLOAN_G,
-            Filter.FilterType.SLOAN_I,
-        ]:
-            turmx2.filter_set.add(Filter.objects.get(filter_type=filter_type))
+        untouched_filters = Filter.objects.exclude(
+            pk__in=[f.pk for f in created_filters]
+        )
+        for f in untouched_filters:
+            self.stdout.write(f"Filter {f.filter_type} existed and was not changed.")

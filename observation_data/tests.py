@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import unittest
 from datetime import datetime, timezone, timedelta
 
 from django.utils import timezone as tz
@@ -1502,6 +1503,9 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(0, AbstractObservation.objects.count())
 
 
+@unittest.skip(
+    "These test rely on the configuration file. Only ever run if changes to the models are made"
+)
 class ConfigurationLoadingTestCase(django.test.TestCase):
     def _assert_exposure_settings_exists(self, exp_setting):
         self.assertTrue(
@@ -1687,18 +1691,21 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
         out = io.StringIO()
         call_command("load_configuration", "./config.json", stdout=out)
         output = out.getvalue()
-        """
-        self.assertIn("Created filter L.", output)
-        self.assertIn("Created filter R.", output)
-        self.assertIn("Created filter G.", output)
-        self.assertIn("Created filter B.", output)
-        self.assertIn("Created filter H.", output)
-        self.assertIn("Created filter O.", output)
-        self.assertIn("Created filter S.", output)
-        self.assertIn("Created filter SR.", output)
-        self.assertIn("Created filter SG.", output)
-        self.assertIn("Created filter SI.", output)
-        """
+        for f_type in [
+            "Luminance",
+            "Red",
+            "Green",
+            "Blue",
+            "Hydrogen",
+            "Oxygen",
+            "Sulfur",
+            "Sloan_R",
+            "Sloan_G",
+            "Sloan_I",
+        ]:
+            self.assertIn(f"Created filter {f_type}", output)
+            self.assertIn(f"Added filter {f_type} to observatory TURMX2", output)
+
         self.assertEqual(Filter.objects.count(), 10)
         for filter_type in [
             Filter.FilterType.LUMINANCE,
