@@ -88,11 +88,13 @@
                         <th class="text-align-left">Type</th>
                         <th class="text-align-left">Filters</th>
                         <th class="text-align-right">Exposure Time</th>
-                        {% if perms.accounts.can_see_all_observations %}<th class="text-align-left">User</th>{% endif %}
-                        <th class="text-align-right">Status</th>
                         <th class="text-align-right">Progress</th>
+                        <th class="text-align-right">Status</th>
+                        {% if perms.accounts.can_see_all_observations %}
+                            <th class="text-align-right">Priority</th>
+                            <th class="text-align-right">User</th>
+                        {% endif %}
                         <th class="text-align-right">Created</th>
-                        {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">Priority</th>{% endif %}
                         <th class="actions-container"></th>
                     </tr>
                 </thead>
@@ -115,9 +117,7 @@
                                 </div>
                             </td>
                             <td class="text-align-right">{{ observation.exposure_time }}</td>
-                            {% if perms.accounts.can_see_all_observations %}
-                                <td class="text-align-left">{{ observation.user.username }}</td>
-                            {% endif %}
+                            <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
                             <td class="text-align-right">
                                 <div class="project-status-container">
                                     {% if observation.project_status == ObservationStatus.PENDING %}
@@ -134,11 +134,11 @@
                                     <span class="text">{{ observation.project_status }}</span>
                                 </div>
                             </td>
-                            <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
-                            <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                             {% if perms.accounts.can_see_all_observations %}
                                 <td class="text-align-right">{{ observation.priority }}</td>
+                                <td class="text-align-right">{{ observation.user.username }}</td>
                             {% endif %}
+                            <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                             <td class="actions-container">
                                 {% if observation.project_status == ObservationStatus.PENDING %}
                                     <a href="{% url 'edit-observation-request' observation.id %}"

@@ -124,13 +124,13 @@ class EditUserForm(forms.Form):
     new_quota = forms.IntegerField(
         validators=[MinValueValidator(1)],
         required=False,
-        widget=forms.NumberInput(attrs={"placeholder": "New Quota", "min": 1}),
+        widget=forms.NumberInput(attrs={"placeholder": "Set Quota", "min": 1}),
     )
     new_lifetime = forms.DateField(
         required=False,
         widget=forms.DateInput(
             attrs={
-                "placeholder": "New Lifetime",
+                "placeholder": "Set Lifetime",
                 "type": "date",
                 "min": datetime.now().date(),
             }
