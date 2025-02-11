@@ -1673,3 +1673,95 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
                 "subframe": 0.5,
             }
         )
+
+    def _assert_filter_exists(self, filter_settings):
+        self.assertTrue(
+            Filter.objects.filter(
+                filter_type=filter_settings["filter_type"],
+                moon_separation_angle=filter_settings["moon_separation_angle"],
+                moon_separation_width=filter_settings["moon_separation_width"],
+            ).exists()
+        )
+
+    def test_filters(self):
+        out = io.StringIO()
+        call_command("load_configuration", "./config.json", stdout=out)
+        output = out.getvalue()
+        """
+        self.assertIn("Created filter L.", output)
+        self.assertIn("Created filter R.", output)
+        self.assertIn("Created filter G.", output)
+        self.assertIn("Created filter B.", output)
+        self.assertIn("Created filter H.", output)
+        self.assertIn("Created filter O.", output)
+        self.assertIn("Created filter S.", output)
+        self.assertIn("Created filter SR.", output)
+        self.assertIn("Created filter SG.", output)
+        self.assertIn("Created filter SI.", output)
+        """
+        self.assertEqual(Filter.objects.count(), 10)
+        for filter_type in [
+            Filter.FilterType.LUMINANCE,
+            Filter.FilterType.RED,
+            Filter.FilterType.GREEN,
+            Filter.FilterType.BLUE,
+        ]:
+            self._assert_filter_exists(
+                {
+                    "filter_type": filter_type,
+                    "moon_separation_angle": 100.0,
+                    "moon_separation_width": 7,
+                }
+            )
+
+        for filter_type in [
+            Filter.FilterType.HYDROGEN,
+            Filter.FilterType.OXYGEN,
+            Filter.FilterType.SULFUR,
+        ]:
+            self._assert_filter_exists(
+                {
+                    "filter_type": filter_type,
+                    "moon_separation_angle": 70.0,
+                    "moon_separation_width": 7,
+                }
+            )
+
+        for filter_type in [
+            Filter.FilterType.SLOAN_R,
+            Filter.FilterType.SLOAN_G,
+            Filter.FilterType.SLOAN_I,
+        ]:
+            self._assert_filter_exists(
+                {
+                    "filter_type": filter_type,
+                    "moon_separation_angle": 50.0,
+                    "moon_separation_width": 7,
+                }
+            )
+        turmx_filter_set = [
+            f.filter_type
+            for f in Observatory.objects.get(name="TURMX").filter_set.all()
+        ]
+        turmx2_filter_set = [
+            f.filter_type
+            for f in Observatory.objects.get(name="TURMX2").filter_set.all()
+        ]
+        for filter_type in [
+            Filter.FilterType.LUMINANCE,
+            Filter.FilterType.RED,
+            Filter.FilterType.GREEN,
+            Filter.FilterType.BLUE,
+            Filter.FilterType.HYDROGEN,
+            Filter.FilterType.OXYGEN,
+            Filter.FilterType.SULFUR,
+        ]:
+            self.assertIn(filter_type, turmx_filter_set)
+            self.assertIn(filter_type, turmx2_filter_set)
+        for filter_type in [
+            Filter.FilterType.SLOAN_R,
+            Filter.FilterType.SLOAN_G,
+            Filter.FilterType.SLOAN_I,
+        ]:
+            self.assertNotIn(filter_type, turmx_filter_set)
+            self.assertIn(filter_type, turmx2_filter_set)

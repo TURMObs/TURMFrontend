@@ -84,11 +84,9 @@ class Command(BaseCommand):
             data = json.load(f)
 
         created_exposure_settings = []
-        for entry in data["exposure_settings"]:
-            for (
-                observatory_name,
-                settings,
-            ) in entry.items():  # Extract observatory name and settings
+        for observatory in data["observatories"]:
+            observatory_name = observatory["name"]
+            for settings in observatory["exposure_settings"]:
                 if not Observatory.objects.filter(name=observatory_name).exists():
                     self.stdout.write(
                         f"Observatory {observatory_name} does not exist. Skipping exposure settings."
@@ -96,50 +94,45 @@ class Command(BaseCommand):
                     continue
 
                 obs = Observatory.objects.get(name=observatory_name)
-
-                for observation_type in [
-                    ObservationType.IMAGING,
-                    ObservationType.EXOPLANET,
-                    ObservationType.VARIABLE,
-                    ObservationType.MONITORING,
-                ]:
-                    if observation_type.name not in settings:
-                        self.stdout.write(
-                            f"Exposure settings for type {observation_type} not found for observatory {obs.name}!"
-                        )
-                        continue
-
-                    exposure_data = settings[observation_type.name]
-                    gain, offset, binning, subframe = (
-                        exposure_data["gain"],
-                        exposure_data["offset"],
-                        exposure_data["binning"],
-                        exposure_data["subframe"],
-                    )
-
-                    if (
-                        not overwrite
-                        and ObservatoryExposureSettings.objects.filter(
-                            observatory=obs, observation_type=observation_type
-                        ).exists()
-                    ):
-                        self.stdout.write(
-                            f"Exposure settings for {observation_type} at {obs.name} already exist. Set --overwrite to overwrite."
-                        )
-                        continue
-
-                    exposure_settings = ExposureSettings.objects.create(
-                        gain=gain, offset=offset, binning=binning, subframe=subframe
-                    )
-                    created = ObservatoryExposureSettings.objects.create(
-                        observatory=obs,
-                        exposure_settings=exposure_settings,
-                        observation_type=observation_type,
-                    )
-                    created_exposure_settings.append(created)
+                observation_type = settings["type"].capitalize()
+                try:
+                    observation_type = ObservationType(observation_type)
+                except ValueError:
                     self.stdout.write(
-                        f"Created exposure settings for {observation_type} at {obs.name}."
+                        f"Exposure setting references unknown observation type {observation_type}. Skipping."
                     )
+                    continue
+
+                gain, offset, binning, subframe = (
+                    settings["gain"],
+                    settings["offset"],
+                    settings["binning"],
+                    settings["subframe"],
+                )
+
+                if (
+                    not overwrite
+                    and ObservatoryExposureSettings.objects.filter(
+                        observatory=obs, observation_type=observation_type
+                    ).exists()
+                ):
+                    self.stdout.write(
+                        f"Exposure settings for {observation_type} at {obs.name} already exist. Set --overwrite to overwrite."
+                    )
+                    continue
+
+                exposure_settings = ExposureSettings.objects.create(
+                    gain=gain, offset=offset, binning=binning, subframe=subframe
+                )
+                created = ObservatoryExposureSettings.objects.create(
+                    observatory=obs,
+                    exposure_settings=exposure_settings,
+                    observation_type=observation_type,
+                )
+                created_exposure_settings.append(created)
+                self.stdout.write(
+                    f"Created exposure settings for {observation_type} at {obs.name}."
+                )
 
         untouched_exposure_settings = ObservatoryExposureSettings.objects.exclude(
             pk__in=[obs.pk for obs in created_exposure_settings]
