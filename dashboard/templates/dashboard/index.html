@@ -142,11 +142,13 @@
                             <td class="actions-container">
                                 {% if observation.project_status == ObservationStatus.PENDING %}
                                     <a href="{% url 'edit-observation-request' observation.id %}"
+                                       title="Edit Observation"
                                        class="icon-btn">
                                         <i class="bx bx-edit"></i>
                                     </a>
                                     <a href="#"
                                        onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
+                                       title="Delete Observation"
                                        class="icon-btn">
                                         <i class="bx bx-trash"></i>
                                     </a>

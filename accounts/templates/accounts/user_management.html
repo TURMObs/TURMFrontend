@@ -3,6 +3,12 @@
 {% block title %}User Management{% endblock %}
 {% block style %}
     <style>
+        .user-management-container {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
         .edit-user-form {
             display: flex;
             flex-direction: column;
@@ -107,9 +113,9 @@
     </style>
 {% endblock %}
 {% block content %}
-    <div>
-        <div class="page-content page-md">
-            <!-- Invitation Form -->
+    <div class="page-content page-md user-management-container">
+        <!-- Invitation Form -->
+        <div>
             <p class="heading">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             <form id="invitationForm" class="generate-invitation-form">
@@ -159,143 +165,147 @@
                     </div>
                 </div>
             </form>
-            <!-- Open Invitations -->
-            <div>
-                <p class="heading">Open Invitations</p>
-                <table class="table data-table">
-                    <thead>
-                        <tr>
-                            <th class="text-align-left">Email</th>
-                            <th class="text-align-left">Alias</th>
-                            <th class="text-align-left">Role</th>
-                            <th class="text-align-right">Quota</th>
-                            <th class="text-align-right">Lifetime</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if invitations %}
-                            {% for invitation in invitations %}
-                                <tr class="table-row">
-                                    <td class="text-align-left">{{ invitation.email }}</td>
-                                    {% if invitation.username != invitation.email %}
-                                        <td>{{ invitation.username }}</td>
+        </div>
+        <!-- Open Invitations -->
+        <div>
+            <p class="heading">Open Invitations</p>
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th class="text-align-left">Email</th>
+                        <th class="text-align-left">Alias</th>
+                        <th class="text-align-left">Role</th>
+                        <th class="text-align-right">Quota</th>
+                        <th class="text-align-right">Lifetime</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if invitations %}
+                        {% for invitation in invitations %}
+                            <tr class="table-row">
+                                <td class="text-align-left">{{ invitation.email }}</td>
+                                {% if invitation.username != invitation.email %}
+                                    <td>{{ invitation.username }}</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                                <td class="text-align-left">{{ invitation.role }}</td>
+                                <td class="text-align-right">
+                                    {% if invitation.quota %}
+                                        {{ invitation.quota }}
                                     {% else %}
-                                        <td></td>
+                                        -
                                     {% endif %}
-                                    <td class="text-align-left">{{ invitation.role }}</td>
-                                    <td class="text-align-right">
-                                        {% if invitation.quota %}
-                                            {{ invitation.quota }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-align-right">
-                                        {% if invitation.lifetime %}
-                                            {{ invitation.lifetime }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-align-left">
-                                        {% if invitation.link != "" %}
-                                            <button id="copy-invitation-action-{{ invitation.id }}"
-                                                    type="button"
-                                                    class="icon-btn position-relative"
-                                                    onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
-                                                <i class="bx bx-copy"></i>
-                                            </button>
-                                        {% endif %}
-                                        <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                </td>
+                                <td class="text-align-right">
+                                    {% if invitation.lifetime %}
+                                        {{ invitation.lifetime }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-align-left">
+                                    {% if invitation.link != "" %}
+                                        <button id="copy-invitation-action-{{ invitation.id }}"
+                                                type="button"
+                                                title="Copy Invitation Link"
+                                                class="icon-btn position-relative"
+                                                onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
+                                            <i class="bx bx-copy"></i>
+                                        </button>
+                                    {% endif %}
+                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="icon-btn"
+                                                title="Delete Invitation"
+                                                onclick="deleteInvitation({{ invitation.id }})">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7">No open invitations found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <!-- All Users -->
+        <div>
+            <p class="heading">All Users</p>
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th class="text-align-left">Email</th>
+                        <th class="text-align-left">Alias</th>
+                        <th class="text-align-left">Role</th>
+                        <th class="text-align-right">Quota</th>
+                        <th class="text-align-right">Lifetime</th>
+                        <th class="text-align-right">Date Joined</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for target_user in users %}
+                        {% if target_user.deletion_pending == False %}
+                            <tr id="user-{{ target_user.id }}"
+                                class="table-row {% if target_user.id == current_user.id %}table-row-highlight{% endif %}">
+                                <td class="text-align-left">{{ target_user.email }}</td>
+                                {% if target_user.username != target_user.email %}
+                                    <td>{{ target_user.username }}</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                                <td class="text-align-left">{{ target_user.get_role }}</td>
+                                <td class="text-align-right">
+                                    {% if target_user.quota %}
+                                        {{ target_user.quota }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-align-right">
+                                    {% if target_user.lifetime %}
+                                        {{ target_user.lifetime }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-align-right">{{ target_user.date_joined|date:"d.m.Y" }}</td>
+                                <td>
+                                    {% if perms.accounts.can_edit_users %}
+                                        <form id="edit-user-{{ target_user.id }}" style="display: inline;">
                                             {% csrf_token %}
                                             <button type="button"
                                                     class="icon-btn"
-                                                    onclick="deleteInvitation({{ invitation.id }})">
+                                                    title="Edit User"
+                                                    onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })">
+                                                <i class="bx bx-edit"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if perms.accounts.can_delete_users %}
+                                        <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button"
+                                                    class="icon-btn"
+                                                    title="Delete User"
+                                                    onclick="deleteUser({{ target_user.id }})">
                                                 <i class="bx bx-trash"></i>
                                             </button>
                                         </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="7">No open invitations found.</td>
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endif %}
-                    </tbody>
-                </table>
-            </div>
-            <!-- All Users -->
-            <div>
-                <p class="heading">All Users</p>
-                <table class="table data-table">
-                    <thead>
-                        <tr>
-                            <th class="text-align-left">Email</th>
-                            <th class="text-align-left">Alias</th>
-                            <th class="text-align-left">Role</th>
-                            <th class="text-align-right">Quota</th>
-                            <th class="text-align-right">Lifetime</th>
-                            <th class="text-align-right">Date Joined</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for target_user in users %}
-                            {% if target_user.deletion_pending == False %}
-                                <tr id="user-{{ target_user.id }}"
-                                    class="table-row {% if target_user.id == current_user.id %}table-row-highlight{% endif %}">
-                                    <td class="text-align-left">{{ target_user.email }}</td>
-                                    {% if target_user.username != target_user.email %}
-                                        <td>{{ target_user.username }}</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                    <td class="text-align-left">{{ target_user.get_role }}</td>
-                                    <td class="text-align-right">
-                                        {% if target_user.quota %}
-                                            {{ target_user.quota }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-align-right">
-                                        {% if target_user.lifetime %}
-                                            {{ target_user.lifetime }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-align-right">{{ target_user.date_joined|date:"d.m.Y" }}</td>
-                                    <td>
-                                        {% if perms.accounts.can_edit_users %}
-                                            <form id="edit-user-{{ target_user.id }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="button"
-                                                        class="icon-btn"
-                                                        onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })">
-                                                    <i class="bx bx-edit"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                        {% if perms.accounts.can_delete_users %}
-                                            <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="button"
-                                                        class="icon-btn"
-                                                        onclick="deleteUser({{ target_user.id }})">
-                                                    <i class="bx bx-trash"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock %}
