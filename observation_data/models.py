@@ -102,9 +102,9 @@ class ObservatoryExposureSettings(models.Model):
     """
 
     observatory = models.ForeignKey(
-        Observatory, on_delete=models.DO_NOTHING, db_column="observatory"
+        Observatory, on_delete=models.CASCADE, db_column="observatory"
     )
-    exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
+    exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.CASCADE)
     observation_type = models.CharField(choices=ObservationType, db_column="type")
 
 
@@ -116,9 +116,10 @@ class AbstractObservation(PolymorphicModel):
 
     observatory = models.ForeignKey(
         Observatory,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="+",  # prevents backward relation
         db_column="observatory",
+        null=True,
     )
     target = models.ForeignKey(
         CelestialTarget,

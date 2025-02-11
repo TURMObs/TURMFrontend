@@ -2,6 +2,8 @@ import json
 import os
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db import IntegrityError
+
 from observation_data.models import (
     Observatory,
     ExposureSettings,
@@ -41,14 +43,29 @@ class Command(BaseCommand):
         with open(path, "r") as f:
             data = json.load(f)
 
-        obs_mapping = self.load_observatories(overwrite, delete, data)
-        self.populate_exposure_settings(overwrite, delete, data)
-        self.populate_filters(overwrite, delete, data, obs_mapping)
-
-    def load_observatories(self, overwrite, delete, data):
         if delete:
-            Observatory.objects.all().delete()
+            try:
+                ObservatoryExposureSettings.objects.all().delete()
+            except IntegrityError as e:
+                self.stdout.write(f"Error deleting existing data: {e}")
 
+        obs_mapping, untouched_observatories = self.load_observatories(
+            overwrite, data, delete
+        )
+        untouched_exposure_settings = self.populate_exposure_settings(
+            overwrite, data, delete
+        )
+        untouched_filters = self.populate_filters(overwrite, data, obs_mapping, delete)
+
+        if delete:
+            try:
+                untouched_exposure_settings.delete()
+                untouched_filters.delete()
+                untouched_observatories.delete()
+            except IntegrityError as e:
+                self.stdout.write(f"Error deleting existing data: {e}")
+
+    def load_observatories(self, overwrite, data, delete):
         created_observatories = []
         skipped_overwrite = []
         obs_mapping = {}
@@ -63,7 +80,7 @@ class Command(BaseCommand):
                 )
                 continue
             self.stdout.write(f"Created observatory {observatory['name']}.")
-            obs = Observatory.objects.create(
+            obs, _ = Observatory.objects.update_or_create(
                 name=observatory["name"],
                 horizon_offset=observatory["horizon_offset"],
                 min_stars=observatory["min_stars"],
@@ -77,18 +94,14 @@ class Command(BaseCommand):
             pk__in=[obs.pk for obs in created_observatories]
         )
         for obs in untouched_observatories:
-            if obs.name not in skipped_overwrite:
+            if obs.name not in skipped_overwrite and not delete:
                 self.stdout.write(
                     f"Observatory {obs.name} existed and was not changed."
                 )
 
-        return obs_mapping
+        return obs_mapping, untouched_observatories
 
-    def populate_exposure_settings(self, overwrite, delete, data):
-        if delete:
-            ExposureSettings.objects.all().delete()
-            ObservatoryExposureSettings.objects.all().delete()
-
+    def populate_exposure_settings(self, overwrite, data, delete):
         created_exposure_settings = []
         skipped_overwrite = []
         for observatory in data["observatories"]:
@@ -128,11 +141,17 @@ class Command(BaseCommand):
                         f"Exposure settings for {observation_type} at {obs.name} already exist. Set --overwrite to overwrite."
                     )
                     continue
-
-                exposure_settings = ExposureSettings.objects.create(
+                if not ExposureSettings.objects.filter(
                     gain=gain, offset=offset, binning=binning, subframe=subframe
-                )
-                created = ObservatoryExposureSettings.objects.create(
+                ).exists():
+                    exposure_settings = ExposureSettings.objects.create(
+                        gain=gain, offset=offset, binning=binning, subframe=subframe
+                    )
+                else:
+                    exposure_settings = ExposureSettings.objects.filter(
+                        gain=gain, offset=offset, binning=binning, subframe=subframe
+                    ).first()
+                created, _ = ObservatoryExposureSettings.objects.update_or_create(
                     observatory=obs,
                     exposure_settings=exposure_settings,
                     observation_type=observation_type,
@@ -146,15 +165,17 @@ class Command(BaseCommand):
             pk__in=[obs.pk for obs in created_exposure_settings]
         )
         for obs in untouched_exposure_settings:
-            if (obs.observatory.name, obs.observation_type) not in skipped_overwrite:
+            if (
+                obs.observatory.name,
+                obs.observation_type,
+            ) not in skipped_overwrite and not delete:
                 self.stdout.write(
                     f"Exposure settings for {obs.observation_type} at {obs.observatory.name} existed and were not changed."
                 )
 
-    def populate_filters(self, overwrite, delete, data, observatory_mapping):
-        if delete:
-            Filter.objects.all().delete()
+        return untouched_exposure_settings
 
+    def populate_filters(self, overwrite, data, observatory_mapping, delete):
         created_filters = []
         skipped_overwrite = []
         for f in data["filters"]:
@@ -168,7 +189,7 @@ class Command(BaseCommand):
                     f"Filter {filter_type} already exists. Set --overwrite to overwrite."
                 )
                 continue
-            created = Filter.objects.create(
+            created, _ = Filter.objects.update_or_create(
                 filter_type=filter_type,
                 moon_separation_angle=f["moon_separation_angle"],
                 moon_separation_width=f["moon_separation_width"],
@@ -187,7 +208,8 @@ class Command(BaseCommand):
             pk__in=[f.pk for f in created_filters]
         )
         for f in untouched_filters:
-            if f.filter_type not in skipped_overwrite:
+            if f.filter_type not in skipped_overwrite and not delete:
                 self.stdout.write(
                     f"Filter {f.filter_type} existed and was not changed."
                 )
+        return untouched_filters
