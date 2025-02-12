@@ -47,7 +47,7 @@ async function showModal(
     const modalSeparator = document.getElementById("modal-separator");
     const modalActions = document.getElementById("modal-actions");
 
-    showElement(modal, "block");
+    showElement(modal, "flex");
     modalTitle.textContent = title;
 
     modalContent.innerHTML = "";
