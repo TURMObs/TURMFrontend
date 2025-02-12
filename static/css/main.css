@@ -88,12 +88,8 @@ body {
   font-weight: var(--font-weight-semibold);
 }
 
-.text-align-left {
-  text-align: left;
-}
-
-.text-align-right {
-  text-align: right;
+.text-error {
+  color: var(--color-error);
 }
 
 /* input */
@@ -293,6 +289,21 @@ body {
   border: var(--border-md) solid var(--color-gray-400);
   background: var(--color-dark);
   border-radius: var(--radius-lg);
+}
+
+.page-sm-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.page-sm {
+  width: 420px;
+  border: var(--border-md) solid var(--color-gray-400);
+  background: var(--color-dark);
+  border-radius: var(--radius-lg);
+  padding: 32px 32px;
 }
 
 .page-md {

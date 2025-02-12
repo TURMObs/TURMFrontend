@@ -30,9 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    email = forms.EmailField(
+        widget=forms.TextInput(attrs={"placeholder": "Email", "class": "textbox"})
+    )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Password", "class": "textbox"}
+        )
     )
 
 
@@ -191,10 +195,14 @@ class EditUserForm(forms.Form):
 
 class SetPasswordForm(forms.Form):
     new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Password", "class": "textbox"}
+        )
     )
     new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Confirm Password"})
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Confirm Password", "class": "textbox"}
+        )
     )
 
     def clean(self):

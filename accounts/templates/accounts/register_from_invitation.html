@@ -8,36 +8,11 @@
         <title>TURM Sign Up</title>
         <link rel="stylesheet" href="{% static "/css/main.css" %}">
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-            }
-
-            .content-container {
-                width: 420px;
-                border: var(--border-md) solid var(--color-gray-400);
-                background: var(--color-dark);
-                border-radius: var(--radius-lg);
-                padding: 30px 40px;
-            }
-
             .form-content {
                 display: flex;
                 flex-direction: column;
                 width: 100%;
                 gap: 24px;
-            }
-
-            .input-field {
-                position: relative;
             }
 
             .given-email-container {
@@ -48,13 +23,8 @@
                 overflow-wrap: break-word;
             }
 
-            .input-field input {
-                width: 100%;
-                background: transparent;
-                outline: none;
-                border: var(--border-sm) solid var(--color-gray-400);
-                border-radius: var(--radius-md);
-                padding: 0.75em 1.5em;
+            .input-field {
+                position: relative;
             }
 
             .input-field i {
@@ -65,10 +35,6 @@
                 transform: translateY(-50%);
             }
 
-            .text-error {
-                color: var(--color-error);
-            }
-
             .error-list {
                 display: flex;
                 flex-direction: column;
@@ -76,8 +42,8 @@
             }
         </style>
     </head>
-    <body>
-        <div class= "content-container">
+    <body class="page-sm-body">
+        <div class= "page-sm">
             <p class="heading-lg text-align-center">Create account</p>
             <div>
                 <div class= "given-email-container">
@@ -101,7 +67,7 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                    <button type="submit" class= "btn">Register</button>
+                    <button type="submit" class="btn">Register</button>
                 </form>
             </div>
         </div>
