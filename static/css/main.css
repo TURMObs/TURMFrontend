@@ -256,8 +256,21 @@ body {
   cursor: pointer;
 }
 
-.icon-btn:hover {
+.icon-btn:not(:disabled):hover {
   background-color: var(--color-gray-400);
+}
+
+.icon-btn:disabled i {
+  color: var(--color-gray-300);
+}
+
+.disabled-link {
+  pointer-events: none;
+  text-decoration: none;
+}
+
+.disabled-link i {
+  color: var(--color-gray-300);
 }
 
 /* table */
@@ -271,6 +284,14 @@ body {
 
 .table-row {
   border-top: var(--border-sm) solid var(--color-gray-400);
+}
+
+.table-cell-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  max-width: 0;
 }
 
 .table th {

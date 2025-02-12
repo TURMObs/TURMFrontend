@@ -19,6 +19,7 @@
     }
 
     .observations-table {
+        min-width: 1024px;
         margin: 16px 0px;
     }
 
@@ -90,8 +91,8 @@
                         <th class="text-align-right">Progress</th>
                         <th class="text-align-right">Status</th>
                         {% if perms.accounts.can_see_all_observations %}
-                            <th class="text-align-right">Priority</th>
                             <th class="text-align-right">User</th>
+                            <th class="text-align-right">Priority</th>
                         {% endif %}
                         <th class="text-align-right">Created</th>
                         <th class="actions-container"></th>
@@ -133,24 +134,22 @@
                                 </div>
                             </td>
                             {% if perms.accounts.can_see_all_observations %}
+                                <td class="table-cell-truncate text-align-right">{{ observation.user.username }}</td>
                                 <td class="text-align-right">{{ observation.priority }}</td>
-                                <td class="text-align-right">{{ observation.user.username }}</td>
                             {% endif %}
                             <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                             <td class="actions-container">
-                                {% if observation.project_status == ObservationStatus.PENDING %}
-                                    <a href="{% url 'edit-observation-request' observation.id %}"
-                                       title="Edit Observation"
-                                       class="icon-btn">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
-                                    <a href="#"
-                                       onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
-                                       title="Delete Observation"
-                                       class="icon-btn">
-                                        <i class="bx bx-trash"></i>
-                                    </a>
-                                {% endif %}
+                                <a href="{% url 'edit-observation-request' observation.id %}"
+                                   title="Edit Observation"
+                                   {% if observation.project_status != ObservationStatus.PENDING %} class="icon-btn disabled-link" {% else %} class="icon-btn" {% endif %}>
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <a href="#"
+                                   onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
+                                   title="Delete Observation"
+                                   class="icon-btn">
+                                    <i class="bx bx-trash"></i>
+                                </a>
                             </td>
                             <tr class="expander-row"
                                 id="expander-{{ observation.id }}"

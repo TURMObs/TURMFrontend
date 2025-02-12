@@ -93,6 +93,15 @@
             flex: 1;
         }
 
+        .actions-container {
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: 90px;
+        }
+
         .copy-popover {
             position: absolute;
             background-color: var(--color-gray-400);
@@ -185,11 +194,11 @@
                     {% if invitations %}
                         {% for invitation in invitations %}
                             <tr class="table-row">
-                                <td class="text-align-left">{{ invitation.email }}</td>
+                                <td class="table-cell-truncate text-align-left">{{ invitation.email }}</td>
                                 {% if invitation.username != invitation.email %}
-                                    <td>{{ invitation.username }}</td>
+                                    <td class="table-cell-truncate">{{ invitation.username }}</td>
                                 {% else %}
-                                    <td></td>
+                                    <td>-</td>
                                 {% endif %}
                                 <td class="text-align-left">{{ invitation.role }}</td>
                                 <td class="text-align-right">
@@ -201,12 +210,12 @@
                                 </td>
                                 <td class="text-align-right">
                                     {% if invitation.lifetime %}
-                                        {{ invitation.lifetime }}
+                                        {{ invitation.lifetime|date:"d.m.Y" }}
                                     {% else %}
                                         -
                                     {% endif %}
                                 </td>
-                                <td class="text-align-left">
+                                <td class="actions-container">
                                     {% if invitation.link != "" %}
                                         <button id="copy-invitation-action-{{ invitation.id }}"
                                                 type="button"
@@ -257,11 +266,11 @@
                         {% if target_user.deletion_pending == False %}
                             <tr id="user-{{ target_user.id }}"
                                 class="table-row {% if target_user.id == current_user.id %}table-row-highlight{% endif %}">
-                                <td class="text-align-left">{{ target_user.email }}</td>
+                                <td class="table-cell-truncate text-align-left">{{ target_user.email }}</td>
                                 {% if target_user.username != target_user.email %}
-                                    <td>{{ target_user.username }}</td>
+                                    <td class="table-cell-truncate">{{ target_user.username }}</td>
                                 {% else %}
-                                    <td></td>
+                                    <td>-</td>
                                 {% endif %}
                                 <td class="text-align-left">{{ target_user.get_role }}</td>
                                 <td class="text-align-right">
@@ -273,13 +282,13 @@
                                 </td>
                                 <td class="text-align-right">
                                     {% if target_user.lifetime %}
-                                        {{ target_user.lifetime }}
+                                        {{ target_user.lifetime|date:"d.m.Y" }}
                                     {% else %}
                                         -
                                     {% endif %}
                                 </td>
                                 <td class="text-align-right">{{ target_user.date_joined|date:"d.m.Y" }}</td>
-                                <td>
+                                <td class="actions-container">
                                     {% if perms.accounts.can_edit_users %}
                                         <form id="edit-user-{{ target_user.id }}" style="display: inline;">
                                             {% csrf_token %}
@@ -297,7 +306,8 @@
                                             <button type="button"
                                                     class="icon-btn"
                                                     title="Delete User"
-                                                    onclick="deleteUser({{ target_user.id }})">
+                                                    onclick="deleteUser({{ target_user.id }})"
+                                                    {% if target_user.id == current_user.id %}disabled{% endif %}>
                                                 <i class="bx bx-trash"></i>
                                             </button>
                                         </form>
@@ -383,10 +393,10 @@
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
                   const link = linkData['link'];
-                    if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link")) {
+                    if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link", "Close")) {
                         navigator.clipboard.writeText(link);
-                        location.reload();
                     }
+                    location.reload();
                 } else {
                     if (linkData['error']) {
                         await showAlertModal("Failed to create invitation", `Got an error for email "${email}".\n${linkData['error']}`);
