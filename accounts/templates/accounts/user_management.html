@@ -130,7 +130,7 @@
                                    name="role"
                                    value="{{ value }}"
                                    {% if invitation_form.role.value == value %}checked{% endif %}
-                                   onchange="checkRoleChange(this)">
+                                   onchange="checkRoleChange('{{ value }}')">
                             <label for="role_{{ value }}">{{ label }}</label>
                         {% endfor %}
                     </div>
@@ -311,8 +311,7 @@
 {% endblock %}
 {% block scripts %}
     <script>
-        function checkRoleChange() {
-            const role = document.getElementById('id_role_selector').value;
+        function checkRoleChange(role) {
             const expertCheckbox = document.getElementById('id_expert');
 
             if (role === '{{ UserGroups.ADMIN }}') {
