@@ -27,14 +27,19 @@
   --border-md: 2px;
   --border-lg: 4px;
 
-  --font-size-normal: 16px;
-  --font-size-sub-heading: 18px;
-  --font-size-heading: 20px;
-  --font-size-heading-lg: 32px;
+  --font-size-sm: 12px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 32px;
 
   --font-weight-regular: 400;
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
+
+  --media-sm: 640px;
+  --media-md: 768px;
+  --media-lg: 1024px;
 }
 
 * {
@@ -43,7 +48,7 @@
   color: white;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-regular);
 }
 
@@ -57,35 +62,35 @@ body {
 
 /* typography */
 
-.heading-lg {
-  font-size: var(--font-size-heading-lg);
-  font-weight: var(--font-weight-bold);
+.text-2xl {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
 }
 
-.heading {
-  font-size: var(--font-size-heading);
-  font-weight: var(--font-weight-bold);
+.text-xl {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
 }
 
-.sub-heading {
-  font-size: var(--font-size-sub-heading);
+.text-lg {
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
 }
 
 .text {
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-regular);
 }
 
 .text-secondary {
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-regular);
   color: var(--color-gray-200);
 }
 
-.text-medium {
-  font-size: var(--font-size-normal);
-  font-weight: var(--font-weight-semibold);
+.text-sm {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
 }
 
 .text-error {
@@ -100,7 +105,7 @@ body {
   outline: none;
   border: var(--border-sm) solid var(--color-gray-400);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   color: var(--color-light);
   padding: 0.75em 1.5em;
   height: 48px;
@@ -139,7 +144,7 @@ body {
   vertical-align: middle;
   margin: 4px;
   padding: 0.5em;
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   color: var(--color-light);
 }
 
@@ -180,7 +185,7 @@ body {
   vertical-align: middle;
   margin: 2px;
   padding: 0.5em;
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   color: var(--color-light);
 }
 
@@ -273,7 +278,7 @@ body {
 }
 
 .table th {
-  font-size: var(--font-size-normal);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
 }
 

@@ -36,14 +36,14 @@
     <div class="page-content page-md">
         <header>
             <div class="modal-header-container">
-                <p class="heading">Edit Observation</p>
+                <p class="text-xl">Edit Observation</p>
             </div>
         </header>
         <form id="form"
               onsubmit="submitForm(event, this, '{{ edit_form_url }}', '{% url "dashboard" %}')">
             {% for name, form in forms %}
                 <article>
-                    <p class="form-heading sub-heading">{{ name }}</p>
+                    <p class="form-heading text-lg">{{ name }}</p>
                     <div class="form-container">{{ form }}</div>
                 </article>
             {% endfor %}

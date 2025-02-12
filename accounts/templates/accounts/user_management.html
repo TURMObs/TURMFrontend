@@ -116,7 +116,7 @@
     <div class="page-content page-md user-management-container">
         <!-- Invitation Form -->
         <div>
-            <p class="heading">Generate Invitation</p>
+            <p class="text-xl">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
             <form id="invitationForm" class="generate-invitation-form">
                 {% csrf_token %}
@@ -169,7 +169,7 @@
         <!-- Open Invitations -->
         <hr style="border: var(--border-sm) solid var(--color-gray-400);">
         <div>
-            <p class="heading">Open Invitations</p>
+            <p class="text-xl">Open Invitations</p>
             <table class="table data-table">
                 <thead>
                     <tr>
@@ -239,7 +239,7 @@
         <!-- All Users -->
         <hr style="border: var(--border-sm) solid var(--color-gray-400);">
         <div>
-            <p class="heading">All Users</p>
+            <p class="text-xl">All Users</p>
             <table class="table data-table">
                 <thead>
                     <tr>
