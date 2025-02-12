@@ -439,7 +439,7 @@
         }
 
         async function deleteUser(userId) {
-            if (!await showConfirmModal("Delete Account", "Are you sure you want to mark this user for deletion?"), "Delete") {
+            if (!await showConfirmModal("Delete Account", "Are you sure you want to mark this user for deletion?", "Delete")) {
                 return;
             }
 
@@ -585,11 +585,13 @@
             }
         }
 
-
         async function deleteInvitation(invitationId) {
+            if (!await showConfirmModal("Delete Invitation", "Are you sure that you want to delete this invitation?", "Delete")) {
+                return;
+            }
+
             const form = document.getElementById(`delete-invitation-${invitationId}`);
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
-            console.log("Invitation ID: ", invitationId);
             try {
                 const response = await fetch("{% url 'delete-invitation' 0 %}".replace("0", invitationId), {
                     method: 'POST',
