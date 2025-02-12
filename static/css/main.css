@@ -36,10 +36,6 @@
   --font-weight-regular: 400;
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
-
-  --media-sm: 640px;
-  --media-md: 768px;
-  --media-lg: 1024px;
 }
 
 * {
@@ -318,7 +314,7 @@ body {
 }
 
 .page-lg {
-  min-width: 900px;
+  min-width: 500px;
   width: calc(100% - 32px);
   max-width: 1500px;
 }
