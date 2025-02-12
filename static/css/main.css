@@ -47,7 +47,9 @@
 }
 
 body {
-  background: url(../img/HeartNebula.jpg) no-repeat, var(--color-gray-500);
+  background:
+    url(../img/HeartNebula.jpg) no-repeat,
+    var(--color-gray-500);
   background-size: cover;
   background-position: top center;
 }
