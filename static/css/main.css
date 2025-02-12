@@ -368,3 +368,7 @@ body {
   margin: 16px;
   gap: 8px;
 }
+
+.unselectable {
+  user-select: none;
+}

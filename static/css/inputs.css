@@ -110,12 +110,12 @@ input[type="checkbox"] {
 
 input[type="checkbox"] + label {
   color: var(--color-light);
-  height: 40px;
   cursor: pointer;
   border-radius: var(--radius-md);
   background-color: var(--color-dark);
   border: var(--border-sm) solid var(--color-gray-400);
-  padding: 4px 16px;
+  padding: .46em 0;
+  width: 2.5em;
   text-align: center;
 }
 

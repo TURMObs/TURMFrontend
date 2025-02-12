@@ -135,13 +135,13 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="generate-invitation-options">
+                <div class="generate-invitation-options unselectable">
                     <div class="optional-field-container">
                         <input class="checkbox"
                                type="checkbox"
                                id="set_quota"
                                onclick="toggleInput('quota')">
-                        <label for="set_quota" id="label_quota" class="text-secondary">Set Quota</label>
+                        <label for="set_quota" id="label_quota" class="text">Set Quota</label>
                         <div id="quotaField">{{ invitation_form.quota }}</div>
                     </div>
                     <div class="optional-field-container">
@@ -149,7 +149,7 @@
                                type="checkbox"
                                id="set_lifetime"
                                onclick="toggleInput('lifetime')">
-                        <label for="set_lifetime" id="label_lifetime" class="text-secondary">Set Lifetime</label>
+                        <label for="set_lifetime" id="label_lifetime" class="text">Set Lifetime</label>
                         <div id="lifetimeField">{{ invitation_form.lifetime }}</div>
                     </div>
                     <div class="expert-field-container">
@@ -167,6 +167,7 @@
             </form>
         </div>
         <!-- Open Invitations -->
+        <hr style="border: var(--border-sm) solid var(--color-gray-400);">
         <div>
             <p class="heading">Open Invitations</p>
             <table class="table data-table">
@@ -236,6 +237,7 @@
             </table>
         </div>
         <!-- All Users -->
+        <hr style="border: var(--border-sm) solid var(--color-gray-400);">
         <div>
             <p class="heading">All Users</p>
             <table class="table data-table">
