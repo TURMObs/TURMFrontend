@@ -749,7 +749,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def test_update_scheduled_2(self):
         """
-        Simple test of a scheduled observation to test, that does not finished but overdue observations are deleted correctly.
+        Simple test of a scheduled observation to test that unfinished but overdue observations are deleted correctly.
         """
 
         # fmt: off

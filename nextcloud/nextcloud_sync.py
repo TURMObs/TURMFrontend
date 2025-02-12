@@ -95,7 +95,7 @@ def update_non_scheduled_observations():
 
     observations = observations.exclude(
         id__in=[obs.id for obs in excluded_observations]
-    )
+    )  # exclude all scheduled observations
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
@@ -151,7 +151,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
 
     observations = observations.exclude(
         id__in=[obs.id for obs in excluded_observations]
-    )
+    )  # exclude all non-scheduled observations
 
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
@@ -217,6 +217,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
             and obs.project_status == ObservationStatus.UPLOADED
             and today >= obs.next_upload
         ):
+            # Checking uploaded expert observations, even if their partial progress is not 100.0%. If the observation time has passed, the observation is considered done.
             try:
                 nm_dict = nm.download_dict(nc_path)
             except NextcloudException as e:
@@ -305,7 +306,7 @@ def upload_observations(today: datetime.date = timezone.now().date()):
 
     pending_observations = pending_observations.exclude(
         id__in=[obs.id for obs in scheduled_observations]
-    )
+    )  # exclude all scheduled observations
 
     # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
     for obs in scheduled_observations:
