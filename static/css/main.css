@@ -30,6 +30,7 @@
   --font-size-normal: 16px;
   --font-size-sub-heading: 18px;
   --font-size-heading: 20px;
+  --font-size-heading-lg: 32px;
 
   --font-weight-regular: 400;
   --font-weight-semibold: 500;
@@ -55,6 +56,11 @@ body {
 }
 
 /* typography */
+
+.heading-lg {
+  font-size: var(--font-size-heading-lg);
+  font-weight: var(--font-weight-bold);
+}
 
 .heading {
   font-size: var(--font-size-heading);

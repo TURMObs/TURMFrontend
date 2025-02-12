@@ -26,14 +26,14 @@
                 border: var(--border-md) solid var(--color-gray-400);
                 background: var(--color-dark);
                 border-radius: var(--radius-lg);
-                padding: 30px 40px;
+                padding: 32px 48px;
             }
 
             .form-content {
                 display: flex;
                 flex-direction: column;
                 width: 100%;
-                gap: 16px;
+                gap: 24px;
             }
 
             .input-field {
@@ -59,7 +59,7 @@
 
             .input-field i {
                 position: absolute;
-                color: var(--color-gray-400);
+                color: var(--color-gray-100);
                 right: 16px;
                 top: 50%;
                 transform: translateY(-50%);
@@ -73,15 +73,15 @@
     <body>
         <div class= "content-container">
             <form class="form-content" method="post" action="{% url 'login-user' %}">
-                <p class="heading">Login</p>
+                <p class="heading-lg text-align-center">Login</p>
                 {% csrf_token %}
                 <div class="input-field">
                     {{ form.email }}
-                    <i class='bx bxs-user'></i>
+                    <i class='bx bxs-user text'></i>
                 </div>
                 <div class="input-field">
                     {{ form.password }}
-                    <i class='bx bxs-lock-alt'></i>
+                    <i class='bx bxs-lock-alt text'></i>
                 </div>
                 {% if error is not None %}<p class="text text-error">Invalid username or password</p>{% endif %}
                 <button type="submit" class="btn">Login</button>

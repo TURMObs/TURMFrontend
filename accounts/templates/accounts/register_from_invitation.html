@@ -33,7 +33,7 @@
                 display: flex;
                 flex-direction: column;
                 width: 100%;
-                gap: 16px;
+                gap: 24px;
             }
 
             .input-field {
@@ -59,7 +59,7 @@
 
             .input-field i {
                 position: absolute;
-                color: var(--color-gray-400);
+                color: var(--color-gray-100);
                 right: 16px;
                 top: 50%;
                 transform: translateY(-50%);
@@ -68,11 +68,17 @@
             .text-error {
                 color: var(--color-error);
             }
+
+            .error-list {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
         </style>
     </head>
     <body>
         <div class= "content-container">
-            <p class="heading">Create account</p>
+            <p class="heading-lg text-align-center">Create account</p>
             <div>
                 <div class= "given-email-container">
                     <i class="bx bxs-envelope text-secondary"></i>
@@ -89,9 +95,11 @@
                         <i class='bx bxs-lock-alt'></i>
                     </div>
                     {% if form.errors %}
-                        {% for error_list in form.errors.values %}
-                            {% for error in error_list %}<div class="text text-error">{{ error }}</div>{% endfor %}
-                        {% endfor %}
+                        <div class="error-list">
+                            {% for error_list in form.errors.values %}
+                                {% for error in error_list %}<div class="text text-error">{{ error }}</div>{% endfor %}
+                            {% endfor %}
+                        </div>
                     {% endif %}
                     <button type="submit" class= "btn">Register</button>
                 </form>
