@@ -60,7 +60,7 @@ body {
 }
 
 .sub-heading {
-  font-size: var(--font-size-subheading);
+  font-size: var(--font-size-sub-heading);
   font-weight: var(--font-weight-semibold);
 }
 
