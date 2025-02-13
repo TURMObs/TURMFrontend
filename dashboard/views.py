@@ -14,11 +14,19 @@ def dashboard(request):
     else:
         observations = AbstractObservation.objects.filter(user=request.user)
 
+    active_observations = observations.exclude(
+        project_status=ObservationStatus.COMPLETED
+    ).order_by("created_at")
+    completed_observations = observations.filter(
+        project_status=ObservationStatus.COMPLETED
+    ).order_by("created_at")
+
     return render(
         request,
         "dashboard/index.html",
         {
-            "observations": observations,
+            "active_observations": active_observations,
+            "completed_observations": completed_observations,
             "ObservationStatus": ObservationStatus,
             "ObservationType": ObservationType,
         },
