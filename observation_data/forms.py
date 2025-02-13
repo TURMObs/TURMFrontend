@@ -40,7 +40,7 @@ class CelestialTargetForm(forms.Form):
     )
     target_widgets = [
         (TURMCharInput("catalog_id", "M42"), "Catalog ID"),
-        (TURMButtonInput("Fetch SIMBAD coordinates", "fetch_coordinates()"), ""),
+        (TURMButtonInput("Fetch SIMBAD coordinates", "fetch_coordinates()"), "‎"),
     ]
     catalog_id = TURMGridField(target_widgets, (2, 1))
     ra = TURMField.init_from_model(

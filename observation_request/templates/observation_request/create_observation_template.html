@@ -2,25 +2,51 @@
 {% block title %}Create Observation{% endblock %}
 {% block style %}
     {% load static %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
-          rel="stylesheet">
     <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
-    <link rel='stylesheet'
-          href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
     <style>
+    .modal-header-container {
+        display: flex;
+        justify-content: left;
+    }
+
     .button-container {
-        padding-top: 8px;
+        padding-top: 24px;
         display: flex;
         justify-content: flex-end;
         align-items: center;
         gap: 16px;
     }
+
     .form-heading {
-        margin-bottom: 8px;
+        margin-top: 24px;
+    }
+
+    .form-container {
+        margin: 8px 0px;
     }
     </style>
+{% endblock %}
+{% block content %}
+    <div class="page-content page-md">
+        <header>
+            <div class="modal-header-container">
+                <p class="text-xl">Create New Observation</p>
+            </div>
+        </header>
+        <form id="form"
+              onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
+            {% for name, form in forms %}
+                <article>
+                    <p class="form-heading text-lg">{{ name }}</p>
+                    <div class="form-container">{{ form }}</div>
+                </article>
+            {% endfor %}
+            {% csrf_token %}
+            <div class="button-container">
+                <button class="btn" type="submit">Create Observation</button>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
@@ -50,16 +76,15 @@
             });
 
             const text = await response.text();
-            check_response(text, catalog_id);
+            await checkResponse(text, catalog_id);
         } catch (error) {
-            alert(`An error while trying to get a response from SIMBAD server. Got: ${error.message}`)
+            await showAlertModal("Failed to resolve coordinates", `An error while trying to get a response from SIMBAD server. Got: ${error.message}`);
         }
     }
 
-    function check_response(response, catalog_id) {
-
+    async function checkResponse(response, catalog_id) {
         if (response.includes("error")) {
-            alert(`Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database!`)
+            await showAlertModal("Failed to resolve coordinates", `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`);
             return;
         }
 
@@ -90,27 +115,4 @@
 
     }
     </script>
-{% endblock %}
-{% block content %}
-    <div class="content_wrapper form_wrapper">
-        <header>
-            <div class="container_center">
-                <h1>Create New Observation</h1>
-            </div>
-        </header>
-        <form class="input_form"
-              id="form"
-              onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
-            {% for name, form in forms %}
-                <article>
-                    <h2 class="form-heading">{{ name }}</h2>
-                    <div>{{ form }}</div>
-                </article>
-            {% endfor %}
-            {% csrf_token %}
-            <div class="button-container">
-                <button type="submit">Create Observation</button>
-            </div>
-        </form>
-    </div>
 {% endblock %}

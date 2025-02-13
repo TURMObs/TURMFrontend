@@ -6,26 +6,42 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TURM Login</title>
-        <link rel="stylesheet" href="{% static "/css/authentication_index.css" %}">
-        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-              rel='stylesheet'>
+        <link rel="stylesheet" href="{% static "/css/main.css" %}">
+        <style>
+            .form-content {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 24px;
+            }
+
+            .input-field {
+                position: relative;
+            }
+
+            .input-field i {
+                position: absolute;
+                color: var(--color-gray-100);
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        </style>
     </head>
-    <body>
-        <div class= "wrapper">
-            <form method="post" action="{% url 'login-user' %}">
+    <body class="page-sm-body">
+        <div class= "page-sm">
+            <form class="form-content" method="post" action="{% url 'login-user' %}">
+                <p class="text-2xl text-align-center">Login</p>
                 {% csrf_token %}
-                <h1>Login</h1>
                 <div class="input-field">
-                    {{ form.email.errors }}
                     {{ form.email }}
-                    <i class='bx bxs-user'></i>
+                    <i class='bx bxs-user text'></i>
                 </div>
                 <div class="input-field">
-                    {{ form.password.errors }}
                     {{ form.password }}
-                    <i class='bx bxs-lock-alt'></i>
+                    <i class='bx bxs-lock-alt text'></i>
                 </div>
-                {% if error is not None %}<p class="error-message">Invalid username or password</p>{% endif %}
+                {% if error is not None %}<p class="text text-error">Invalid username or password</p>{% endif %}
                 <button type="submit" class="btn">Login</button>
             </form>
         </div>
