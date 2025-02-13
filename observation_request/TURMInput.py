@@ -37,6 +37,7 @@ class _TURMInput(Widget):
 
     def add_attrs(self, attrs: dict):
         self.attrs.update(attrs)
+        return self
 
     def render(self, name, value, attrs=None, renderer=None):
         raise NotImplementedError("Subclasses must implement this method.")
