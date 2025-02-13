@@ -46,7 +46,7 @@ function disable_inputs(dependency_type, dependency) {
   ).filter((el) => !!el.getAttribute(dependency_type));
 
   for (let input of dependent_inputs) {
-    if (input.getAttribute(dependency_type).split(" ").includes(dependency)) {
+    if (Array.from(input.getAttribute(dependency_type).split(" ")).some(el => el === dependency)) {
       input.disabled = false;
     } else {
       input.disabled = true;
@@ -66,28 +66,26 @@ function hide_inputs(dependency_type, dependency) {
     document.getElementsByTagName("INPUT"),
   ).filter((el) => !!el.getAttribute(dependency_type));
 
+  const to_call_later = [];
+
   for (let input of dependent_inputs) {
-    const hide_el = !input.getAttribute(dependency_type).includes(dependency);
+    const hide_el = !Array.from(input.getAttribute(dependency_type).split(" ")).some(el => el === dependency);
     let parent = input.parentElement;
-    const local_inputs = Array.from(parent.children).filter(
-      (el) => el.tagName === "INPUT",
-    );
     if (parent.classList.contains("radio_input_div")) {
       parent = input.parentElement.parentElement;
     }
     if (hide_el) {
       parent.style.display = "none";
-      for (let l_input of local_inputs) {
-        l_input.disabled = true;
-      }
+      input.disabled = true;
     } else {
       parent.removeAttribute("style");
-      for (let l_input of local_inputs) {
-        l_input.disabled = false;
-      }
+      input.disabled = false;
+      if (input.type === "radio" && input.checked && input.onclick != null) to_call_later.push(input);
     }
   }
+  to_call_later.forEach(callable => callable.click())
 }
+
 
 function update_date_dependency(el) {
   const end = document.getElementById(el.id.replace(RegExp("start"), "end"));

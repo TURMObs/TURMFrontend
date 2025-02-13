@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 class Dependency(Enum):
     observation_type = "observation_type_dependent"
     observatory = "observatory_dependent"
+    scheduling = "scheduling_dependent"
 
 
 class CelestialTargetForm(forms.Form):
@@ -133,26 +134,28 @@ class ExposureSettingsForm(forms.Form):
             label_name="Exposure Time",
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
-        )
+        ).add_attrs({"placeholder": "default value"})
+        exposure_time_expert.required = False
 
         # exposure
         exposure_settings = [
             (
-                ExpertObservation._meta.get_field("frames_per_filter"),
+                TURMField.model_field_to_input(ExpertObservation._meta.get_field("frames_per_filter")).add_attrs({"placeholder": "default value"}),
                 "Frames per Filter",
             ),
-            (ExpertObservation._meta.get_field("dither_every"), "Dither Every"),
-            (ExposureSettings._meta.get_field("binning"), "Binning"),
-            (ExposureSettings._meta.get_field("subframe"), "Sub Frame"),
-            (ExposureSettings._meta.get_field("gain"), "Gain"),
-            (ExposureSettings._meta.get_field("offset"), "Offset"),
+            (TURMField.model_field_to_input(ExpertObservation._meta.get_field("dither_every")).add_attrs({"placeholder": "default value"}), "Dither Every"),
+            (TURMField.model_field_to_input(ExposureSettings._meta.get_field("binning")).add_attrs({"placeholder": "default value"}), "Binning"),
+            (TURMField.model_field_to_input(ExposureSettings._meta.get_field("subframe")).add_attrs({"placeholder": "default value"}), "Sub Frame"),
+            (TURMField.model_field_to_input(ExposureSettings._meta.get_field("gain")).add_attrs({"placeholder": "default value"}), "Gain"),
+            (TURMField.model_field_to_input(ExposureSettings._meta.get_field("offset")).add_attrs({"placeholder": "default value"}), "Offset"),
         ]
 
-        exposure = TURMGridField.init_from_model(
+        exposure = TURMGridField(
             exposure_settings, (2, 3)
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
+        exposure.required = False
         # imaging
         frames_per_filter = TURMField.init_from_model(
             ExpertObservation._meta.get_field("frames_per_filter"),
@@ -178,7 +181,7 @@ class ExposureSettingsForm(forms.Form):
             {
                 Dependency.observation_type.value: [
                     ObservationType.EXOPLANET,
-                    ObservationType.EXPERT,
+                    #ObservationType.EXPERT,
                 ]
             }
         )
@@ -189,7 +192,7 @@ class ExposureSettingsForm(forms.Form):
             {
                 Dependency.observation_type.value: [
                     ObservationType.VARIABLE,
-                    ObservationType.EXPERT,
+                    #ObservationType.EXPERT,
                 ]
             }
         )
@@ -200,10 +203,7 @@ class ExposureSettingsForm(forms.Form):
             (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
         ).add_dependencies(
             {
-                Dependency.observation_type.value: [
-                    ObservationType.MONITORING,
-                    ObservationType.EXPERT,
-                ]
+                Dependency.observation_type.value: [ObservationType.MONITORING,]
             }
         )
 
@@ -211,33 +211,103 @@ class ExposureSettingsForm(forms.Form):
             ExpertObservation._meta.get_field("cadence")
         ).add_dependencies(
             {
+                Dependency.observation_type.value: [ObservationType.MONITORING,]
+            }
+        )
+        # expert
+        class SchedulingType(Enum):
+            NO_CONSTRAINT = "No Constraint"
+            SCHEDULE = "Scheduling"
+            SCHEDULE_TIME = "Timed Scheduling"
+            TIMED = "Timed"
+
+        schedule_type = TURMSelectField(
+            "schedule_type",
+            [(s_val.value, s_key) for s_key, s_val in SchedulingType._member_map_.items()],
+            label_name="Time Constrains",
+        ).add_on_click(
+            lambda s_type: f"hide_inputs('{Dependency.scheduling.value}','{s_type}')"
+        ).add_dependencies({Dependency.observation_type.value: [ObservationType.EXPERT]}
+        )
+
+        exp_schedule = TURMDateDuration(
+            (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
+            (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [ObservationType.EXPERT,],
+                Dependency.scheduling.value: [SchedulingType.SCHEDULE.name, SchedulingType.SCHEDULE_TIME.name],
+            }
+        )
+
+        exp_schedule_time = TURMDateDuration(
+            (ExpertObservation._meta.get_field("start_observation_time"), "Start Time"),
+            (ExpertObservation._meta.get_field("end_observation_time"), "End Time"),
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [ObservationType.EXPERT,],
+                Dependency.scheduling.value: [SchedulingType.SCHEDULE_TIME.name]
+            }
+        )
+
+        exp_cadence = TURMField.init_from_model(
+            ExpertObservation._meta.get_field("cadence")
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [ObservationType.EXPERT],
+                Dependency.scheduling.value: [SchedulingType.SCHEDULE.name, SchedulingType.SCHEDULE_TIME.name]
+            }
+        ).add_attrs({"placeholder": "default value"})
+
+        exp_start_end_observation = TURMDateTimeDuration(
+            (
+                ExpertObservation._meta.get_field("start_observation"),
+                "Start Observation",
+            ),
+            (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
+        ).add_dependencies(
+            {
+                Dependency.observation_type.value: [ObservationType.EXPERT,],
+                Dependency.scheduling.value: [SchedulingType.TIMED.name],
+            }
+        )
+
+        exp_minimum_altitude = TURMField.init_from_model(
+            ExpertObservation._meta.get_field("minimum_altitude")
+        ).add_dependencies(
+            {
                 Dependency.observation_type.value: [
-                    ObservationType.MONITORING,
                     ObservationType.EXPERT,
                 ]
             }
-        )
+        ).add_attrs({"placeholder": "default value"})
+        exp_minimum_altitude.required = False
+
         moon_separation_settings = [
             (
-                ExpertObservation._meta.get_field("moon_separation_angle"),
+                TURMField.model_field_to_input(ExpertObservation._meta.get_field("moon_separation_angle")).add_attrs({"placeholder": "default value"}),
                 "Moon Separation Angle",
             ),
             (
-                ExpertObservation._meta.get_field("moon_separation_width"),
+                TURMField.model_field_to_input(ExpertObservation._meta.get_field("moon_separation_width")).add_attrs({"placeholder": "default value"}),
                 "Moon Separation Width",
             ),
         ]
 
-        moon_separation = TURMGridField.init_from_model(
+
+
+        moon_separation = TURMGridField(
             moon_separation_settings, (2, 1)
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
+        moon_separation.required = False
         priority = TURMField.init_from_model(
             ExpertObservation._meta.get_field("priority")
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
-        )
+        ).add_attrs({"placeholder": "default value"})
+        priority.required = False
     except ProgrammingError as error:
         error_message = str(error).split("\n")[0]
         logger.warning(f"DB seems to be badly configured. \n{error_message}")
