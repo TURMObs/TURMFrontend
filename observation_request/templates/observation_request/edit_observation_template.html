@@ -59,6 +59,7 @@
 {% endblock %}
 {% block scripts %}
     <script src="{% static '/js/turminputs.js' %}"></script>
+    <script src="{% static '/js/simbad.js' %}"></script>
     <script> onload = _ => {
         function markInputAsChecked(query, value, predicate) {
             const queryString = `input[id^="${query}"]`;
