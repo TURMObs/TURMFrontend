@@ -51,21 +51,7 @@ class Filter(models.Model):
     Model for the filters that can be used for the observations.
     """
 
-    class FilterType(models.TextChoices):
-        LUMINANCE = "L"
-        RED = "R"
-        GREEN = "G"
-        BLUE = "B"
-        HYDROGEN = "H"
-        OXYGEN = "O"
-        SULFUR = "S"
-        SLOAN_R = "SR"
-        SLOAN_G = "SG"
-        SLOAN_I = "SI"
-
-    filter_type = models.CharField(
-        choices=FilterType, db_column="type", max_length=2, primary_key=True
-    )
+    filter_type = models.CharField(db_column="type", max_length=2, primary_key=True)
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
 
@@ -100,9 +86,9 @@ class ObservatoryExposureSettings(models.Model):
     """
 
     observatory = models.ForeignKey(
-        Observatory, on_delete=models.DO_NOTHING, db_column="observatory"
+        Observatory, on_delete=models.CASCADE, db_column="observatory"
     )
-    exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.DO_NOTHING)
+    exposure_settings = models.ForeignKey(ExposureSettings, on_delete=models.CASCADE)
     observation_type = models.CharField(choices=ObservationType, db_column="type")
 
 
@@ -114,9 +100,10 @@ class AbstractObservation(PolymorphicModel):
 
     observatory = models.ForeignKey(
         Observatory,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="+",  # prevents backward relation
         db_column="observatory",
+        null=True,
     )
     target = models.ForeignKey(
         CelestialTarget,
