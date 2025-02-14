@@ -2,6 +2,7 @@
 All database models for the observation requests, targets and observatories.
 """
 
+from django.core.validators import RegexValidator
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
@@ -29,8 +30,15 @@ class CelestialTarget(models.Model):
     Model for the celestial targets that can be observed.
     """
 
-    name = models.CharField(max_length=100)
-    catalog_id = models.CharField(max_length=100, blank=True)
+    name = models.CharField(
+        max_length=100,
+        validators=[RegexValidator(r"^\S*$", message="No spaces allowed")],
+    )
+    catalog_id = models.CharField(
+        max_length=100,
+        blank=True,
+        validators=[RegexValidator(r"^\S*$", message="No spaces allowed")],
+    )
     ra = models.CharField(max_length=25)
     dec = models.CharField(max_length=25)
 
@@ -145,6 +153,7 @@ class ScheduledObservation(AbstractObservation):
 
 
 class MonitoringObservation(ScheduledObservation):
+    minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
     frames_per_filter = models.IntegerField()
 
 

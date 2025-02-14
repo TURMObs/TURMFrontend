@@ -74,8 +74,8 @@ class ObservationCreationTestCase(django.test.TestCase):
         return {
             "observatory": "TURMX",
             "target": {
-                "name": "Sagittarius A*",
-                "catalog_id": "Sag A*",
+                "name": "SagittariusA*",
+                "catalog_id": "SagA*",
                 "ra": "17 45 40.03599",
                 "dec": "-29 00 28.1699",
             },
@@ -88,8 +88,8 @@ class ObservationCreationTestCase(django.test.TestCase):
     def _get_flat_base_request():
         return {
             "observatory": "TURMX",
-            "name": "Sagittarius A*",
-            "catalog_id": "Sag A*",
+            "name": "SagittariusA*",
+            "catalog_id": "SagA*",
             "ra": "17 45 40.03599",
             "dec": "-29 00 28.1699",
             "observation_type": "Invalid",
@@ -239,6 +239,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
+                "minimum_altitude": 35.0,
             },
         )
 
@@ -250,6 +251,7 @@ class ObservationCreationTestCase(django.test.TestCase):
                 "start_scheduling": "2021-01-01T00:00:00Z",
                 "end_scheduling": "2021-01-01T01:00:00Z",
                 "cadence": 1,
+                "minimum_altitude": 35.0,
             },
             flat=True,
         )
@@ -777,8 +779,8 @@ class EditObservationTestCase(django.test.TestCase):
         return {
             "observatory": "TURMX",
             "target": {
-                "name": "Sagittarius A*",
-                "catalog_id": "Sag A*",
+                "name": "SagittariusA*",
+                "catalog_id": "SagA*",
                 "ra": "17 45 40.03599",
                 "dec": "-29 00 28.1699",
             },
@@ -791,8 +793,8 @@ class EditObservationTestCase(django.test.TestCase):
     def _get_flat_base_request():
         return {
             "observatory": "TURMX",
-            "name": "Sagittarius A*",
-            "catalog_id": "Sag A*",
+            "name": "SagittariusA*",
+            "catalog_id": "SagA*",
             "ra": "17 45 40.03599",
             "dec": "-29 00 28.1699",
             "observation_type": "Invalid",
@@ -902,6 +904,7 @@ class EditObservationTestCase(django.test.TestCase):
             "observation_type": ObservationType.MONITORING,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
+            "minimum_altitude": 35.0,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
@@ -1137,6 +1140,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "observation_type": ObservationType.MONITORING,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
+            "minimum_altitude": 35.0,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
