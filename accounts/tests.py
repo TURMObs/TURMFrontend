@@ -1,3 +1,4 @@
+import io
 import os
 import unittest
 
@@ -87,7 +88,11 @@ class DSGVOUserDataTestCase(django.test.TestCase):
             username="testuser", password="testpassword", is_superuser=True
         )
         self.user = ObservatoryUser.objects.get(username="testuser")
-        call_command("populate_observatories")
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=io.StringIO(),
+        )
         self.maxDiff = None
         self.client = django.test.Client()
         self.client.force_login(user=self.user)
