@@ -158,6 +158,7 @@ class ScheduledObservation(AbstractObservation):
 
 
 class MonitoringObservation(ScheduledObservation):
+    minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
     frames_per_filter = models.IntegerField()
 
 

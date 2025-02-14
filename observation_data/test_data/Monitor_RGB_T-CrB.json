@@ -4,7 +4,7 @@
   "active": true,
   "priority": 1000,
   "ditherEvery": 0,
-  "minimumAltitude": 30.0,
+  "minimumAltitude": 35.0,
   "horizonOffset": 0.0,
   "centerTargets": true,
   "imageGrader": {

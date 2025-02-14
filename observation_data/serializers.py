@@ -438,6 +438,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         model = MonitoringObservation
         fields = base_fields + [
             "frames_per_filter",
+            "minimum_altitude",
             "start_scheduling",
             "end_scheduling",
             "cadence",
@@ -458,11 +459,15 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
+        additional_fields = {
+            "minimumAltitude": instance.minimum_altitude,
+        }
         exposure_fields = {
             "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
             instance=instance,
+            additional_fields=additional_fields,
             exposure_fields=exposure_fields,
         )
 

@@ -891,6 +891,7 @@ class EditObservationTestCase(django.test.TestCase):
             "observation_type": ObservationType.MONITORING,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
+            "minimum_altitude": 35.0,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
@@ -1122,6 +1123,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "observation_type": ObservationType.MONITORING,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
+            "minimum_altitude": 35.0,
         }
         response = self.client.post(
             path="/observation-data/create/", data=data, content_type="application/json"
