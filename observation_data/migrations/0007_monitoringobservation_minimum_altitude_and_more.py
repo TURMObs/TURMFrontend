@@ -5,26 +5,40 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0006_alter_abstractobservation_observatory_and_more'),
+        ("observation_data", "0006_alter_abstractobservation_observatory_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='monitoringobservation',
-            name='minimum_altitude',
+            model_name="monitoringobservation",
+            name="minimum_altitude",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=5),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='celestialtarget',
-            name='catalog_id',
-            field=models.CharField(blank=True, max_length=100, validators=[django.core.validators.RegexValidator('^\\S*$', message='No spaces allowed')]),
+            model_name="celestialtarget",
+            name="catalog_id",
+            field=models.CharField(
+                blank=True,
+                max_length=100,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^\\S*$", message="No spaces allowed"
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='celestialtarget',
-            name='name',
-            field=models.CharField(max_length=100, validators=[django.core.validators.RegexValidator('^\\S*$', message='No spaces allowed')]),
+            model_name="celestialtarget",
+            name="name",
+            field=models.CharField(
+                max_length=100,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^\\S*$", message="No spaces allowed"
+                    )
+                ],
+            ),
         ),
     ]
