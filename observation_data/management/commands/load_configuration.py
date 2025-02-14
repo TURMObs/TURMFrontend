@@ -21,7 +21,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--delete",
             action="store_true",
-            help="Delete the database before loading the configuration.",
+            help="Delete all existing configurations before loading the new configuration.",
         )
 
         parser.add_argument(
@@ -34,7 +34,7 @@ class Command(BaseCommand):
         """
         This command adds the observatories, exposure settings and filters to the database.
         """
-        overwrite = options["overwrite"]
+        overwrite = options["overwrite"] or options["delete"]
         delete = options["delete"]
         path = options["path"]
         if not os.path.exists(path):

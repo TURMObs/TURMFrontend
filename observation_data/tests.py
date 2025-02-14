@@ -1,7 +1,6 @@
 import io
 import json
 import os
-import unittest
 from datetime import datetime, timezone, timedelta
 
 from django.utils import timezone as tz
@@ -63,7 +62,11 @@ class ObservationCreationTestCase(django.test.TestCase):
         self.user = None
         self.client = django.test.Client()
         _create_user_and_login(self)
-        call_command("load_configuration", "./config.json", stdout=io.StringIO())
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=io.StringIO(),
+        )
         self.base_request = self._get_base_request()
 
     @staticmethod
@@ -78,7 +81,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             },
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": [Filter.FilterType.LUMINANCE],
+            "filter_set": ["L"],
         }
 
     @staticmethod
@@ -91,7 +94,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             "dec": "-29 00 28.1699",
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": [Filter.FilterType.LUMINANCE],
+            "filter_set": ["L"],
         }
 
     def _send_post_request(self, data):
@@ -695,9 +698,9 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["frames_per_filter"] = 1
         data["required_amount"] = 100
         data["filter_set"] = [
-            Filter.FilterType.SLOAN_R,
-            Filter.FilterType.SLOAN_I,
-            Filter.FilterType.LUMINANCE,
+            "SR",
+            "SI",
+            "L",
         ]
         response = self._send_post_request(data)
         self._assert_error_response(
@@ -716,7 +719,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["observation_type"] = ObservationType.EXOPLANET
         data["frames_per_filter"] = 1
         data["required_amount"] = -1
-        data["filter_set"] = [Filter.FilterType.RED]
+        data["filter_set"] = ["R"]
         data["start_observation"] = "2021-01-01T01:00:00Z"
         data["end_observation"] = "2021-01-01T00:00:00Z"
         response = self._send_post_request(data)
@@ -762,7 +765,11 @@ class EditObservationTestCase(django.test.TestCase):
         self.user = None
         self.client = django.test.Client()
         _create_user_and_login(self)
-        call_command("load_configuration", "./config.json", stdout=io.StringIO())
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=io.StringIO(),
+        )
         self.base_request = self._get_base_request()
 
     @staticmethod
@@ -777,7 +784,7 @@ class EditObservationTestCase(django.test.TestCase):
             },
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": [Filter.FilterType.LUMINANCE],
+            "filter_set": ["L"],
         }
 
     @staticmethod
@@ -790,7 +797,7 @@ class EditObservationTestCase(django.test.TestCase):
             "dec": "-29 00 28.1699",
             "observation_type": "Invalid",
             "exposure_time": 60.0,
-            "filter_set": [Filter.FilterType.LUMINANCE],
+            "filter_set": ["L"],
         }
 
     def _send_post_request(self, observation_id, data):
@@ -1039,7 +1046,11 @@ class JsonFormattingTestCase(django.test.TestCase):
         self.client = django.test.Client()
         _create_user_and_login(self)
         try:
-            call_command("load_configuration", "./config.json", stdout=io.StringIO())
+            call_command(
+                "load_configuration",
+                "./observation_data/test_data/dummy_config.json",
+                stdout=io.StringIO(),
+            )
             self._create_imaging_observations()
             self._create_exoplanet_observation()
             self._create_monitoring_observation()
@@ -1292,7 +1303,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "minimum_altitude": 35,
             "priority": 100,
             "exposure_time": 60.0,
-            "filter_set": [Filter.FilterType.LUMINANCE],
+            "filter_set": ["L"],
         }
         response = self.client.post(
             path="/observation-data/create/",
@@ -1320,7 +1331,11 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.old_prefix = self.prefix
         nextcloud_manager.prefix = f"{self.nc_prefix}{self.prefix}"
         self.prefix = f"{self.nc_prefix}{self.prefix}"
-        call_command("load_configuration", "./config.json", stdout=io.StringIO())
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=io.StringIO(),
+        )
 
         self.user = None
         self.maxDiff = None
@@ -1355,7 +1370,7 @@ class ObservationManagementTestCase(django.test.TestCase):
             frames_per_filter=100,
         )
 
-        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+        obs.filter_set.add(Filter.objects.get(filter_type="L"))
 
     def test_delete_no_permission(self):
         # simulates the situation where a user without delete-all-permissions tries to delete an observation of another user
@@ -1503,9 +1518,6 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(0, AbstractObservation.objects.count())
 
 
-@unittest.skip(
-    "These test rely on the configuration file. Only ever run if changes to the models are made"
-)
 class ConfigurationLoadingTestCase(django.test.TestCase):
     def _assert_exposure_settings_exists(self, exp_setting):
         self.assertTrue(
@@ -1528,7 +1540,11 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
             max_guide_error=1000.0,
         )
         out = io.StringIO()
-        call_command("load_configuration", "./config.json", stdout=out)
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=out,
+        )
         output = out.getvalue()
         self.assertIn("Created observatory TURMX.", output)
         self.assertIn("Created observatory TURMX2.", output)
@@ -1547,7 +1563,12 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
         self.assertEqual(observatories[2].max_HFR, 6.0)
         self.assertEqual(observatories[2].max_guide_error, 1000.0)
 
-        call_command("load_configuration", "./config.json", "--delete", stdout=out)
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            "--delete",
+            stdout=out,
+        )
         self.assertEqual(Observatory.objects.count(), 2)
         observatories = Observatory.objects.all()
         self.assertEqual(observatories[0].name, "TURMX")
@@ -1578,7 +1599,11 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
             ),
         )
         out = io.StringIO()
-        call_command("load_configuration", "./config.json", stdout=out)
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=out,
+        )
         output = out.getvalue()
         self.assertIn(
             "Exposure settings for Imaging at TURMX already exist. Set --overwrite to overwrite.",
@@ -1685,7 +1710,11 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
 
     def test_filters(self):
         out = io.StringIO()
-        call_command("load_configuration", "./config.json", stdout=out)
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=out,
+        )
         output = out.getvalue()
         for f_type in [
             "Luminance",
@@ -1694,7 +1723,6 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
             "Blue",
             "Hydrogen",
             "Oxygen",
-            "Sulfur",
             "Sloan_R",
             "Sloan_G",
             "Sloan_I",
@@ -1704,10 +1732,10 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
 
         self.assertEqual(Filter.objects.count(), 10)
         for filter_type in [
-            Filter.FilterType.LUMINANCE,
-            Filter.FilterType.RED,
-            Filter.FilterType.GREEN,
-            Filter.FilterType.BLUE,
+            "L",
+            "R",
+            "G",
+            "B",
         ]:
             self._assert_filter_exists(
                 {
@@ -1718,9 +1746,9 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
             )
 
         for filter_type in [
-            Filter.FilterType.HYDROGEN,
-            Filter.FilterType.OXYGEN,
-            Filter.FilterType.SULFUR,
+            "H",
+            "O",
+            "S",
         ]:
             self._assert_filter_exists(
                 {
@@ -1731,9 +1759,9 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
             )
 
         for filter_type in [
-            Filter.FilterType.SLOAN_R,
-            Filter.FilterType.SLOAN_G,
-            Filter.FilterType.SLOAN_I,
+            "SR",
+            "SG",
+            "SI",
         ]:
             self._assert_filter_exists(
                 {
@@ -1751,20 +1779,19 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
             for f in Observatory.objects.get(name="TURMX2").filter_set.all()
         ]
         for filter_type in [
-            Filter.FilterType.LUMINANCE,
-            Filter.FilterType.RED,
-            Filter.FilterType.GREEN,
-            Filter.FilterType.BLUE,
-            Filter.FilterType.HYDROGEN,
-            Filter.FilterType.OXYGEN,
-            Filter.FilterType.SULFUR,
+            "L",
+            "R",
+            "G",
+            "B",
+            "H",
+            "O",
         ]:
             self.assertIn(filter_type, turmx_filter_set)
             self.assertIn(filter_type, turmx2_filter_set)
         for filter_type in [
-            Filter.FilterType.SLOAN_R,
-            Filter.FilterType.SLOAN_G,
-            Filter.FilterType.SLOAN_I,
+            "SR",
+            "SG",
+            "SI",
         ]:
             self.assertNotIn(filter_type, turmx_filter_set)
             self.assertIn(filter_type, turmx2_filter_set)

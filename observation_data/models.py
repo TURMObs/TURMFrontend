@@ -4,7 +4,6 @@ All database models for the observation requests, targets and observatories.
 
 from django.db import models
 from polymorphic.models import PolymorphicModel
-from typing_extensions import deprecated
 
 from TURMFrontend import settings
 
@@ -51,21 +50,6 @@ class Filter(models.Model):
     """
     Model for the filters that can be used for the observations.
     """
-
-    @deprecated(
-        "No longer used as bound for database, different filters may be available."
-    )
-    class FilterType(models.TextChoices):
-        LUMINANCE = "L"
-        RED = "R"
-        GREEN = "G"
-        BLUE = "B"
-        HYDROGEN = "H"
-        OXYGEN = "O"
-        SULFUR = "S"
-        SLOAN_R = "SR"
-        SLOAN_G = "SG"
-        SLOAN_I = "SI"
 
     filter_type = models.CharField(db_column="type", max_length=2, primary_key=True)
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
