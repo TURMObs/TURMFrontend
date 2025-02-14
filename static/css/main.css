@@ -338,6 +338,7 @@ body {
   min-width: 500px;
   width: calc(100% - 32px);
   max-width: 1500px;
+  padding: 32px;
 }
 
 /* helper */
