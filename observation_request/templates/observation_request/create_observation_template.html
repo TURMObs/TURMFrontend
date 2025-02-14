@@ -43,6 +43,9 @@
             {% endfor %}
             {% csrf_token %}
             <div class="button-container">
+                <button class="btn-secondary"
+                        type="button"
+                        onclick="window.location.href='{% url "dashboard" %}'">Cancel</button>
                 <button class="btn" type="submit">Create Observation</button>
             </div>
         </form>
