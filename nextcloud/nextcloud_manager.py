@@ -21,7 +21,7 @@ import re
 from nc_py_api import Nextcloud, NextcloudException
 from dotenv import load_dotenv
 
-from observation_data.models import AbstractObservation
+from observation_data.models import AbstractObservation, ObservationStatus
 from observation_data.serializers import get_serializer
 
 
@@ -117,6 +117,9 @@ def generate_observation_path(
     :param dec_offset: 0 padding for the observation ID in the file name
     :return path of the file in the nextcloud
     """
+    if not observation.observatory:
+        observation.project_status = ObservationStatus.ERROR
+        observation.save()
 
     # get the name of the project. Inefficient to get serializer again, but prevents necessity of another argument
     project_name = get_serializer(observation.observation_type)(observation).data[

@@ -3,6 +3,7 @@ Serializers for the observation_data app models.
 For a usage example, see the create_observation view in the views.py file.
 """
 
+import logging
 from collections import OrderedDict
 from decimal import Decimal
 
@@ -28,6 +29,8 @@ from .models import (
     ObservationStatus,
     ScheduledObservation,
 )
+
+logger = logging.getLogger(__name__)
 
 priorities = {
     ObservationType.IMAGING: 10,
@@ -143,6 +146,9 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     :param exposure_fields: Additional fields to add to each exposure. Do not add these to additional_fields.
     :return: Dictionary representation of the observation
     """
+    if not instance.observatory:
+        logger.warning(f"Observation {instance.id} has no observatory")
+
     rep = {
         "name": f"{instance.observation_type}_{''.join([f.filter_type for f in instance.filter_set.all()])}_{instance.target.name}",
         "id": str(instance.user.username),
@@ -438,6 +444,7 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         model = MonitoringObservation
         fields = base_fields + [
             "frames_per_filter",
+            "minimum_altitude",
             "start_scheduling",
             "end_scheduling",
             "cadence",
@@ -458,11 +465,15 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
+        additional_fields = {
+            "minimumAltitude": instance.minimum_altitude,
+        }
         exposure_fields = {
             "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
             instance=instance,
+            additional_fields=additional_fields,
             exposure_fields=exposure_fields,
         )
 
