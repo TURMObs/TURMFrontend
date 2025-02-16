@@ -157,7 +157,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
 
     for obs in observations:
         # Calculates the progress of a scheduled observation. Only considers the continuance of the days, not whether pictures were actually taken.
-        duration = (obs.end_scheduling - obs.start_scheduling).days
+        duration = (obs.end_scheduling - obs.start_scheduling).days + 1
         if duration <= 0:
             obs.project_completion = 100.0
         else:
@@ -201,7 +201,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
 
         if (
             partial_progress != 0.0
-            and new_upload < obs.end_scheduling
+            and new_upload <= obs.end_scheduling
             and today >= obs.next_upload
         ):
             # Following conditions must be met to schedule a new upload:

@@ -726,7 +726,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         self._create_monitoring_observation(obs_id=0, target_name="M0", start_scheduling=self._day(0), end_scheduling=self._day(5), cadence=1, observatory=turmx)
 
-        for i in range(5):
+        for i in range(6):
             upload_observations(self._day(i))
 
             obs = self._get_obs_by_id(0)
@@ -739,7 +739,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             update_observations(self._day(i + 1))
 
             self.assertFalse(self._obs_exists_in_nextcloud(obs), f"i={i} and obs.id={obs.id}")
-            self.assertEqual(self._get_obs_by_id(0).project_completion, ((i+1)/5)*100)
+            self.assertAlmostEqual(float(self._get_obs_by_id(0).project_completion), ((i+1)/6)*100, 1)
 
 
         self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.COMPLETED)
@@ -769,10 +769,16 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(1))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 50.0)
+        self.assertAlmostEqual(float(obs.project_completion), 33.33, 1)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         update_observations(self._day(2))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        self.assertAlmostEqual(float(obs.project_completion), 66.66, 1)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        update_observations(self._day(3))
         obs = self._get_obs_by_id(0)
         self.assertFalse(self._obs_exists_in_nextcloud(obs))
         self.assertEqual(obs.project_completion, 100.0) # <- although no pictures were taken, the completion is still set to 100
@@ -802,7 +808,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(1))
         obs = self._get_obs_by_id(0)
         self.assertFalse(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion,10.0)
+        self.assertAlmostEqual(float(obs.project_completion), 9.09, 1)
         self.assertEqual(obs.next_upload.day, self._day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING)
 
@@ -811,7 +817,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(2))
         obs = self._get_obs_by_id(0)
         self.assertFalse(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 20.0)
+        self.assertAlmostEqual(float(obs.project_completion), 18.18, 1)
         self.assertEqual(obs.next_upload.day, self._day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING)
 
@@ -820,7 +826,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(3))
         obs = self._get_obs_by_id(0)
         self.assertFalse(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 30.0)
+        self.assertAlmostEqual(float(obs.project_completion), 27.27, 1)
         self.assertEqual(obs.next_upload.day, self._day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.PENDING)
 
@@ -829,7 +835,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(4))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 40.0)
+        self.assertAlmostEqual(float(obs.project_completion), 36.36, 1)
         self.assertEqual(obs.next_upload.day, self._day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
@@ -838,7 +844,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(5))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 50.0)
+        self.assertAlmostEqual(float(obs.project_completion), 45.45, 1)
         self.assertEqual(obs.next_upload.day, self._day(3).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
@@ -852,7 +858,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(6))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 60.0)
+        self.assertAlmostEqual(float(obs.project_completion), 54.54, 1)
         self.assertEqual(obs.next_upload.day, self._day(8).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
@@ -866,7 +872,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(7))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 70.0)
+        self.assertAlmostEqual(float(obs.project_completion), 63.63, 1)
         self.assertEqual(obs.next_upload.day, self._day(8).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
@@ -880,8 +886,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(8))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 80.0)
-        self.assertEqual(obs.next_upload.day, self._day(8).day)
+        self.assertAlmostEqual(float(obs.project_completion), 72.72, 1)
+        self.assertEqual(obs.next_upload.day, self._day(10).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 8/9
@@ -889,8 +895,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(9))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 90.0)
-        self.assertEqual(obs.next_upload.day, self._day(8).day)
+        self.assertAlmostEqual(float(obs.project_completion), 81.81, 1)
+        self.assertEqual(obs.next_upload.day, self._day(10).day)
         self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
 
         # day 9/10
@@ -903,8 +909,17 @@ class NextcloudSyncTestCase(django.test.TestCase):
         update_observations(self._day(10))
         obs = self._get_obs_by_id(0)
         self.assertFalse(self._obs_exists_in_nextcloud(obs))
-        self.assertEqual(obs.project_completion, 100.0)
-        self.assertEqual(obs.next_upload.day, self._day(8).day) # although observation is finished, no new upload is set because it would be after the end of schedule
+        self.assertAlmostEqual(float(obs.project_completion), 90.90, 1)
+        self.assertEqual(obs.next_upload.day, self._day(10).day) # although observation is finished, no new upload is set because it would be after the end of schedule
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING)
+
+        # day 10/11
+        upload_observations(self._day(10))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        update_observations(self._day(11))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
         self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
 
         nm.delete(self.prefix)
@@ -1030,15 +1045,24 @@ class NextcloudSyncTestCase(django.test.TestCase):
         obs1 = self._get_obs_by_id(1)
         self.assertFalse(self._obs_exists_in_nextcloud(obs0))
         self.assertFalse(self._obs_exists_in_nextcloud(obs1))
-        self.assertEqual(obs0.project_status, ObservationStatus.COMPLETED)
-        self.assertEqual(obs1.project_status, ObservationStatus.COMPLETED)
+        self.assertEqual(obs0.project_status, ObservationStatus.PENDING)
+        self.assertEqual(obs1.project_status, ObservationStatus.PENDING)
 
-        # day 4
+        # day 4/5
         upload_observations(self._day(4))
+        obs0 = self._get_obs_by_id(0)
+        obs1 = self._get_obs_by_id(1)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs0))
+        self.assertTrue(self._obs_exists_in_nextcloud(obs1))
+        self.assertEqual(obs0.project_status, ObservationStatus.UPLOADED)
+        self.assertEqual(obs1.project_status, ObservationStatus.UPLOADED)
+        update_observations(self._day(5))
         obs0 = self._get_obs_by_id(0)
         obs1 = self._get_obs_by_id(1)
         self.assertFalse(self._obs_exists_in_nextcloud(obs0))
         self.assertFalse(self._obs_exists_in_nextcloud(obs1))
+        self.assertEqual(obs0.project_status, ObservationStatus.COMPLETED)
+        self.assertEqual(obs1.project_status, ObservationStatus.COMPLETED)
 
     def test_handling_non_existent_non_scheduled(self):
         """
@@ -1090,6 +1114,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.delete(generate_observation_path(self._get_obs_by_id(0)))
 
         update_observations(self._day(1))
+        self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
+        self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.UPLOADED)
+
+        update_observations(self._day(2))
         self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
         self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.COMPLETED)
 
