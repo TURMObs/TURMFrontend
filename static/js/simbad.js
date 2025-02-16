@@ -46,9 +46,9 @@ async function checkResponse(response, catalog_id) {
     ra[1] = ra_hh[0];
     ra[2] = (parseInt(ra_hh[1]) * 6).toString();
 
-    // if ra[1] is a Int, the calculation will fail. ra[2] is automatically set to "00"
+    // if ra[1] is an Int, the calculation will fail. ra[2] is automatically set to "00"
     if (isNaN(ra[2])) {
-      ra[2] = "00"
+      ra[2] = "00";
     }
   }
   if (dec[2] == null) {
@@ -57,9 +57,9 @@ async function checkResponse(response, catalog_id) {
     dec[1] = dec_hh[0];
     dec[2] = (parseInt(dec_hh[1]) * 6).toString();
 
-    // if dec[1] is a Int, the calculation will fail. dec[2] is automatically set to "00"
+    // if dec[1] is an Int, the calculation will fail. dec[2] is automatically set to "00"
     if (isNaN(ra[dec])) {
-      dec[2] = "00"
+      dec[2] = "00";
     }
   }
 
