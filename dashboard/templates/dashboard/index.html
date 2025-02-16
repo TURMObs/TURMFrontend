@@ -79,6 +79,19 @@
     .no-completed-observations-text {
         margin-top: 16px;
     }
+
+    .active-observations-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .scroll-to-completed-observations-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
     </style>
 {% endblock %}
 {% block content %}
@@ -92,7 +105,15 @@
         {% else %}
             <div class="observations-container">
                 <div>
-                    <p class="text-xl">Active Observations</p>
+                    <div class="active-observations-container">
+                        <p class="text-xl">Active Observations</p>
+                        <button class="btn-secondary" onclick="scrollToCompletedObservations()">
+                            <div class="scroll-to-completed-observations-container">
+                                <i class="bx bx-down-arrow-alt scroll-icon"></i>
+                                <span>Scroll to Completed</span>
+                            </div>
+                        </button>
+                    </div>
                     <table class="table observations-table">
                         <thead>
                             <tr>
@@ -206,7 +227,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div>
+                <div id="completed-observations">
                     <p class="text-xl">Completed Observations</p>
                     {% if completed_observations|length == 0 %}
                         <p class="no-completed-observations-text text">No completed observations yet.</p>
@@ -293,6 +314,13 @@
 {% endblock %}
 {% block scripts %}
     <script>
+    function scrollToCompletedObservations() {
+        const completedObservationsElement = document.getElementById('completed-observations');
+        if (completedObservationsElement) {
+            completedObservationsElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
     function toggleExpander(id) {
         const expander = document.getElementById(`expander-${id}`);
         const icon = document.querySelector(`#expander-trigger-${id} i`);
