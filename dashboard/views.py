@@ -16,10 +16,10 @@ def dashboard(request):
 
     active_observations = observations.exclude(
         project_status=ObservationStatus.COMPLETED
-    ).order_by("created_at")
+    ).order_by("-created_at")
     completed_observations = observations.filter(
         project_status=ObservationStatus.COMPLETED
-    ).order_by("created_at")
+    ).order_by("-created_at")
 
     return render(
         request,
