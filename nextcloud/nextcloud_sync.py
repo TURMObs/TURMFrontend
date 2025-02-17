@@ -11,6 +11,7 @@ from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
     ObservationStatus,
+    ObservationType,
 )
 from observation_data.serializers import get_serializer
 import logging
@@ -85,7 +86,16 @@ def update_non_scheduled_observations():
 
     observations = AbstractObservation.objects.filter(
         project_status=ObservationStatus.UPLOADED
-    ).not_instance_of(ScheduledObservation)
+    )
+
+    excluded_observations = []
+    for obs in observations:
+        if isinstance(obs, ScheduledObservation) and obs.start_scheduling:
+            excluded_observations.append(obs)
+
+    observations = observations.exclude(
+        id__in=[obs.id for obs in excluded_observations]
+    )  # exclude all scheduled observations
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
@@ -117,12 +127,11 @@ def update_non_scheduled_observations():
         obs.save()
 
 
-def update_scheduled_observations(today: datetime = timezone.now()):
+def update_scheduled_observations(today: datetime.date = timezone.now().date()):
     """
     Downloads all scheduled observations from the nextcloud, checks for progress and updates database accordingly.
 
-    :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
-
+    :param today: datetime.date; default=timezone.now().date(). Can be changed for debugging purposes.
     """
     try:
         nm.initialize_connection()
@@ -135,11 +144,20 @@ def update_scheduled_observations(today: datetime = timezone.now()):
         | Q(project_status=ObservationStatus.UPLOADED)
     )
 
+    excluded_observations = []
+    for obs in observations:
+        if not obs.start_scheduling:
+            excluded_observations.append(obs)
+
+    observations = observations.exclude(
+        id__in=[obs.id for obs in excluded_observations]
+    )  # exclude all non-scheduled observations
+
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
     for obs in observations:
         # Calculates the progress of a scheduled observation. Only considers the continuance of the days, not whether pictures were actually taken.
-        duration = (obs.end_scheduling - obs.start_scheduling).days
+        duration = (obs.end_scheduling - obs.start_scheduling).days + 1
         if duration <= 0:
             obs.project_completion = 100.0
         else:
@@ -147,6 +165,25 @@ def update_scheduled_observations(today: datetime = timezone.now()):
             obs.project_completion = round(
                 max(0.0, min((elapsed_time / duration) * 100, 100.0)), 2
             )
+
+        if obs.project_completion == 100.0:
+            # If an observation has reached 100.0% project_completion (i.e. the time windows has passed), it is considered done regardless the actual pictures taken.
+            if obs.project_status == ObservationStatus.UPLOADED:
+                try:
+                    nm.delete(nm.generate_observation_path(obs))
+                    logger.info(
+                        f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
+                    )
+                except NextcloudException as e:
+                    logger.error(
+                        f"Tried to delete observation {obs.id} with target {obs.target.name} because it has reached its scheduled end, but got: {e}"
+                    )
+                    obs.project_status = ObservationStatus.ERROR
+                    obs.save()
+                    continue
+            obs.project_status = ObservationStatus.COMPLETED
+            obs.save()
+            continue
 
         if obs.project_status == ObservationStatus.PENDING:
             # If the status is pending, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
@@ -164,8 +201,8 @@ def update_scheduled_observations(today: datetime = timezone.now()):
 
         if (
             partial_progress != 0.0
-            and timezone.localdate(new_upload) <= timezone.localdate(obs.end_scheduling)
-            and timezone.localdate(today) >= timezone.localdate(obs.next_upload)
+            and new_upload <= obs.end_scheduling
+            and today >= obs.next_upload
         ):
             # Following conditions must be met to schedule a new upload:
             # - there has been progress for the first time
@@ -173,21 +210,40 @@ def update_scheduled_observations(today: datetime = timezone.now()):
             # - there isn't already an upload scheduled in the future
             obs.next_upload = new_upload
 
-        if obs.project_completion == 100.0:
-            # If an observation has reached 100.0% project_completion (i.e. the time windows has passed), it is considered done regardless the actual pictures taken.
+        if (
+            partial_progress != 100.0
+            and obs.observation_type == ObservationType.EXPERT
+            and obs.start_observation_time
+            and obs.project_status == ObservationStatus.UPLOADED
+            and today >= obs.next_upload
+        ):
+            # Checking uploaded expert observations, even if their partial progress is not 100.0%. If the observation time has passed, the observation is considered done.
             try:
-                obs.project_status = ObservationStatus.COMPLETED
-                nm.delete(nc_path)
-                logger.info(
-                    f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}."
-                )
+                nm_dict = nm.download_dict(nc_path)
             except NextcloudException as e:
                 logger.error(
-                    f"Tried to delete observation {obs.id} with target {obs.target.name} because it has reached its scheduled end, but got: {e}"
+                    f"Failed to download observation {obs.id} with target {obs.target.name} because progress is 0, but got: {e}"
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
-        elif partial_progress == 100.0:
+                continue
+            target_date = timezone.make_aware(
+                datetime.datetime.strptime(
+                    nm_dict["targets"][0]["endDateTime"], "%Y-%m-%d %H:%M:%S"
+                ),
+                timezone.get_current_timezone(),
+            )
+            date_now = timezone.make_aware(
+                datetime.datetime.combine(today, timezone.now().time()),
+                timezone.get_current_timezone(),
+            )
+            if target_date <= date_now:
+                # Further progress is impossible, since the observation time has already passed.
+                partial_progress = 100.0
+                if new_upload < obs.end_scheduling:
+                    obs.next_upload = new_upload
+
+        if partial_progress == 100.0:
             # If an observation has reached 100.0% partial completion, it is deleted from the nextcloud since no images have to be taken until it is uploaded again
             try:
                 obs.project_status = ObservationStatus.PENDING  # set status to pending to indicate observation currently does NOT exist in the nextcloud.
@@ -200,22 +256,22 @@ def update_scheduled_observations(today: datetime = timezone.now()):
                     f"Tried to delete observation {obs.id} with target {obs.target.name} because partial progress is 100, but got: {e}"
                 )
                 obs.project_status = ObservationStatus.ERROR
-                obs.save()
+            obs.save()
 
         obs.save()
 
 
-def update_observations(today: datetime = timezone.now()):
+def update_observations(today: datetime.date = timezone.now().date()):
     """
     Wrapper method for calling 'download_non_scheduled_observations' and 'download_scheduled_observations'.
 
-    :param today: datetime; default=timezone.now(). Can be changed for debugging purposes.
+    :param today: datetime; default=timezone.now().date. Can be changed for debugging purposes.
     """
     update_non_scheduled_observations()
     update_scheduled_observations(today)
 
 
-def upload_observations(today=timezone.now()):
+def upload_observations(today: datetime.date = timezone.now().date()):
     """
     Uploads all observations with project_status "upload_pending" from the database to the nextcloud and updates the status accordingly.
 
@@ -229,27 +285,34 @@ def upload_observations(today=timezone.now()):
 
     # Handling of observations, that can be uploaded anytime (all non-scheduled observations)
     pending_observations = AbstractObservation.objects.filter(
-        project_status=ObservationStatus.PENDING
-    ).not_instance_of(ScheduledObservation)
-
-    # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
-    scheduled_observations = AbstractObservation.objects.instance_of(
-        ScheduledObservation
-    ).filter(
         Q(project_status=ObservationStatus.PENDING)
         | Q(project_status=ObservationStatus.UPLOADED)
     )
-    local_day = timezone.localdate(today)
+
+    scheduled_observations = []
+    excluded_observations = []
+    for obs in pending_observations:
+        if (
+            isinstance(obs, ScheduledObservation)
+            and obs.start_scheduling
+            and (
+                obs.project_status == ObservationStatus.PENDING
+                or obs.project_status == ObservationStatus.UPLOADED
+            )
+        ):
+            scheduled_observations.append(obs)
+        elif obs.project_status == ObservationStatus.UPLOADED:
+            excluded_observations.append(obs)
+
+    pending_observations = pending_observations.exclude(
+        id__in=[obs.id for obs in scheduled_observations]
+    )  # exclude all scheduled observations
+
+    # Handling of Scheduled Observation. If Observation is due today, it is included in pending_observation
     for obs in scheduled_observations:
-        if not obs.observatory:
-            obs.project_status = ObservationStatus.ERROR
-            logger.warning(f"Observation {obs.id} has no observatory assigned.")
-            obs.save()
-        if (timezone.localdate(obs.start_scheduling) > local_day) or timezone.localdate(
-            obs.end_scheduling
-        ) < local_day:
+        if obs.start_scheduling > today or obs.end_scheduling < today:
             continue
-        if local_day != timezone.localdate(obs.next_upload):
+        if today != obs.next_upload:
             continue
         pending_observations = chain(pending_observations, [obs])
 
