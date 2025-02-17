@@ -118,7 +118,7 @@ class _TURMNumericInput(_TURMInput):
     def render(self, name, value, attrs=None, renderer=None):
         html_render = f"<input {self._render_attrs(attrs)}></input>"
         if self.measurement_unit:
-            html_render += f'<span><span class="measurement_unit">{self.measurement_unit}</span></span>'
+            html_render += f'<span><span class="measurement-unit">{self.measurement_unit}</span></span>'
         return mark_safe(html_render)
 
 
@@ -262,7 +262,7 @@ class _TURMChoiceInput(_TURMInput):
             html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
 
             if self.tooltip:
-                html_render += f'<span class="tooltiptext">{self.tooltip}</span>'
+                html_render += f'<span class="tooltip-text">{self.tooltip}</span>'
                 html_render += "</div>"
             if individual_divs:
                 html_render += "</div>"
@@ -289,7 +289,7 @@ class TURMRadioInput(_TURMChoiceInput):
         self.attrs["type"] = "radio"
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=False):
-        html_render = '<div class="radio_input_div">'
+        html_render = '<div class="radio-input-div">'
         html_render += super().render(name, value, attrs, renderer, individual_divs)
         html_render += "</div>"
         return mark_safe(html_render)
@@ -304,7 +304,7 @@ class TURMCheckboxInput(_TURMChoiceInput):
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=True):
         attrs.pop("required", None)
-        html_render = '<div class="checkbox_input_div">'
+        html_render = '<div class="checkbox-input-div">'
         html_render += super().render(name, value, attrs, renderer, individual_divs)
         html_render += "</div>"
         return mark_safe(html_render)
@@ -325,7 +325,7 @@ class TURMGridInput(_TURMInput):
         self.grid_dim = grid_dim
 
     def render(self, name, value, attrs=None, renderer=None):
-        html_render = f'<div class="grid_input_div" style="{self.render_rows_style()}">'
+        html_render = f'<div class="grid-input-div" style="{self.render_rows_style()}">'
         for widget, w_name in self.widgets:
             html_render += (
                 f'<div><label for="id_{widget.attrs["name"]}">{w_name}</label>'

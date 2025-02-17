@@ -30,27 +30,48 @@ logger = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    email = forms.EmailField(
+        widget=forms.TextInput(attrs={"placeholder": "Email", "class": "textbox"})
+    )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Password", "class": "textbox"}
+        )
     )
 
 
 class GenerateInvitationForm(forms.Form):
-    email = forms.EmailField(widget=forms.TextInput(attrs={"placeholder": "Email"}))
+    email = forms.EmailField(
+        widget=forms.TextInput(attrs={"placeholder": "Email", "class": "textbox"})
+    )
     username = forms.CharField(
-        widget=forms.TextInput(attrs={"placeholder": "User Alias (optional)"}),
+        widget=forms.TextInput(
+            attrs={"placeholder": "User Alias (optional)", "class": "textbox"}
+        ),
         required=False,
     )
     quota = forms.IntegerField(
-        widget=forms.NumberInput(attrs={"placeholder": "Quota"}),
+        widget=forms.NumberInput(
+            attrs={
+                "placeholder": "Quota",
+                "class": "textbox",
+                "style": "display: none;",
+            }
+        ),
         min_value=1,
         max_value=100,
         initial=5,
         required=False,
     )
     lifetime = forms.DateField(
-        widget=forms.DateInput(attrs={"type": "date", "min": datetime.now().date()}),
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+                "min": datetime.now().date(),
+                "class": "textbox",
+                "style": "display: none;",
+            }
+        ),
         initial=(datetime.now() + timedelta(days=90)),
         required=False,
     )
@@ -74,10 +95,10 @@ class GenerateInvitationForm(forms.Form):
         choices = [(UserGroup.USER, "User")]
 
         if user:
-            if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
-                choices.append((UserGroup.ADMIN, "Admin"))
             if user.has_perm(UserPermission.CAN_INVITE_OPERATORS):
                 choices.append((UserGroup.OPERATOR, "Operator"))
+            if user.has_perm(UserPermission.CAN_INVITE_ADMINS):
+                choices.append((UserGroup.ADMIN, "Admin"))
 
         self.fields["role"].choices = choices
 
@@ -107,13 +128,13 @@ class EditUserForm(forms.Form):
     new_quota = forms.IntegerField(
         validators=[MinValueValidator(1)],
         required=False,
-        widget=forms.NumberInput(attrs={"placeholder": "New Quota", "min": 1}),
+        widget=forms.NumberInput(attrs={"placeholder": "Set Quota", "min": 1}),
     )
     new_lifetime = forms.DateField(
         required=False,
         widget=forms.DateInput(
             attrs={
-                "placeholder": "New Lifetime",
+                "placeholder": "Set Lifetime",
                 "type": "date",
                 "min": datetime.now().date(),
             }
@@ -174,30 +195,38 @@ class EditUserForm(forms.Form):
 
 class SetPasswordForm(forms.Form):
     new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Password", "class": "textbox"}
+        )
     )
     new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "Confirm Password"})
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Confirm Password", "class": "textbox"}
+        )
     )
 
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("new_password1")
         password2 = cleaned_data.get("new_password2")
+        errors = []
+
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("The passwords are not the same.")
-        if not is_allowed_password(password1):
-            raise forms.ValidationError(
-                "Only letters, numbers and common special characters are allowed."
+            errors.append("The passwords are not the same.")
+        if password1 and not is_allowed_password(password1):
+            errors.append(
+                "Only letters, numbers, and common special characters are allowed."
             )
-        if not password_length_ok(password1):
-            raise forms.ValidationError(
-                "Password must be between 8 and 64 characters long."
+        if password1 and not password_length_ok(password1):
+            errors.append("Password must be between 8 and 64 characters long.")
+        if password1 and not password_requirements_met(password1):
+            errors.append(
+                "Password must contain at least one letter, one number, and one special character."
             )
-        if not password_requirements_met(password1):
-            raise forms.ValidationError(
-                "Password must contain at least one letter, one number and one special character."
-            )
+
+        if errors:
+            raise forms.ValidationError(errors)
+
         return cleaned_data
 
 

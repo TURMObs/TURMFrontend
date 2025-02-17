@@ -2,493 +2,326 @@
 {% load static %}
 {% block title %}User Management{% endblock %}
 {% block style %}
-    <link rel="stylesheet" href="{% static "/css/generate_invitation.css" %}">
     <style>
-        .container {
-            margin: 30px;
-        }
-
-        .content_wrapper {
-            background-color: #1e1e1e;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .empty-text p {
-            text-align: center;
-            padding: 20px;
-            font-size: 18px;
-        }
-
-        .input-field {
-            margin-bottom: 15px;
-            margin-top: 5px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-
-        td {
-            padding: 10px;
-            border: 1px solid #444444
-        }
-
-        button {
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px 15px;
-            transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
-            margin-right: 10px;
-        }
-
-        button:hover {
-            background-color: #da190b;
-            color: white;
-            border-color: white;
-        }
-
-        .green-button:hover {
-            background-color: #4CAF50;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-checkboxes {
+        .user-management-container {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            gap: 32px;
         }
 
-        .modal-checkboxes > div {
-            margin: 0;
-            padding: 0;
+        .edit-user-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .generate-invitation-form {
+            display: grid;
+            width: 100%;
+            column-gap: 32px;
+            row-gap: 16px;
+            grid-template-columns: 1fr 1fr;
+            margin: 16px 0;
+        }
+
+        .generate-invitation-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .data-table {
+            margin: 16px 0;
+        }
+
+        .table-row-highlight {
+            background-color: var(--color-gray-500);
+        }
+
+        .generate-invitation-submit {
+            grid-column: 2;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .optional-field-container {
+            width: 100%;
+            gap: 8px;
+            position: relative;
+            height: 48px;
+            border: var(--border-sm) solid var(--color-gray-400);
+            border-radius: var(--radius-md);
+        }
+
+        .optional-field-container label {
+            position: absolute;
+            cursor: pointer;
+            left: 56px;
+            top: 12px;
+            height: 100%;
+            width: calc(100% - 56px);
+        }
+
+        .optional-field-container input[type="checkbox"] {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+        }
+
+        .optional-field-container input:not([type="checkbox"]) {
+            border: none;
+            position: absolute;
+            left: 32px;
+            width: calc(100% - 32px);
+        }
+
+        .expert-field-container {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            align-items: center;
+            height: 48px;
+            padding: 8px 8px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            border: var(--border-sm) solid var(--color-gray-400);
+        }
+
+        .expert-field-container label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .actions-container {
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: 90px;
+        }
+
+        .copy-popover {
+            position: absolute;
+            background-color: var(--color-gray-400);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
             display: flex;
             align-items: center;
             gap: 4px;
         }
 
-        .lifetime-field {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 5px;
+        .copy-popover.show {
+            opacity: 1;
         }
-
-        .lifetime-field label {
-            display: block;
-            text-align: left;
-            width: 100%;
-            margin-bottom: 2px;
-            font-size: 14px;
-        }
-
-
-        #invitation-link-modal div {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            position: relative;
-        }
-
-        #edit-user-modal div {
-            background: #333333;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            position: relative;
-        }
-
-        #invitation-link-modal h3 {
-            color: black;
-        }
-
-        #edit-user-modal h3 {
-            color: white;
-        }
-
-        .modal-input-field {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            margin-bottom: 0;
-        }
-
-        #id_remove_quota, #id_remove_lifetime {
-            margin-bottom: 0;
-        }
-
-
-        .modal-input-field input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            margin: 0;
-        }
-
-
-        .wrapper .modal-input-field {
-            color: #fff;
-            position: relative;
-            margin-bottom: 4px;
-        }
-
-        .modal-input-field label {
-            font-size: 14px;
-            color: white;
-            padding: 0;
-            margin: 0;
-            pointer-events: auto;
-            white-space: nowrap;
-        }
-
-        .modal-input-field i {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            color: var(--tom-light-grey);
-            transform: translateY(-50%);
-            font-size: 20px;
-        }
-
-        .modal-input-field input {
-            border-radius: 10px;
-            padding: 6px;
-            width: 100%;
-            border: none;
-            color: black;
-            font-size: 14px;
-        }
-
-        .modal p {
-            color: black;
-            word-wrap: break-word;
-            margin-bottom: 20px;
-        }
-
-        .modal .form-group {
-            margin-bottom: 10px;
-        }
-
-        .modal .submit-button {
-            margin-top: 10px;
-        }
-
-
-        table {
-            margin: 20px 0;
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            border: 1px solid #444444;
-            padding: 8px;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #222222;
-            color: white;
-        }
-
-
-        .tables-background {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .tables-background table {
-            background-color: #1e1e1e;
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .tables-background table th, .tables-background table td {
-            border: 1px solid #444444;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .tables-background table th {
-            background-color: #222222;
-            color: white;
-        }
-
-
-        .styled-select {
-            background-color: #333333;
-            color: #ffffff;
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: none;
-            width: 100%;
-        }
-
-        .styled-select:focus {
-            outline: none;
-            box-shadow: 0 0 5px #888;
-        }
-
-        .highlight {
-            background-color: #555;
-            font-weight: normal;
-            color: #f1f1f1;
-        }
-
     </style>
 {% endblock %}
 {% block content %}
-    <div class="container">
+    <div class="page-content page-md user-management-container">
         <!-- Invitation Form -->
-        <div class="content_wrapper">
-            <h3>Generate Invitation</h3>
+        <div>
+            <p class="text-xl">Generate Invitation</p>
             {% if error is not None %}<p class="error">{{ error }}</p>{% endif %}
-            <form id="invitationForm">
+            <form id="invitationForm" class="generate-invitation-form">
                 {% csrf_token %}
-                <div class="form-group">
-                    <div class="input-field">{{ invitation_form.email }}</div>
-                    <div class="input-field">{{ invitation_form.username }}</div>
-                    <div class="input-field">
-                        <label for="id_role_selector"></label>
-                        <select name="role"
-                                id="id_role_selector"
-                                class="styled-select"
-                                onchange="checkRoleChange">
-                            {% for value, label in invitation_form.role.field.choices %}
-                                <option value="{{ value }}"
-                                        {% if invitation_form.role.value == value %}selected{% endif %}>
-                                    {{ label }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                <div class="generate-invitation-options">
+                    {{ invitation_form.email }}
+                    {{ invitation_form.username }}
+                    <div class="radio-input-container">
+                        {% for value, label in invitation_form.role.field.choices %}
+                            <input type="radio"
+                                   id="role_{{ value }}"
+                                   name="role"
+                                   value="{{ value }}"
+                                   {% if invitation_form.role.value == value %}checked{% endif %}
+                                   onchange="checkRoleChange('{{ value }}')">
+                            <label for="role_{{ value }}">{{ label }}</label>
+                        {% endfor %}
                     </div>
-                    <div class="form-group">
-                        <div class="checkbox-field">
-                            <input type="checkbox"
-                                   id="id_expert"
-                                   name="expert"
-                                   {% if invitation_form.expert.value %}checked{% endif %}>
-                            <label for="id_expert">Expert</label>
-                        </div>
-                        <div class="checkbox-field">
-                            <input type="checkbox" id="enableQuota" onclick="toggleInput('quotaField')">
-                            <label for="enableQuota">Max. Simultaneous Requests</label>
-                        </div>
-                        <div class="input-field" id="quotaField" style="display: none;">{{ invitation_form.quota }}</div>
-                        <div class="checkbox-field">
-                            <input type="checkbox"
-                                   id="enableLifetime"
-                                   onclick="toggleInput('lifetimeField')">
-                            <label for="enableLifetime">Limited Usage Time</label>
-                        </div>
-                        <div class="input-field" id="lifetimeField" style="display: none;">{{ invitation_form.lifetime }}</div>
+                </div>
+                <div class="generate-invitation-options unselectable">
+                    <div class="optional-field-container">
+                        <input class="checkbox"
+                               type="checkbox"
+                               id="set_quota"
+                               onclick="toggleInput('quota')">
+                        <label for="set_quota" id="label_quota" class="text">Set Quota</label>
+                        <div id="quotaField">{{ invitation_form.quota }}</div>
                     </div>
-                    <div class="form-group">
-                        <button type="button"
-                                class="generate-invitation-button green-button"
-                                onclick="createInvitation()">Generate</button>
+                    <div class="optional-field-container">
+                        <input class="checkbox"
+                               type="checkbox"
+                               id="set_lifetime"
+                               onclick="toggleInput('lifetime')">
+                        <label for="set_lifetime" id="label_lifetime" class="text">Set Lifetime</label>
+                        <div id="lifetimeField">{{ invitation_form.lifetime }}</div>
+                    </div>
+                    <div class="expert-field-container">
+                        <input type="checkbox"
+                               id="id_expert"
+                               name="expert"
+                               class="checkbox"
+                               {% if invitation_form.expert.value %}checked{% endif %}>
+                        <label for="id_expert" class="text">Expert</label>
+                    </div>
+                    <div class="generate-invitation-submit">
+                        <button type="button" class="btn" onclick="createInvitation()">Generate Invitation</button>
                     </div>
                 </div>
             </form>
         </div>
-        <div class="tables-background">
-            <!-- Open Invitations -->
-            <div class="open-invitations">
-                <h3>Open Invitations</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Invitation Link</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if invitations %}
-                            {% for invitation in invitations %}
-                                <tr>
-                                    <td>{{ invitation.email }}</td>
-                                    {% if invitation.username != invitation.email %}
-                                        <td>{{ invitation.username }}</td>
+        <!-- Open Invitations -->
+        <div>
+            <p class="text-xl">Open Invitations</p>
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th class="text-align-left">Email</th>
+                        <th class="text-align-left">Alias</th>
+                        <th class="text-align-left">Role</th>
+                        <th class="text-align-right">Quota</th>
+                        <th class="text-align-right">Lifetime</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if invitations %}
+                        {% for invitation in invitations %}
+                            <tr class="table-row">
+                                <td class="table-cell-truncate text-align-left">{{ invitation.email }}</td>
+                                {% if invitation.username != invitation.email %}
+                                    <td class="table-cell-truncate">{{ invitation.username }}</td>
+                                {% else %}
+                                    <td>-</td>
+                                {% endif %}
+                                <td class="text-align-left">{{ invitation.role }}</td>
+                                <td class="text-align-right">
+                                    {% if invitation.quota %}
+                                        {{ invitation.quota }}
                                     {% else %}
-                                        <td></td>
+                                        -
                                     {% endif %}
-                                    <td>{{ invitation.role }}</td>
-                                    <td>{{ invitation.quota }}</td>
-                                    <td>{{ invitation.lifetime }}</td>
-                                    <td>{{ invitation.link }}</td>
-                                    <td>
-                                        {% if invitation.link != "" %}
-                                            <button id="copy-invitation-action-{{ invitation.id }}"
-                                                    type="button"
-                                                    class="green-button"
-                                                    onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
-                                                Copy Link
-                                            </button>
-                                        {% endif %}
-                                        <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                </td>
+                                <td class="text-align-right">
+                                    {% if invitation.lifetime %}
+                                        {{ invitation.lifetime|date:"d.m.Y" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="actions-container">
+                                    {% if invitation.link != "" %}
+                                        <button id="copy-invitation-action-{{ invitation.id }}"
+                                                type="button"
+                                                title="Copy Invitation Link"
+                                                class="icon-btn position-relative"
+                                                onclick="copyLinkToClipboard('{{ invitation.link }}', document.getElementById('copy-invitation-action-{{ invitation.id }}'))">
+                                            <i class="bx bx-copy"></i>
+                                        </button>
+                                    {% endif %}
+                                    <form id="delete-invitation-{{ invitation.id }}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button"
+                                                class="icon-btn"
+                                                title="Delete Invitation"
+                                                onclick="deleteInvitation({{ invitation.id }})">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7">No open invitations found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <!-- All Users -->
+        <div>
+            <p class="text-xl">All Users</p>
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th class="text-align-left">Email</th>
+                        <th class="text-align-left">Alias</th>
+                        <th class="text-align-left">Role</th>
+                        <th class="text-align-right">Quota</th>
+                        <th class="text-align-right">Lifetime</th>
+                        <th class="text-align-right">Date Joined</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for target_user in users %}
+                        {% if target_user.deletion_pending == False %}
+                            <tr id="user-{{ target_user.id }}"
+                                class="table-row {% if target_user.id == current_user.id %}table-row-highlight{% endif %}">
+                                <td class="table-cell-truncate text-align-left">{{ target_user.email }}</td>
+                                {% if target_user.username != target_user.email %}
+                                    <td class="table-cell-truncate">{{ target_user.username }}</td>
+                                {% else %}
+                                    <td>-</td>
+                                {% endif %}
+                                <td class="text-align-left">{{ target_user.get_role }}</td>
+                                <td class="text-align-right">
+                                    {% if target_user.quota %}
+                                        {{ target_user.quota }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-align-right">
+                                    {% if target_user.lifetime %}
+                                        {{ target_user.lifetime|date:"d.m.Y" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-align-right">{{ target_user.date_joined|date:"d.m.Y" }}</td>
+                                <td class="actions-container">
+                                    {% if perms.accounts.can_edit_users %}
+                                        <form id="edit-user-{{ target_user.id }}" style="display: inline;">
                                             {% csrf_token %}
                                             <button type="button"
-                                                    class="delete-button"
-                                                    onclick="deleteInvitation({{ invitation.id }})">Delete</button>
+                                                    class="icon-btn"
+                                                    title="Edit User"
+                                                    onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })">
+                                                <i class="bx bx-edit"></i>
+                                            </button>
                                         </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="7">No open invitations found.</td>
+                                    {% endif %}
+                                    {% if perms.accounts.can_delete_users %}
+                                        <form id="delete-user-{{ target_user.id }}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="button"
+                                                    class="icon-btn"
+                                                    title="Delete User"
+                                                    onclick="deleteUser({{ target_user.id }})"
+                                                    {% if target_user.id == current_user.id %}disabled{% endif %}>
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="tables-background">
-            <!-- All Users -->
-            <div class="all-users">
-                <h3>All Users</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Alias</th>
-                            <th>Role</th>
-                            <th>Quota</th>
-                            <th>Lifetime</th>
-                            <th>Date Joined</th>
-                            {% if perms.accounts.can_delete_users %}<th>Actions</th>{% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for target_user in users %}
-                            {% if target_user.deletion_pending == False %}
-                                <tr id="user-{{ target_user.id }}"
-                                    class="{% if target_user.id == current_user.id %}highlight{% endif %}">
-                                    <td>{{ target_user.email }}</td>
-                                    {% if target_user.username != target_user.email %}
-                                        <td>{{ target_user.username }}</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                    <td>{{ target_user.get_role }}</td>
-                                    <td>{{ target_user.quota }}</td>
-                                    <td>{{ target_user.lifetime }}</td>
-                                    <td>{{ target_user.date_joined }}</td>
-                                    {% if perms.accounts.can_delete_users %}
-                                        <td>
-                                            <form id="delete-user-{{ target_user.id }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="button"
-                                                        class="delete-button"
-                                                        onclick="deleteUser({{ target_user.id }})">Delete</button>
-                                            </form>
-                                            {% if perms.accounts.can_edit_users %}
-                                                <form id="edit-user-{{ target_user.id }}" style="display: inline;">
-                                                    {% csrf_token %}
-                                                    <button type="button"
-                                                            class="edit-button green-button"
-                                                            onclick="editUser({ id: {{ target_user.id }}, email: '{{ target_user.email }}', username: '{{ target_user.username }}', quota : '{{ target_user.quota }}', lifetime : '{{ target_user.lifetime }}' })">
-                                                        Edit
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                        </td>
-                                    {% endif %}
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div id="invitation-link-modal" class="modal">
-        <div>
-            <h3>Invitation Link</h3>
-            <p id="modal-link" style="word-wrap: break-word; margin-bottom: 20px;"></p>
-            <button onclick="copyLinkToClipboard(document.getElementById('modal-link').textContent, document.getElementById('modalCopyButton'))"
-                    id="modalCopyButton"
-                    style="padding: 10px 20px;
-                           background-color: #4CAF50;
-                           color: white;
-                           border: none;
-                           border-radius: 5px;
-                           cursor: pointer">Copy Link</button>
-            <button onclick="closeModal()"
-                    style="padding: 10px 20px;
-                           background-color: #f44336;
-                           color: white;
-                           border: none;
-                           border-radius: 5px;
-                           cursor: pointer;
-                           margin-left: 10px">Close</button>
-        </div>
-    </div>
-    <div id="edit-user-modal" class="modal">
-        <div class="content_wrapper">
-            <h3 id="edit_modal_title">Edit User</h3>
-            <form id="editUserForm">
-                {% csrf_token %}
-                <div class="form-group">
-                    <div class="modal-input-field">{{ edit_user_form.new_email }}</div>
-                    <div class="modal-input-field">{{ edit_user_form.new_alias }}</div>
-                    <div class="modal-checkboxes">
-                        <div id="id_remove_quota">
-                            <input type="checkbox"
-                                   id="remove_quota"
-                                   name="remove_quota"
-                                   onclick="toggleInput('new-quota-field')">
-                            <label for="remove_quota">Remove Quota</label>
-                        </div>
-                        <div id="id_remove_lifetime">
-                            <input type="checkbox"
-                                   id="remove_lifetime"
-                                   name="remove_lifetime"
-                                   onclick="toggleInput('new-lifetime-field')">
-                            <label for="remove_lifetime">Remove Lifetime</label>
-                        </div>
-                    </div>
-                    <div class="modal-input-field" id="new-quota-field">{{ edit_user_form.new_quota }}</div>
-                    <div class="modal-input-field lifetime-field" id="new-lifetime-field">
-                        <label for="id_new_lifetime">New Lifetime</label>
-                        {{ edit_user_form.new_lifetime }}
-                    </div>
-                </div>
-                <input type="hidden" id="edit-user-id" name="user_id">
-                <button type="button" class="green-button" onclick=submitEditUser()>Save Changes</button>
-                <button type="button" onclick="closeModal()">Close</button>
-            </form>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock %}
 {% block scripts %}
     <script>
-        function checkRoleChange() {
-            const role = document.getElementById('id_role_selector').value;
+        function checkRoleChange(role) {
             const expertCheckbox = document.getElementById('id_expert');
 
             if (role === '{{ UserGroups.ADMIN }}') {
@@ -501,10 +334,6 @@
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-
             if (event.key === 'Enter') {
                 const focusedElement = document.activeElement;
 
@@ -515,8 +344,10 @@
         });
 
         function toggleInput(fieldId) {
-            const field = document.getElementById(fieldId);
+            const field = document.getElementById("id_" + fieldId);
+            const label = document.getElementById("label_" + fieldId);
             field.style.display = field.style.display === 'none' ? 'block' : 'none';
+            label.style.display = label.style.display === 'none' ? 'block' : 'none';
         }
 
         async function createInvitation() {
@@ -546,7 +377,7 @@
                 });
                 let data = await response.json();
                 if (data['has_invitation'] === true) {
-                    if (!confirm("An invitation already exists for this email. Do you want to override the invitation?")) {
+                    if (!await showConfirmModal("Override Invitation", `An invitation already exists for this email. Do you want to override the invitation?`, "Override")) {
                         return;
                     }
                 }
@@ -559,65 +390,59 @@
                 });
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
-                    document.getElementById('modal-link').textContent = linkData['link'];
-                    document.getElementById('invitation-link-modal').style.display = 'flex';
+                  const link = linkData['link'];
+                    if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link", "Close")) {
+                        navigator.clipboard.writeText(link);
+                    }
+                    location.reload();
                 } else {
                     if (linkData['error']) {
-                        alert("Failed to create invitation: " + linkData['error']);
+                        await showAlertModal("Failed to create invitation", `Got an error for email "${email}".\n${linkData['error']}`);
                     } else {
-                        alert("Failed to create invitation. Please try again.");
+                        await showAlertModal("Failed to create invitation", "An unknown error occurred. Please try again.");
                     }
                 }
             } catch (error) {
-                alert("Failed to create invitation. Please try again.");
+                await showAlertModal("Failed to create invitation", "An unknown error occurred. Please try again.");
             }
         }
 
-        function copyLinkToClipboard(link, copyButton) {
+        function copyLinkToClipboard(link, element) {
             navigator.clipboard.writeText(link).then(() => {
-                const originalBackgroundColor = copyButton.style.backgroundColor;
-                const originalText = copyButton.textContent;
+                if (element) {
+                    const popover = document.createElement('div');
+                    popover.className = 'copy-popover';
+                    popover.innerHTML = '<i class="bx bx-check"></i> Copied!';
+                    element.appendChild(popover);
 
-                // Provide feedback by changing the button color and text
-                copyButton.style.backgroundColor = '#45a049';
-                copyButton.textContent = 'Link copied!';
+                    setTimeout(() => {
+                        popover.classList.add('show');
 
-                // Reset button color and text after a short delay
-                setTimeout(() => {
-                    copyButton.style.backgroundColor = originalBackgroundColor;
-                    copyButton.textContent = originalText;
-                }, 1000);
+                        const buttonRect = element.getBoundingClientRect();
+                        popover.style.left = `${buttonRect.width + 4}px`;
+                        popover.style.top = '50%';
+                        popover.style.transform = 'translateY(-50%)';
+                    }, 50);
+
+                    setTimeout(() => {
+                        popover.classList.remove('show');
+                        setTimeout(() => {
+                            element.removeChild(popover);
+                        }, 300);
+                    }, 1500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
             });
         }
 
-        function closeModal() {
-            document.getElementById('invitation-link-modal').style.display = 'none';
-            document.getElementById('edit-user-modal').style.display = 'none';
-
-            // Clear form inputs
-            const invitationForm = document.getElementById('invitationForm');
-            invitationForm.reset();
-            const editUserForm = document.getElementById('editUserForm');
-            editUserForm.reset();
-            const newQuotaField = document.getElementById('new-quota-field');
-            newQuotaField.style.content = 'none';
-            const newLifetimeField = document.getElementById('new-lifetime-field');
-            newLifetimeField.style.content = 'none';
-            const removeQuota = document.getElementById('id_remove_quota');
-            removeQuota.style.content = 'none';
-            const removeLifetime = document.getElementById('id_remove_lifetime');
-            removeLifetime.style.content = 'none';
-            location.reload();
-        }
-
         async function deleteUser(userId) {
-            if (!confirm("Are you sure you want to mark this user for deletion?")) {
+            if (!await showConfirmModal("Delete Account", "Are you sure you want to mark this user for deletion?", "Delete")) {
                 return;
             }
 
             const form = document.getElementById(`delete-user-${userId}`);
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
-
             try {
                 const response = await fetch("{% url 'delete-user' 0 %}".replace("0", userId), {
                     method: 'DELETE',
@@ -630,70 +455,114 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message || "User marked for deletion!");
+                    await showAlertModal("User was deleted", data.message || "User was successfully marked for deletion.");
                     form.closest('tr').remove(); // Remove the row from the table
                 } else {
-                    alert(data.error || "An error occurred while marking the user for deletion.");
+                    await showAlertModal("Error occurred", data.error || "An error occurred while marking the user for deletion.");
                 }
             } catch (error) {
-                alert("Failed to delete the user. Please try again.");
+                await showAlertModal("Error occurred", "An unknown error occurred while marking the user for deletion. Please try again.");
             }
         }
 
-        function editUser(user) {
+        async function editUser(user) {
             const id = user.id;
             const email = user.email;
             const username = user.username;
             const currentQuota = user.quota;
             const currentLifetime = user.lifetime;
 
-            document.getElementById('edit_modal_title').value = email;
-
-            if (currentQuota === "None") {
-                document.getElementById('id_remove_quota').style.display = 'none';
-            } else {
-                document.getElementById('id_remove_quota').style.display = 'block';
-            }
-
-            if (currentLifetime === "None") {
-                document.getElementById('id_remove_lifetime').style.display = 'none';
-            } else {
-                document.getElementById('id_remove_lifetime').style.display = 'block';
-            }
-
-            document.getElementById('edit-user-id').value = id;
-            document.getElementById('edit-user-modal').style.display = 'flex';
             let title;
             if (username !== email) {
-                title = `Edit user ${username} (${email})`;
+                title = `Editing User ${username} (${email})`;
             } else {
-                title = `Edit user ${email}`;
+                title = `Editing User ${email}`;
             }
-            document.getElementById('edit_modal_title').textContent = title;
-            const modalContent = document.querySelector('#edit-user-modal > div');
-            modalContent.style.display = 'flex';
-            modalContent.style.flexDirection = 'column';
-            modalContent.style.alignItems = 'center';
+
+            const form = createEditUserForm(id, email, username, currentQuota, currentLifetime);
+            const result = await showModal(title, form, {
+                allowDismiss: false,
+                buttons: [
+                    {
+                        id: "cancel",
+                        text: "Cancel",
+                        secondary: true,
+                    },
+                    {
+                        id: "save",
+                        text: "Save Changes",
+                    },
+                ],
+            });
+
+            if (result === "save") {
+                await submitEditUser(form);
+            }
         }
 
-        async function submitEditUser() {
-            const form = document.getElementById('editUserForm');
-            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        function createEditUserForm(id, email, username, currentQuota, currentLifetime) {
+            const form = document.createElement('form');
+            form.id = 'editUserForm';
+            form.className = 'edit-user-form';
+            form.innerHTML = `
+                {% csrf_token %}
+                <input type="hidden" id="edit-user-id" name="user_id" value="${id}">
+                <div>
+                    <label class="text-secondary" for="id_new_email">Email</label>
+                    <input class="textbox" type="email" id="id_new_email" name="new_email" value="${email}" placeholder="New Email">
+                </div>
+                <div>
+                    <label class="text-secondary" for="id_new_alias">Alias</label>
+                    <input class="textbox" type="text" id="id_new_alias" name="new_alias" value="${username}" placeholder="New Alias">
+                </div>
+                <div>
+                    <label class="text-secondary" for="id_new_quota">Quota</label>
+                    <div class="optional-field-container">
+                        <input id="id_set_quota" name="set_quota" class="checkbox" type="checkbox" onclick="toggleInput('new_quota')">
+                        <label id="label_set_quota" for="id_set_quota" class="text-secondary">New Quota</label>
+                        <input id="id_new_quota" class="textbox" type="number" name="new_quota" value="${currentQuota}">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-secondary" for="id_new_lifetime">Lifetime</label>
+                    <div class="optional-field-container">
+                        <input id="id_set_lifetime" name="set_lifetime" class="checkbox" type="checkbox" onclick="toggleInput('new_lifetime')">
+                        <label id="label_set_lifetime" for="id_set_lifetime" class="text-secondary">New Lifetime</label>
+                        <input id="id_new_lifetime" class="textbox" type="date" name="new_lifetime" value="${currentLifetime}">
+                    </div>
+                </div>
+            `;
+
+            if (currentQuota === 'None') {
+                form.querySelector('#id_new_quota').style.display = 'none';
+            } else {
+                form.querySelector('#label_set_quota').style.display = 'none';
+                form.querySelector('#id_set_quota').checked = true;
+            }
+            if (currentLifetime === 'None') {
+                form.querySelector('#id_new_lifetime').style.display = 'none';
+            } else {
+                form.querySelector('#label_set_lifetime').style.display = 'none';
+                form.querySelector('#id_set_lifetime').checked = true;
+            }
+
+            return form;
+        }
+
+        async function submitEditUser(form) {
+            const csrfToken = form.elements["csrfmiddlewaretoken"].value;
             const formData = new FormData(form);
-            if (document.getElementById('new-quota-field').style.display === 'none') {
+            if (form.elements['id_set_quota'].checked) {
+                formData.delete('set_quota');
+            } else {
                 formData.delete('new_quota');
+                formData.append('remove_quota', 'on');
             }
-
-            if (document.getElementById('new-lifetime-field').style.display === 'none') {
+            if (form.elements['id_set_lifetime'].checked) {
+                formData.delete('set_lifetime');
+            } else {
                 formData.delete('new_lifetime');
-            }
-
-            if (document.getElementById('id_remove_quota').style.display === 'none') {
-                formData.delete('remove_quota');
-            }
-
-            if (document.getElementById('id_remove_lifetime').style.display === 'none') {
-                formData.delete('remove_lifetime');
+                formData.append('remove_lifetime', 'on');
             }
 
             try {
@@ -704,25 +573,23 @@
                     },
                     body: formData,
                 });
-
-
                 if (response.ok) {
-                    closeModal();
                     location.reload();
                 } else {
-                    alert("An error occurred while updating the user.");
+                    await showAlertModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
                 }
             } catch (error) {
-                alert("Failed to update the user. Please try again.");
+                await showAlertModal("Updating user failed", "An unknown error occurred while updating the user. Please try again.");
             }
-
         }
 
-
         async function deleteInvitation(invitationId) {
+            if (!await showConfirmModal("Delete Invitation", "Are you sure that you want to delete this invitation?", "Delete")) {
+                return;
+            }
+
             const form = document.getElementById(`delete-invitation-${invitationId}`);
             const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
-            console.log("Invitation ID: ", invitationId);
             try {
                 const response = await fetch("{% url 'delete-invitation' 0 %}".replace("0", invitationId), {
                     method: 'POST',
@@ -735,13 +602,13 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message || "Invitation deleted successfully!");
+                    await showAlertModal("Deleted Invitation", data.message || "Invitation deleted successfully.");
                     location.reload();
                 } else {
-                    alert(data.error || "An error occurred while deleting the invitation.");
+                    await showAlertModal("Failed to delete Invitation", data.error || "An error occurred while deleting the invitation.");
                 }
             } catch (error) {
-                alert("Failed to delete the invitation. Please try again.");
+                await showAlertModal("Failed to delete Invitation", "An unknown error occurred while deleting the invitation.");
             }
         }
     </script>

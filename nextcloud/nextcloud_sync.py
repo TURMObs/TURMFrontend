@@ -321,6 +321,12 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     logger.info(f"Uploading {len(list_to_upload)} observations ...")
 
     for obs in list_to_upload:
+        if not obs.observatory:
+            obs.project_status = ObservationStatus.ERROR
+            logger.warning(f"Observation {obs.id} has no observatory assigned.")
+            obs.save()
+            continue
+
         serializer_class = get_serializer(obs.observation_type)
         serializer = serializer_class(obs)
 

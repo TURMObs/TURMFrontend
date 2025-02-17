@@ -2,256 +2,245 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>
             {% block title %}{% endblock %}
         </title>
+        {% load static %}
+        <link rel="shortcut icon"
+              type="image/png"
+              href="{% static 'favicon.ico' %}" />
+        <link rel="stylesheet" href="{% static "/css/main.css" %}">
+        <style>
+            .navbar {
+                margin-bottom: 1em;
+                background-color: var(--color-gray-500);
+                display: flex;
+                align-content: center;
+                justify-content: center;
+                padding: 10px;
+                border-bottom: solid var(--border-lg);
+                border-color: var(--color-primary);
+            }
+
+            .navbar-container {
+                display: flex;
+                flex-flow: row;
+                align-content: center;
+                justify-content: space-between;
+                margin: 0px 16px;
+                max-width: 1500px;
+                width: 100%;
+                min-width: 500px;
+            }
+
+            .navbar-image-container {
+                display: flex;
+                align-content: center;
+            }
+
+            .navbar-image {
+                margin: auto;
+            }
+
+            .navbar-link-container {
+                margin: auto 0;
+                display: flex;
+                flex-flow: row;
+                align-items: center;
+                column-gap: 2em;
+            }
+
+            .navbar-link {
+                text-decoration: none;
+                color: var(--color-light);
+                padding: 4px;
+                border-radius: var(--radius-md);
+            }
+
+            .navbar-link:hover {
+                background: var(--color-dark);
+            }
+
+            .navbar-link-text {
+                font-size: var(--font-size-xl);
+            }
+
+
+            .turm-logo {
+                width: 346px;
+                height: 71px;
+            }
+
+            .logout-button-container {
+                cursor: pointer !important;
+            }
+
+            .logout-button {
+                cursor: pointer !important;
+                background: none !important;
+                border: none !important;
+                box-shadow: none;
+                padding: 0 !important;
+                text-decoration: none;
+                color: var(--color-light);
+            }
+
+            .footer-container {
+                height: 256px;
+                display: flex;
+                justify-content: center;
+                background-color: var(--color-gray-500);
+                border-top: solid var(--border-lg);
+                border-color: var(--color-primary);
+            }
+
+            .footer-row {
+                width: 1140px;
+                margin: 2em;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .footer-column {
+                display: flex;
+                flex-flow: column;
+                margin: 1em;
+            }
+
+            .footer-column-entry {
+                margin-bottom: .6em;
+            }
+
+            .footer-link {
+                text-decoration: none;
+                color: var(--color-gray-200);
+            }
+
+            .footer-link:hover {
+                color: var(--color-light);
+            }
+
+            .container-center {
+                display: flex;
+                justify-content: center;
+            }
+
+            .container-column {
+                display: flex;
+                flex-flow: column;
+            }
+
+            .dropdown {
+                position: relative;
+                display: inline-block;
+            }
+
+            .dropdown-trigger {
+                width: 40px;
+                height: 40px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-md);
+            }
+
+            .dropdown-trigger:hover {
+                background: var(--color-dark);
+            }
+
+            .dropdown-trigger i {
+                font-size: 1.5em;
+            }
+
+            .dropdown:hover .dropdown-content {
+                display: block;
+            }
+
+            .dropdown-content {
+                display: none;
+                position: absolute;
+                right: 0;
+                background-color: var(--color-dark);
+                border: var(--border-md) solid var(--color-gray-400);
+                border-radius: var(--radius-md);
+                padding: 12px;
+                box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+                z-index: 1;
+            }
+
+            .dropdown-content a,
+            .dropdown-content form {
+                color: var(--color-light);
+                padding: 12px 16px;
+                text-decoration: none;
+                display: block;
+                border-radius: var(--radius-md);
+            }
+
+            .dropdown-content a:hover,
+            .dropdown-content form:hover {
+                background-color: var(--color-gray-500);
+            }
+
+            .show {
+                display: block;
+            }
+
+            .page-content-container {
+                min-height: 90vh;
+            }
+
+            @media (max-width: 1024px) {
+                .turm-logo {
+                    width: 241px;
+                    height: 49px;
+                }
+                .navbar-link-text {
+                    font-size: var(--font-size-lg);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .turm-logo {
+                    width: 169px;
+                    height: 34px;
+                }
+                .navbar-link-text {
+                    font-size: var(--font-size-md);
+                }
+            }
+        </style>
+        {% block style %}{% endblock %}
+        {% block scripts %}{% endblock %}
     </head>
-    {% load static %}
-    <link rel="shortcut icon"
-          type="image/png"
-          href="{% static 'favicon.ico' %}" />
-    <link rel="stylesheet" href="{% static "/css/base_template.css" %}">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-          rel='stylesheet'>
-    <style>
-    * {
-        box-sizing: border-box;
-    }
-    body {
-        height: 100%;
-        margin: 0;
-        background-color: var(--tom-light-grey);
-    }
-
-    .page-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
-
-    .navbar {
-        margin-bottom: 1em;
-        background-color: var(--tom-light-grey);
-
-        display: flex;
-
-        align-content: center;
-        justify-content: center;
-
-        padding: 10px;
-
-        border-bottom: solid 5px;
-        border-color: var(--tom-primary-color);
-    }
-
-    .navbar_container {
-        display: flex;
-        flex-flow: row;
-
-        align-content: center;
-        justify-content: space-between;
-
-        width: 1140px;
-    }
-
-    .navbar_image_container {
-        display: flex;
-        align-content: center;
-    }
-
-    .navbar_image {
-        margin: auto;
-    }
-
-    .navbar_link_container {
-        margin: auto 0;
-
-        display: flex;
-        flex-flow: row;
-        align-items: center;
-
-        column-gap: 2em;
-    }
-
-    .navbar_link {
-        text-decoration: none;
-        color: var(--tom-white);
-        font-size: 1.25em;
-        font-weight: bold;
-
-        padding: 4px;
-        border-radius: 8px;
-    }
-
-    .logout_button {
-        background: none!important;
-        border: none!important;
-        box-shadow: none;
-        padding: 0!important;
-        text-decoration: none;
-        color: var(--tom-white);
-        font-size: 1.25em;
-        font-weight: bold;
-    }
-
-    .space {
-        flex-grow: 1;
-    }
-
-    .footer_container {
-        display: flex;
-        justify-content: center;
-
-        background-color: var(--tom-light-grey);
-
-        margin-top: 2em;
-        height: 256px;
-
-        border-bottom: solid 5px;
-        border-color: var(--tom-primary-color);
-    }
-
-    .footer_row {
-        display: flex;
-
-        margin: 2em;
-        width: 1140px;
-
-        justify-content: space-between;
-    }
-
-    .footer_column {
-        display: flex;
-        flex-flow: column;
-
-        margin: 1em;
-
-        font-size: 1.2em;
-        font-weight: 500;
-        line-height: 1.25em;
-    }
-
-    .footer_column_entry {
-        margin-bottom: .6em;
-    }
-
-    .grey_link {
-        color: var(--tom-disabled-grey);
-
-        font-weight: bold;
-        text-decoration: none;
-    }
-
-    .grey_link:hover {
-        color: var(--tom-white);
-    }
-
-    .container_center {
-        display: flex;
-        justify-content: center;
-    }
-
-    .container_column {
-        display: flex;
-        flex-flow: column;
-    }
-
-    .dropdown {
-        position: relative;
-        display: inline-block;
-    }
-
-    .dropdown-trigger {
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-    }
-
-    .dropdown-trigger:hover {
-        background: var(--tom-dark-grey);
-    }
-
-    .navbar_link:hover {
-        background: var(--tom-dark-grey);
-    }
-
-    .dropdown-trigger i {
-        font-size: 1.5em;
-    }
-
-    .dropdown:hover .dropdown-content {
-        display: block;
-    }
-
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        right: 0;
-        background-color: var(--tom-dark-grey);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 12px;
-        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
-        z-index: 1;
-    }
-
-    .dropdown-content a,
-    .dropdown-content form {
-        color: var(--tom-white);
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        border-radius: 8px;
-    }
-
-    .dropdown-content a:hover,
-    .dropdown-content form:hover {
-        background-color: var(--tom-primary-color);
-    }
-
-    .show {
-        display: block;
-    }
-
-    .min_height {
-        min-height: 90vh;
-    }
-    </style>
-    {% block style %}{% endblock %}
-    {% block scripts %}{% endblock %}
     <body>
         <header class="navbar">
-            <div class="navbar_container">
-                <div class="navbar_image_container">
-                    <div class="navbar_image">
+            <div class="navbar-container">
+                <div class="navbar-image-container">
+                    <div class="navbar-image">
                         <a href="/" aria-label="TOM | observations">
-                            <img src="{% static 'img/LogoWebA_7.png' %}"
-                                 alt="TURM"
-                                 width="346.2"
-                                 height="70.95">
+                            <img src="{% static 'img/LogoWebA_7.png' %}" class="turm-logo" alt="TURM">
                         </a>
                     </div>
                 </div>
-                <div class="navbar_link_container">
-                    <a class="navbar_link"
+                <div class="navbar-link-container">
+                    <a class="navbar-link"
                        href="{% url 'dashboard' %}"
                        aria-label="project view">
-                        <span class="navbar_link">DASHBOARD</span>
+                        <span class="navbar-link-text">DASHBOARD</span>
                     </a>
-                    <a class="navbar_link"
+                    <a class="navbar-link"
                        href="{% url 'create-observation-request' %}"
                        aria-label="new project">
-                        <span class="navbar_link">NEW PROJECT</span>
+                        <span class="navbar-link-text">NEW PROJECT</span>
                     </a>
                     {% if perms.accounts.can_generate_invitation %}
-                        <a class="navbar_link"
+                        <a class="navbar-link"
                            href="{% url 'generate-invitation' %}"
                            aria-label="invite">
-                            <span class="navbar_link">USER MANAGEMENT</span>
+                            <span class="navbar-link-text">USER MANAGEMENT</span>
                         </a>
                     {% endif %}
                     <div class="dropdown">
@@ -259,42 +248,54 @@
                             <i class='bx bxs-user'></i>
                         </div>
                         <div id="userDropdown" class="dropdown-content">
-                            <a class="navbar_link" href="{% url 'dsgvo' %}">SETTINGS</a>
-                            <form action="{% url 'logout' %}" method="post">
+                            <a class="navbar-link" href="{% url 'dsgvo' %}"><span class="navbar-link-text">Settings</span></a>
+                            <form class="logout-button-container"
+                                  action="{% url 'logout' %}"
+                                  method="post">
                                 {% csrf_token %}
-                                <button class="logout_button" type="submit">LOGOUT</button>
+                                <button class="logout-button" type="submit">
+                                    <span class="navbar-link-text">Logout</span>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
         </header>
-        <div class="min_height">
+        <div id="modal" class="modal">
+            <!-- Modal content -->
+            <div class="modal-container">
+                <div class="modal-content">
+                    <p id="modal-title" class="text-lg"></p>
+                    <div id="modal-content"></div>
+                </div>
+                <div id="modal-separator" class="modal-separator"></div>
+                <div id="modal-actions" class="modal-actions"></div>
+            </div>
+        </div>
+        <div class="page-content-container">
             {% block content %}{% endblock %}
         </div>
-        <footer class="footer_container">
-            <div class="footer_row">
-                <aside class="footer_column">
-                    <h5 class="footer_column_entry">Contact</h5>
-                    <p class="footer_column_entry">
+        <footer class="footer-container">
+            <div class="footer-row">
+                <div class="footer-column">
+                    <p class="text footer-column-entry">Contact</p>
+                    <p class="text footer-column-entry">
                         TURM Observatory
                         <br>
                         Fachbereich Physik
                         <br>
                         Technische Universität Darmstadt
                     </p>
-                </aside>
-                <div class="footer_column">
-                    <p>
-                        <a class="grey_link"
-                           href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a>
-                    </p>
+                </div>
+                <div class="footer-column text-align-right">
+                    <a class="footer-link"
+                       href="https://www.tu-darmstadt.de/datenschutzerklaerung">Datenschutzerklärung</a>
                     <br>
-                    <p>
-                        <a class="grey_link" href="https://github.com/TURMObs/TURMFrontend/">GitHub Repository</a>
-                    </p>
+                    <a class="footer-link" href="https://github.com/TURMObs/TURMFrontend/">GitHub Repository</a>
                 </div>
             </div>
         </footer>
+        <script src="{% static '/js/modal.js' %}"></script>
     </body>
 </html>

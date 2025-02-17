@@ -1,3 +1,5 @@
+import io
+
 import django
 from django.utils import timezone
 from django.core.management import call_command
@@ -149,8 +151,11 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
     def setUp(self):
         nm.initialize_connection()
-        call_command("populate_observatories")
-
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=io.StringIO(),
+        )
         self.maxDiff = None
         self.client = django.test.Client()
         self.user = None
@@ -205,9 +210,9 @@ class NextcloudSyncTestCase(django.test.TestCase):
             frames_per_filter=frames_per_filter,
         )
 
-        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+        obs.filter_set.add(Filter.objects.get(filter_type="L"))
         if second_filter:
-            obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.BLUE))
+            obs.filter_set.add(Filter.objects.get(filter_type="B"))
 
     # noinspection DuplicatedCode
     def _create_exoplanet_observation(
@@ -246,7 +251,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             end_observation=end_observation,
         )
 
-        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+        obs.filter_set.add(Filter.objects.get(filter_type="L"))
 
     # noinspection DuplicatedCode
     def _create_variable_observation(
@@ -285,7 +290,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             frames_per_filter=frames_per_filter,
         )
 
-        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+        obs.filter_set.add(Filter.objects.get(filter_type="L"))
 
     def _create_monitoring_observation(
         self,
@@ -328,7 +333,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             frames_per_filter=frames_per_filter,
         )
 
-        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+        obs.filter_set.add(Filter.objects.get(filter_type="L"))
 
     def _create_expert_observation(
         self,
@@ -395,7 +400,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             subframe=subframe,
         )
 
-        obs.filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.LUMINANCE))
+        obs.filter_set.add(Filter.objects.get(filter_type="L"))
 
     @staticmethod
     def _get_obs_by_id(obs_id: int) -> AbstractObservation:
@@ -638,7 +643,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         self._create_imaging_observations(obs_id=0, target_name="I1", observatory=turmx, frames_per_filter=10)
         self._create_exoplanet_observation(obs_id=1, target_name="E1", observatory=turmx)
-        self._get_obs_by_id(1).filter_set.add(Filter.objects.get(filter_type=Filter.FilterType.HYDROGEN)) # add second filter to test multi filter handling
+        self._get_obs_by_id(1).filter_set.add(Filter.objects.get(filter_type="H")) # add second filter to test multi filter handling
 
         self._create_variable_observation(obs_id=2, target_name="V1", observatory=turmx)
 

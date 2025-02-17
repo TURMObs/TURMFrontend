@@ -2,115 +2,60 @@
 {% block title %}Create Observation{% endblock %}
 {% block style %}
     {% load static %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
-          rel="stylesheet">
     <link rel="stylesheet" href="{% static "/css/inputs.css" %}">
-    <link rel='stylesheet'
-          href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
     <style>
+    .modal-header-container {
+        display: flex;
+        justify-content: left;
+    }
+
     .button-container {
-        padding-top: 8px;
+        padding-top: 24px;
         display: flex;
         justify-content: flex-end;
         align-items: center;
         gap: 16px;
     }
+
     .form-heading {
-        margin-bottom: 8px;
+        margin-top: 24px;
+    }
+
+    .form-container {
+        margin: 8px 0px;
     }
     </style>
 {% endblock %}
-{% block scripts %}
-    <script src="{% static '/js/turminputs.js' %}"></script>
-    <script> onload = _ => {
-        check_radio_if_none_selected()
-    };
-    </script>
-    <script>
-    async function fetch_coordinates() {
-        let catalog_id  = document.getElementById("id_catalog_id").value
-
-        // see here for query documentation: https://simbad.cds.unistra.fr/guide/sim-fscript.htx
-        const url = "http://simbad.u-strasbg.fr/simbad/sim-script";
-        const script = `
-        output console=off script=off
-        format object form1 "%COO(s:; A, D; ICRS; J2000)"
-        query id ${catalog_id}
-        `;
-
-        try {
-            const response = await fetch(url, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({ script })
-            });
-
-            const text = await response.text();
-            check_response(text, catalog_id);
-        } catch (error) {
-            alert(`An error while trying to get a response from SIMBAD server. Got: ${error.message}`)
-        }
-    }
-
-    function check_response(response, catalog_id) {
-
-        if (response.includes("error")) {
-            alert(`Got an error for Catalog ID "${catalog_id}".\nTarget probably does not exist in SIMBAD database!`)
-            return;
-        }
-
-        let split_res= response.replace(/\+/g, "").split(",")
-        let ra = split_res[0].trim().split(":")
-        let dec = split_res[1].trim().split(":")
-
-
-        if (ra[2] == null) { // if necessary calculates the decimal places of hh into mm
-            let ra_hh = ra[1].split(".")
-            ra[1] = ra_hh[0]
-            ra[2] = (parseInt(ra_hh[1]) * 6).toString()
-
-        }
-        if (dec[2] == null) { // if necessary calculates the decimal places of mm into ss
-            let dec_hh = dec[1].split(".")
-            dec[1] = dec_hh[0]
-            dec[2] = (parseInt(dec_hh[1]) * 6).toString()
-        }
-
-        for (let i=0; i < 3; i++) { // limits all inputs to 8 digits (usually 5 decimal digits)
-            dec[i] = dec[i].substring(0, 8)
-            ra[i] = ra[i].substring(0, 8)
-        }
-
-        document.getElementById("id_ra").value = ra.join(" ")
-        document.getElementById("id_dec").value = dec.join(" ");
-
-    }
-    </script>
-{% endblock %}
 {% block content %}
-    <div class="content_wrapper form_wrapper">
+    <div class="page-content page-md">
         <header>
-            <div class="container_center">
-                <h1>Create New Observation</h1>
+            <div class="modal-header-container">
+                <p class="text-xl">Create New Observation</p>
             </div>
         </header>
-        <form class="input_form"
-              id="form"
+        <form id="form"
               onsubmit="submitForm(event, this, '{{ create_form_url }}', '{% url "dashboard" %}')">
             {% for name, form in forms %}
                 <article>
-                    <h2 class="form-heading">{{ name }}</h2>
-                    <div>{{ form }}</div>
+                    <p class="form-heading text-lg">{{ name }}</p>
+                    <div class="form-container">{{ form }}</div>
                 </article>
             {% endfor %}
             {% csrf_token %}
             <div class="button-container">
-                <button type="submit">Create Observation</button>
+                <button class="btn-secondary"
+                        type="button"
+                        onclick="window.location.href='{% url "dashboard" %}'">Cancel</button>
+                <button class="btn" type="submit">Create Observation</button>
             </div>
         </form>
     </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static '/js/turminputs.js' %}"></script>
+    <script src="{% static '/js/simbad.js' %}"></script>
+    <script> onload = _ => {
+        check_radio_if_none_selected()
+    };
+    </script>
 {% endblock %}

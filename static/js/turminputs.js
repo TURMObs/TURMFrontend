@@ -16,7 +16,7 @@ function discard_input(event, el, suppressed) {
  * Is supposed to be called on page load
  */
 function check_radio_if_none_selected() {
-  const divs = document.getElementsByClassName("radio_input_div");
+  const divs = document.getElementsByClassName("radio-input-div");
   for (let div of divs) {
     const radios = Array.from(div.children)
       .filter((el) => el.tagName === "INPUT")
@@ -71,7 +71,7 @@ function hide_inputs(dependency_type, dependency) {
   for (let input of dependent_inputs) {
     const hide_el = !Array.from(input.getAttribute(dependency_type).split(" ")).some(el => el === dependency);
     let parent = input.parentElement;
-    if (parent.classList.contains("radio_input_div")) {
+    if (parent.classList.contains("radio-input-div")) {
       parent = input.parentElement.parentElement;
     }
     if (hide_el) {
@@ -85,7 +85,6 @@ function hide_inputs(dependency_type, dependency) {
   }
   to_call_later.forEach(callable => callable.click())
 }
-
 
 function update_date_dependency(el) {
   const end = document.getElementById(el.id.replace(RegExp("start"), "end"));
@@ -152,37 +151,37 @@ function submitForm(event, form, post_address, redirect_address) {
  * Adds an error note under the element with the message text.
  * @param element that the error is for
  * @param message text that should be displayed
- * @param escape_grid when the element is in a grid_input_div this param specifies if it should be displayed in the same cell or under the whole grid (useful for duration inputs)
+ * @param escape_grid when the element is in a grid-input-div this param specifies if it should be displayed in the same cell or under the whole grid (useful for duration inputs)
  */
 function add_error_message(element, message, escape_grid = false) {
   const message_element = "<span>" + message + "</span>";
   const icon_element = '<i class="bx bx-error-circle"></i>';
   const error = document.createElement("div");
-  error.classList.add("error_msg");
+  error.classList.add("error-msg");
   error.innerHTML = icon_element + message_element;
 
   // find place to insert error
   let container = element.parentElement;
   if (container.classList.contains("tooltip"))
     container = container.parentElement;
-  if (container.classList.contains("radio_input_div"))
+  if (container.classList.contains("checkbox-input-div"))
     container = container.parentElement;
   if (
     escape_grid &&
-    container.parentElement.classList.contains("grid_input_div")
+    container.parentElement.classList.contains("grid-input-div")
   )
     container = container.parentElement.parentElement;
-  else if (container.parentElement.classList.contains("checkbox_input_div"))
+  else if (container.parentElement.classList.contains("checkbox-input-div"))
     container = container.parentElement.parentElement;
   // write error
   container.appendChild(error);
 }
 
 /**
- * clears every element with the "error_msg" class
+ * clears every element with the "error-msg" class
  */
 function clear_error_messages() {
-  for (let el of Array.from(document.getElementsByClassName("error_msg"))) {
+  for (let el of Array.from(document.getElementsByClassName("error-msg"))) {
     el.remove();
   }
 }
