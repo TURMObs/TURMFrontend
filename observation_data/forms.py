@@ -3,7 +3,6 @@ from enum import Enum
 
 from django import forms
 from django.db import ProgrammingError
-
 from observation_request.TURMField import (
     TURMGridField,
     TURMField,
@@ -20,10 +19,10 @@ from .models import (
     Observatory,
     AbstractObservation,
     ExposureSettings,
+    DefaultRequestSettings,
 )
 
 logger = logging.getLogger(__name__)
-
 
 class Dependency(Enum):
     observation_type = "observation_type_dependent"
@@ -89,11 +88,10 @@ class ExposureSettingsForm(forms.Form):
     """
 
     def __init__(self, *args, **kwargs):
-        super(ExposureSettingsForm, self).__init__(*args, **kwargs)
+        super(forms.Form, self).__init__(*args, **kwargs)
         self.label_suffix = ""
-
-    try:
-        observation_type = TURMSelectField(
+        # init fields
+        self.fields["observation_type"] = TURMSelectField(
             "observation_type",
             [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
             label_name="Observation Type",
@@ -101,14 +99,14 @@ class ExposureSettingsForm(forms.Form):
             lambda o_type: f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"
         )
         # combined
-        filter_set = (
+        self.fields["filter_set"] = (
             TURMField.init_from_model(
                 ExpertObservation._meta.get_field("filter_set")
             ).add_dependency_generator(filter_set_dependency_generator)
         ).add_tooltip("This filter is not supported by the selected observatory")
 
         #
-        exposure_time = TURMField(
+        self.fields["exposure_time"] = TURMField(
             TURMRadioInput(
                 name="exposure_time",
                 choices=[
@@ -129,7 +127,7 @@ class ExposureSettingsForm(forms.Form):
                 ]
             }
         )
-        exposure_time_expert = (
+        self.fields["exposure_time_expert"] = (
             TURMField.init_from_model(
                 AbstractObservation._meta.get_field("exposure_time"),
                 label_name="Exposure Time",
@@ -139,7 +137,7 @@ class ExposureSettingsForm(forms.Form):
             )
             .add_attrs({"placeholder": "default value"})
         )
-        exposure_time_expert.required = False
+        self.fields["exposure_time_expert"].required = False
 
         # exposure
         exposure_settings = [
@@ -181,12 +179,12 @@ class ExposureSettingsForm(forms.Form):
             ),
         ]
 
-        exposure = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
+        self.fields["exposure"] = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
-        exposure.required = False
+        self.fields["exposure"].required = False
         # imaging
-        frames_per_filter = TURMField.init_from_model(
+        self.fields["frames_per_filter"] = TURMField.init_from_model(
             ExpertObservation._meta.get_field("frames_per_filter"),
             label_name="Frames per Filter",
         ).add_dependencies(
@@ -200,7 +198,7 @@ class ExposureSettingsForm(forms.Form):
         )
 
         # exoplanet
-        start_end_observation = TURMDateTimeDuration(
+        self.fields["start_end_observation"] = TURMDateTimeDuration(
             (
                 ExpertObservation._meta.get_field("start_observation"),
                 "Start Observation",
@@ -215,7 +213,7 @@ class ExposureSettingsForm(forms.Form):
             }
         )
         # variable
-        minimum_altitude = TURMField.init_from_model(
+        self.fields["minimum_altitude"] = TURMField.init_from_model(
             ExpertObservation._meta.get_field("minimum_altitude")
         ).add_dependencies(
             {
@@ -227,7 +225,7 @@ class ExposureSettingsForm(forms.Form):
         )
 
         # monitoring
-        scheduling = TURMDateDuration(
+        self.fields["scheduling"] = TURMDateDuration(
             (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
             (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
         ).add_dependencies(
@@ -238,7 +236,7 @@ class ExposureSettingsForm(forms.Form):
             }
         )
 
-        cadence = TURMField.init_from_model(
+        self.fields["cadence"] = TURMField.init_from_model(
             ExpertObservation._meta.get_field("cadence")
         ).add_dependencies(
             {
@@ -255,7 +253,7 @@ class ExposureSettingsForm(forms.Form):
             SCHEDULE_TIME = "Timed Scheduling"
             TIMED = "Timed"
 
-        schedule_type = (
+        self.fields["schedule_type"] = (
             TURMSelectField(
                 "schedule_type",
                 [
@@ -272,7 +270,7 @@ class ExposureSettingsForm(forms.Form):
             )
         )
 
-        exp_schedule = TURMDateDuration(
+        self.fields["exp_schedule"] = TURMDateDuration(
             (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
             (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
         ).add_dependencies(
@@ -287,7 +285,7 @@ class ExposureSettingsForm(forms.Form):
             }
         )
 
-        exp_schedule_time = TURMDateDuration(
+        self.fields["exp_schedule_time"] = TURMDateDuration(
             (ExpertObservation._meta.get_field("start_observation_time"), "Start Time"),
             (ExpertObservation._meta.get_field("end_observation_time"), "End Time"),
         ).add_dependencies(
@@ -299,7 +297,7 @@ class ExposureSettingsForm(forms.Form):
             }
         )
 
-        exp_cadence = (
+        self.fields["exp_cadence"] = (
             TURMField.init_from_model(ExpertObservation._meta.get_field("cadence"))
             .add_dependencies(
                 {
@@ -313,7 +311,7 @@ class ExposureSettingsForm(forms.Form):
             .add_attrs({"placeholder": "default value"})
         )
 
-        exp_start_end_observation = TURMDateTimeDuration(
+        self.fields["exp_start_end_observation"] = TURMDateTimeDuration(
             (
                 ExpertObservation._meta.get_field("start_observation"),
                 "Start Observation",
@@ -328,7 +326,7 @@ class ExposureSettingsForm(forms.Form):
             }
         )
 
-        exp_minimum_altitude = (
+        self.fields["exp_minimum_altitude"] = (
             TURMField.init_from_model(
                 ExpertObservation._meta.get_field("minimum_altitude")
             )
@@ -341,7 +339,7 @@ class ExposureSettingsForm(forms.Form):
             )
             .add_attrs({"placeholder": "default value"})
         )
-        exp_minimum_altitude.required = False
+        self.fields["exp_minimum_altitude"].required = False
 
         moon_separation_settings = [
             (
@@ -358,20 +356,17 @@ class ExposureSettingsForm(forms.Form):
             ),
         ]
 
-        moon_separation = TURMGridField(
+        self.fields["moon_separation"] = TURMGridField(
             moon_separation_settings, (2, 1)
         ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
-        moon_separation.required = False
-        priority = (
+        self.fields["moon_separation"].required = False
+        self.fields["priority"] = (
             TURMField.init_from_model(ExpertObservation._meta.get_field("priority"))
             .add_dependencies(
                 {Dependency.observation_type.value: [ObservationType.EXPERT]}
             )
             .add_attrs({"placeholder": "default value"})
         )
-        priority.required = False
-    except ProgrammingError as error:
-        error_message = str(error).split("\n")[0]
-        logger.warning(f"DB seems to be badly configured. \n{error_message}")
+        self.fields["priority"].required = False
