@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 
 from accounts.views import (
-    generate_invitation,
+    user_management,
     generate_user_invitation,
     login,
     login_user,
@@ -26,12 +26,12 @@ urlpatterns = [
         name="logout",
     ),
     path(
-        "generate-invitation",
-        generate_invitation,
-        name="generate-invitation",
+        "user-management",
+        user_management,
+        name="user-management",
     ),
     path(
-        "generate-invitation/create",
+        "user-management/create-invitation",
         generate_user_invitation,
         name="generate-user-invitation",
     ),
