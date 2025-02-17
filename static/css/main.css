@@ -12,6 +12,7 @@
   --color-light: #ffffff;
   --color-error: #ed2f1a;
   --color-error-dark: #8a1306;
+  --color-error-light: rgba(251, 109, 109, 0.3);
 
   --status-pending: #ffa500;
   --status-active: #1e90ff;

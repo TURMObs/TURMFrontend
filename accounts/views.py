@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group, Permission
 from django.http import JsonResponse
 from django.core.validators import MinValueValidator
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
@@ -170,12 +171,6 @@ class EditUserForm(forms.Form):
             raise forms.ValidationError("Email cannot be an empty string.")
         return new_email
 
-    def clean_new_lifetime(self):
-        new_lifetime = self.cleaned_data.get("new_lifetime")
-        if new_lifetime and new_lifetime <= datetime.now().date():
-            raise forms.ValidationError("Lifetime must be a future date.")
-        return new_lifetime
-
     def clean_remove_quota(self):
         if self.cleaned_data.get("remove_quota") and self.cleaned_data.get("new_quota"):
             raise forms.ValidationError(
@@ -253,10 +248,10 @@ def login_user(request):
             request, form=LoginForm(), error="Invalid username or password"
         )
 
-    username = form.cleaned_data["email"]
+    email = form.cleaned_data["email"]
     password = form.cleaned_data["password"]
 
-    user = auth.authenticate(request, username=username, password=password)
+    user = auth.authenticate(request, email=email, password=password)
     if not user:
         return index_template(
             request, form=LoginForm(), error="Invalid username or password"
@@ -268,14 +263,14 @@ def login_user(request):
             request, form=LoginForm(), error="This account has been marked for deletion"
         )
     auth.login(request, user)
-    logger.info(f"User {username} logged in successfully")
+    logger.info(f"User {email} logged in successfully")
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 @require_GET
 @user_passes_test(lambda u: u.has_perm(UserPermission.CAN_GENERATE_INVITATION))
-def generate_invitation(request):
-    return generate_invitation_template(
+def user_management(request):
+    return generate_user_management_template(
         request, invitation_form=GenerateInvitationForm(user=request.user)
     )
 
@@ -286,7 +281,7 @@ def generate_user_invitation(request):
     form = GenerateInvitationForm(request.POST, user=request.user)
     if not form.is_valid():
         logger.warning(f"Invalid form data on account creation: {form.errors}")
-        return generate_invitation_template(
+        return generate_user_management_template(
             request,
             invitation_form=GenerateInvitationForm(user=request.user),
             error="Invalid email",
@@ -305,7 +300,7 @@ def generate_user_invitation(request):
     if role == UserGroup.ADMIN and not request.user.has_perm(
         UserPermission.CAN_INVITE_ADMINS
     ):
-        return generate_invitation_template(
+        return generate_user_management_template(
             request,
             invitation_form=GenerateInvitationForm(request.user),
             error="You do not have permission to invite admins",
@@ -314,7 +309,7 @@ def generate_user_invitation(request):
     if role == UserGroup.OPERATOR and not request.user.has_perm(
         UserPermission.CAN_INVITE_OPERATORS
     ):
-        return generate_invitation_template(
+        return generate_user_management_template(
             request,
             invitation_form=GenerateInvitationForm(request.user),
             error="You do not have permission to invite operators",
@@ -501,7 +496,7 @@ def index_template(request, error=None, form=None):
     return render(request, "accounts/index.html", {"error": error, "form": form})
 
 
-def generate_invitation_template(request, error=None, link=None, invitation_form=None):
+def generate_user_management_template(request, error=None, invitation_form=None):
     return render(
         request,
         "accounts/user_management.html",
@@ -511,8 +506,9 @@ def generate_invitation_template(request, error=None, link=None, invitation_form
             "edit_user_form": EditUserForm(),
             "UserGroups": UserGroup,
             "invitations": InvitationToken.objects.all(),
-            "users": ObservatoryUser.objects.all(),
+            "users": ObservatoryUser.objects.all().order_by("-lifetime"),
             "current_user": request.user,
+            "time_now": timezone.now().date(),
         },
     )
 
