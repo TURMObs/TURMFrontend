@@ -5,6 +5,7 @@ For a usage example, see the create_observation view in the views.py file.
 
 import logging
 from collections import OrderedDict
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.utils import timezone
@@ -51,7 +52,7 @@ base_fields = [
 
 def _create_observation(validated_data, observation_type, model):
     """
-    Create an instance of an observation model.
+    Create a model instance of an observation model.
     :param validated_data: Data to create the observation
     :param observation_type: Type of observation
     :param model: Model to create
@@ -69,7 +70,7 @@ def _create_observation(validated_data, observation_type, model):
     if observation_type in priorities:
         validated_data["priority"] = priorities[observation_type]
 
-    if issubclass(model, ScheduledObservation):
+    if issubclass(model, ScheduledObservation) and "start_scheduling" in validated_data:
         validated_data["next_upload"] = validated_data["start_scheduling"]
 
     filter_set = validated_data.pop("filter_set")
@@ -99,7 +100,7 @@ def _update_observation(validated_data, existing_observation, observation_type, 
     if observation_type in priorities:
         validated_data["priority"] = existing_observation.priority
 
-    if issubclass(model, ScheduledObservation):
+    if issubclass(model, ScheduledObservation) and "start_scheduling" in validated_data:
         validated_data["next_upload"] = validated_data["start_scheduling"]
 
     filter_set = validated_data.pop("filter_set")
@@ -250,8 +251,14 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
 
 
 def _validate_fields(
-    attrs, validate_times=False, validate_scheduling=False, exclude_observation_ids=[]
+    attrs,
+    validate_times=False,
+    validate_scheduling=False,
+    exclude_observation_ids=None,
+    return_errors=False,
 ):
+    if exclude_observation_ids is None:
+        exclude_observation_ids = []
     errors = {}
     observation_type = attrs.get("observation_type")
     for name, value in attrs.items():
@@ -277,12 +284,22 @@ def _validate_fields(
             errors = {**errors, **time_errors}
 
     if validate_scheduling:
-        time_errors = validate_schedule_time(
-            attrs.get("start_scheduling"),
-            attrs.get("end_scheduling"),
-        )
-        if time_errors:
-            errors = {**errors, **time_errors}
+        if (
+            not attrs.get("start_scheduling")
+            or not attrs.get("end_scheduling")
+            and not observation_type == ObservationType.EXPERT
+        ):
+            errors["scheduling"] = "Both scheduling times are required."
+        if attrs.get("start_scheduling") and attrs.get("end_scheduling"):
+            time_errors = validate_schedule_time(
+                attrs.get("start_scheduling"),
+                attrs.get("end_scheduling"),
+            )
+            if time_errors:
+                errors = {**errors, **time_errors}
+
+    if return_errors:
+        return errors
 
     if errors:
         raise serializers.ValidationError(errors)
@@ -451,7 +468,11 @@ class MonitoringObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(attrs)
+        _validate_fields(
+            attrs=attrs,
+            validate_scheduling=True,
+            exclude_observation_ids=[self.instance.id] if self.instance else [],
+        )
         return attrs
 
     def create(self, validated_data):
@@ -495,6 +516,8 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "offset",
             "start_observation",
             "end_observation",
+            "start_observation_time",
+            "end_observation_time",
             "start_scheduling",
             "end_scheduling",
             "cadence",
@@ -505,11 +528,73 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        _validate_fields(
-            attrs,
-            validate_times=True,
-            exclude_observation_ids=[self.instance.id] if self.instance else [],
+        exclude_ids = [self.instance.id] if self.instance else []
+        errors = _validate_fields(
+            attrs, exclude_observation_ids=exclude_ids, return_errors=True
         )
+        start_observation = attrs.get("start_observation")
+        end_observation = attrs.get("end_observation")
+        start_observation_time = attrs.get("start_observation_time")
+        end_observation_time = attrs.get("end_observation_time")
+        start_scheduling = attrs.get("start_scheduling")
+        end_scheduling = attrs.get("end_scheduling")
+        cadence = attrs.get("cadence")
+        if start_scheduling or end_scheduling:
+            # Scheduled observations with possible times instead of dates
+            if not (start_scheduling and end_scheduling):
+                errors["scheduling"] = "Both scheduling times are required."
+            if not cadence:
+                errors["cadence"] = "Cadence is required for scheduled observations."
+            if start_observation or end_observation:
+                errors["observation_dates"] = (
+                    "Observation dates not allowed for scheduled observations."
+                )
+            if (start_observation_time or end_observation_time) and not (
+                start_observation_time and end_observation_time
+            ):
+                errors["observation_time"] = "Both observation times are required."
+            if start_observation_time and end_observation_time:
+                time_errors = validate_observation_time(
+                    start_observation_time,
+                    end_observation_time,
+                    attrs.get("observatory"),
+                    exclude_observation_ids=exclude_ids,
+                    date_included=False,
+                    start_scheduling=start_scheduling,
+                    end_scheduling=end_scheduling,
+                )
+                if time_errors:
+                    errors = {**errors, **time_errors}
+
+            schedule_errors = validate_schedule_time(
+                start_scheduling,
+                end_scheduling,
+            )
+            if schedule_errors:
+                errors = {**errors, **schedule_errors}
+
+        else:
+            # Unscheduled observations with possible observation date
+            if (start_observation or end_observation) and not (
+                start_observation and end_observation
+            ):
+                errors["observation_dates"] = "Both observation dates are required."
+            if start_observation_time or end_observation_time:
+                errors["observation_time"] = (
+                    "Observation times not allowed for unscheduled observations."
+                )
+            if start_observation and end_observation:
+                time_errors = validate_observation_time(
+                    start_observation,
+                    end_observation,
+                    attrs.get("observatory"),
+                    exclude_ids,
+                )
+                if time_errors:
+                    errors = {**errors, **time_errors}
+
+        if errors:
+            raise serializers.ValidationError(errors)
         return attrs
 
     def create(self, validated_data):
@@ -528,23 +613,33 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "minimumAltitude": instance.minimum_altitude,
             "priority": instance.priority,
             "cadence": instance.cadence,
-            "targets": [
-                {
-                    "startDateTime": str(
-                        instance.start_observation.replace(tzinfo=None)
-                    ).strip(),
-                    "endDateTime": str(
-                        instance.end_observation.replace(tzinfo=None)
-                    ).strip(),
-                    "startDateTimeScheduling": str(
-                        instance.start_scheduling.replace(tzinfo=None)
-                    ).strip(),
-                    "endDateTimeScheduling": str(
-                        instance.end_scheduling.replace(tzinfo=None)
-                    ).strip(),
-                }
-            ],
         }
+
+        if instance.start_observation and instance.end_observation:
+            additional_fields["targets"] = [
+                {
+                    "startDateTime": instance.start_observation.strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
+                    "endDateTime": instance.end_observation.strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
+                }
+            ]
+
+        if instance.start_observation_time and instance.end_observation_time:
+            base_date = timezone.now().date()
+            start_date = datetime.combine(base_date, instance.start_observation_time)
+            end_date = datetime.combine(base_date, instance.end_observation_time)
+            if start_date > end_date:
+                end_date += timedelta(days=1)
+            additional_fields["targets"] = [
+                {
+                    "startDateTime": start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "endDateTime": end_date.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            ]
+
         exposure_fields = {
             "subFrame": instance.subframe,
             "binning": instance.binning,
@@ -584,8 +679,11 @@ def get_serializer(observation_type):
     :param observation_type: Type of observation
     :return: Serializer for the observation or None if not found
     """
-    if observation_type in type_serializer_mapping:
-        return type_serializer_mapping[observation_type]
-    if observation_type in serializer_mapping:
-        return serializer_mapping[observation_type]
-    return None
+    try:
+        if observation_type in type_serializer_mapping:
+            return type_serializer_mapping[observation_type]
+        if observation_type in serializer_mapping:
+            return serializer_mapping[observation_type]
+        return None
+    except TypeError:
+        return None
