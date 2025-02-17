@@ -159,22 +159,22 @@
   ],
   "request_settings_defaults": [
     {
-      "type": "Imaging",
+      "observation_type": "Imaging",
       "frames_per_filter": 10
     },
     {
-      "type": "Variable",
+      "observation_type": "Variable",
       "frames_per_filter": 10,
       "minimum_altitude": 30
     },
     {
-      "type": "Monitor",
+      "observation_type": "Monitor",
       "frames_per_filter": 10,
       "minimum_altitude": 30,
       "cadence": 1
     },
     {
-      "type": "Expert",
+      "observation_type": "Expert",
       "exposure_time": 120,
       "frames_per_filter": 10,
       "dither_every": 0,
