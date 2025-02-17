@@ -159,7 +159,6 @@
   ],
   "request_settings_defaults":
     {
-      "observation_type": "Monitor",
       "frames_per_filter": 10,
       "minimum_altitude": 30,
       "exposure_time": 120,
