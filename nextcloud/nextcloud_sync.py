@@ -11,7 +11,7 @@ from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
     ObservationStatus,
-    ObservationType,
+    ObservationType, ExpertObservation, ExoplanetObservation,
 )
 from observation_data.serializers import get_serializer
 import logging
@@ -74,7 +74,7 @@ def get_data_from_nc(obs: AbstractObservation):
     return calc_progress(nc_dict), nc_path
 
 
-def update_non_scheduled_observations():
+def update_non_scheduled_observations(today: datetime.date = timezone.now().date()):
     """
     Downloads all non-scheduled observations from the nextcloud, checks for progress and updates database accordingly.
     """
@@ -124,6 +124,26 @@ def update_non_scheduled_observations():
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
+        if isinstance(obs, ExpertObservation) or isinstance(obs, ExoplanetObservation):
+            if not obs.start_observation and obs.end_observation:
+                continue
+
+            if obs.end_observation < timezone.make_aware(datetime.datetime.combine(today, timezone.now().time())):
+                if progress == 0.0:
+                    obs.project_status = ObservationStatus.FAILED
+                else :
+                    obs.project_status = ObservationStatus.COMPLETED
+                try:
+                    nm.delete(nc_path)
+                    logger.info(
+                        f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}!"
+                    )
+                except NextcloudException as e:
+                    logger.error(
+                        f"Tried to delete observation {obs.id} with target {obs.target.name} because progress is 100, but got: {e}"
+                    )
+                    obs.project_status = ObservationStatus.ERROR
+                    obs.save()
         obs.save()
 
 
@@ -267,7 +287,7 @@ def update_observations(today: datetime.date = timezone.now().date()):
 
     :param today: datetime; default=timezone.now().date. Can be changed for debugging purposes.
     """
-    update_non_scheduled_observations()
+    update_non_scheduled_observations(today)
     update_scheduled_observations(today)
 
 

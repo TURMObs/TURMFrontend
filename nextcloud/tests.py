@@ -140,6 +140,7 @@ class NextcloudManagerTestCase(django.test.TestCase):
         nm.delete(self.prefix)
 
 
+# noinspection DuplicatedCode
 @unittest.skipIf(
     not run_nc_test,
     "Nextclouds test cannot run in CI. Set env variable `NC_TEST=True` to run nextcloud tests.",
@@ -1129,3 +1130,69 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.COMPLETED)
 
         nm.delete(self.prefix)
+
+    def test_deletion_exoplanet_no_progress(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
+        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
+        self._create_exoplanet_observation(obs_id=0, target_name="E0", start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        upload_observations(self._day(0))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        update_observations(self._day(1))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.FAILED)
+
+    def test_deletion_exoplanet_partial_progress(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
+        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
+        self._create_exoplanet_observation(obs_id=0, target_name="E0", start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        upload_observations(self._day(0))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self._set_accepted_amount(obs, 50)
+        update_observations(self._day(1))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
+
+    def test_deletion_expert_no_progress(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
+        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
+        self._create_expert_observation(obs_id=0, target_name="E0", start_scheduling=None, end_scheduling=None, start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        upload_observations(self._day(0))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        update_observations(self._day(1))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.FAILED)
+
+    def test_deletion_expert_partial_progress(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
+        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
+        self._create_expert_observation(obs_id=0, target_name="E0", start_scheduling=None, end_scheduling=None, start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        upload_observations(self._day(0))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self._set_accepted_amount(obs, 50)
+        update_observations(self._day(1))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+        self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)

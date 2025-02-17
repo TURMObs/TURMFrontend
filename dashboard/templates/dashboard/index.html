@@ -46,6 +46,7 @@
     .status-completed { background-color: var(--status-success); }
     .status-error { background-color: var(--status-failed); }
     .status-pending-deletion { background-color: var(--status-neutral); }
+    .status-failed { background-color: var(--status-failed); }
 
     .filter-set-container {
         display: flex;
@@ -167,6 +168,8 @@
                                                 <span class="project-status-dot status-error"></span>
                                             {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
                                                 <span class="project-status-dot status-pending-deletion"></span>
+                                            {% elif observation.project_status == ObservationStatus.FAILED %}
+                                                <span class="project-status-dot status-failed"></span>
                                             {% endif %}
                                             <span class="text">{{ observation.project_status }}</span>
                                         </div>
