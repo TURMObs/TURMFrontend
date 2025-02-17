@@ -157,24 +157,11 @@
       "moon_separation_width": 7
     }
   ],
-  "request_settings_defaults": [
-    {
-      "observation_type": "Imaging",
-      "frames_per_filter": 10
-    },
-    {
-      "observation_type": "Variable",
-      "frames_per_filter": 10,
-      "minimum_altitude": 30
-    },
+  "request_settings_defaults":
     {
       "observation_type": "Monitor",
       "frames_per_filter": 10,
       "minimum_altitude": 30,
-      "cadence": 1
-    },
-    {
-      "observation_type": "Expert",
       "exposure_time": 120,
       "frames_per_filter": 10,
       "dither_every": 0,
@@ -185,7 +172,7 @@
       "minimum_altitude": 30,
       "moon_separation_angle": 50,
       "moon_separation_width": 7,
-      "priority": 10
+      "priority": 10,
+      "cadence": 1
     }
-  ]
 }
