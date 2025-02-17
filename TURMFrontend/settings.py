@@ -220,5 +220,28 @@ LOGGING = {
     },
 }
 
+if not DEBUG and os.environ.get("EMAIL_ERROR_REPORTING") == "True":
+    ADMINS = [
+        tuple(admin.split(",")) for admin in get_env_var("ADMINS").split(";") if admin
+    ]
+    MANAGERS = ADMINS
+    SERVER_EMAIL = get_env_var("SERVER_EMAIL")
+    EMAIL_HOST = get_env_var("EMAIL_HOST")
+    EMAIL_HOST_USER = get_env_var("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = get_env_var("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = int(get_env_var("EMAIL_PORT"))
+    EMAIL_USE_TLS = True
+
+    LOGGING["handlers"]["mail_admins"] = {
+        "level": "ERROR",
+        "class": "django.utils.log.AdminEmailHandler",
+        "formatter": "simple",
+    }
+    LOGGING["loggers"]["django.request"] = {
+        "handlers": ["mail_admins"],
+        "level": "ERROR",
+        "propagate": True,
+    }
+
 if "test" in sys.argv:
     LOGGING["handlers"]["console"]["level"] = "CRITICAL"
