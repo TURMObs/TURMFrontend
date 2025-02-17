@@ -11,7 +11,9 @@ from observation_data.models import (
     AbstractObservation,
     ScheduledObservation,
     ObservationStatus,
-    ObservationType, ExpertObservation, ExoplanetObservation,
+    ObservationType,
+    ExpertObservation,
+    ExoplanetObservation,
 )
 from observation_data.serializers import get_serializer
 import logging
@@ -128,10 +130,12 @@ def update_non_scheduled_observations(today: datetime.date = timezone.now().date
             if not obs.start_observation and obs.end_observation:
                 continue
 
-            if obs.end_observation < timezone.make_aware(datetime.datetime.combine(today, timezone.now().time())):
+            if obs.end_observation < timezone.make_aware(
+                datetime.datetime.combine(today, timezone.now().time())
+            ):
                 if progress == 0.0:
                     obs.project_status = ObservationStatus.FAILED
-                else :
+                else:
                     obs.project_status = ObservationStatus.COMPLETED
                 try:
                     nm.delete(nc_path)

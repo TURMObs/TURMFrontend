@@ -1135,9 +1135,19 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir(f"{self.prefix}/TURMX/Projects")
 
-        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
-        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
-        self._create_exoplanet_observation(obs_id=0, target_name="E0", start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        start_observation = timezone.make_aware(
+            datetime.combine(self._day(0), time(23, 0))
+        )
+        end_observation = timezone.make_aware(
+            datetime.combine(self._day(1), time(5, 0))
+        )
+        self._create_exoplanet_observation(
+            obs_id=0,
+            target_name="E0",
+            start_observation=start_observation,
+            end_observation=end_observation,
+            observatory=Observatory.objects.filter(name="TURMX")[0],
+        )
         upload_observations(self._day(0))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
@@ -1151,9 +1161,19 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir(f"{self.prefix}/TURMX/Projects")
 
-        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
-        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
-        self._create_exoplanet_observation(obs_id=0, target_name="E0", start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        start_observation = timezone.make_aware(
+            datetime.combine(self._day(0), time(23, 0))
+        )
+        end_observation = timezone.make_aware(
+            datetime.combine(self._day(1), time(5, 0))
+        )
+        self._create_exoplanet_observation(
+            obs_id=0,
+            target_name="E0",
+            start_observation=start_observation,
+            end_observation=end_observation,
+            observatory=Observatory.objects.filter(name="TURMX")[0],
+        )
         upload_observations(self._day(0))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
@@ -1168,9 +1188,21 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir(f"{self.prefix}/TURMX/Projects")
 
-        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
-        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
-        self._create_expert_observation(obs_id=0, target_name="E0", start_scheduling=None, end_scheduling=None, start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        start_observation = timezone.make_aware(
+            datetime.combine(self._day(0), time(23, 0))
+        )
+        end_observation = timezone.make_aware(
+            datetime.combine(self._day(1), time(5, 0))
+        )
+        self._create_expert_observation(
+            obs_id=0,
+            target_name="E0",
+            start_scheduling=None,
+            end_scheduling=None,
+            start_observation=start_observation,
+            end_observation=end_observation,
+            observatory=Observatory.objects.filter(name="TURMX")[0],
+        )
         upload_observations(self._day(0))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
@@ -1184,9 +1216,21 @@ class NextcloudSyncTestCase(django.test.TestCase):
         nm.initialize_connection()
         nm.mkdir(f"{self.prefix}/TURMX/Projects")
 
-        start_observation = timezone.make_aware(datetime.combine(self._day(0), time(23, 0)))
-        end_observation = timezone.make_aware(datetime.combine(self._day(1), time(5, 0)))
-        self._create_expert_observation(obs_id=0, target_name="E0", start_scheduling=None, end_scheduling=None, start_observation=start_observation, end_observation=end_observation, observatory=Observatory.objects.filter(name="TURMX")[0])
+        start_observation = timezone.make_aware(
+            datetime.combine(self._day(0), time(23, 0))
+        )
+        end_observation = timezone.make_aware(
+            datetime.combine(self._day(1), time(5, 0))
+        )
+        self._create_expert_observation(
+            obs_id=0,
+            target_name="E0",
+            start_scheduling=None,
+            end_scheduling=None,
+            start_observation=start_observation,
+            end_observation=end_observation,
+            observatory=Observatory.objects.filter(name="TURMX")[0],
+        )
         upload_observations(self._day(0))
         obs = self._get_obs_by_id(0)
         self.assertTrue(self._obs_exists_in_nextcloud(obs))
