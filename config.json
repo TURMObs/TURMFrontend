@@ -179,7 +179,7 @@
       "frames_per_filter": 10,
       "dither_every": 0,
       "binning": 1,
-      "sub_frame": 1.0,
+      "subframe": 1.0,
       "gain": 0,
       "offset": 0,
       "minimum_altitude": 30,
