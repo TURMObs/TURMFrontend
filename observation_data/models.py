@@ -59,7 +59,7 @@ class Filter(models.Model):
     Model for the filters that can be used for the observations.
     """
 
-    filter_type = models.CharField(db_column="type", max_length=2, primary_key=True)
+    filter_type = models.CharField(db_column="type", max_length=6, primary_key=True)
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
 

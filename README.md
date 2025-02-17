@@ -26,6 +26,7 @@
     | `SUBPATH`                | Subpath the website is being deployed on                                                                                  | **No**.      | /tom                              |
     | `SECRET_KEY`             | Secret Django Key. Keep private and wrap in " to prevent formatting on # or $. You might have to escape $ with \                                                                           | **No**      | See https://djecrety.ir/. Always set a private key for deployment!                           |
     | `BASE_URL`               | Base Website URL                                                                              | **Yes**      | http://localhost:8000                  |
+    | `CONFIG_PATH`               | Path to the config file, relative to the root directory                                                                           | **Yes**      | ./default_config.json                  |
 
 
 The easiest way is to create a local `.env` file in the root directory of the project with the following content:
@@ -45,8 +46,15 @@ NC_PASSWORD=<password>
 NC_URL=http://localhost:8080
 SECRET_KEY="django-insecure-k$b$^f\#%axr_@sur%@5u9ru2sau$xddv7%wb@kr(vp^y5ad!vu"
 BASE_URL="https://localhost:8000"
+CONFIG_PATH="./default_config.json"
 ```
 
+## Configuration
+Configure the environment variables in the `.env` file as described above.
+Additionally, you can configure a copy of the `default_config.json` file in the root directory of the project and link it in the `.env`.
+
+If you encounter `turmfrontend-web  | manage.py load_configuration: error: the following arguments are required: path
+`, the `CONFIG_PATH` variable is not set correctly.
 ## Development
 
 To develop the project locally, install the dependencies running both
