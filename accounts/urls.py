@@ -26,12 +26,12 @@ urlpatterns = [
         name="logout",
     ),
     path(
-        "generate-invitation",
+        "user-management",
         user_management,
-        name="generate-invitation",
+        name="user-management",
     ),
     path(
-        "generate-invitation/create",
+        "user-management/create-invitation",
         generate_user_invitation,
         name="generate-user-invitation",
     ),
