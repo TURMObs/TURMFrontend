@@ -171,3 +171,10 @@ class ExpertObservation(ScheduledObservation):
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+
+class DefaultRequestSettings(models.Model):
+    """
+        Model for default values for observation requests.
+    """
+    observation_type = models.CharField(choices=ObservationType, db_column="type")
+    settings = models.JSONField()
