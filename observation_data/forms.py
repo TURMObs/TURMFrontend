@@ -9,7 +9,7 @@ from observation_request.TURMField import (
     TURMRadioInput,
     TURMSelectField,
     TURMDateDuration,
-    TURMDateTimeDuration,
+    TURMDateTimeDuration, TURMTimeDuration,
 )
 from observation_request.TURMInput import TURMCharInput, TURMButtonInput
 from .models import (
@@ -289,7 +289,7 @@ class ExposureSettingsForm(forms.Form):
             }
         )
 
-        self.fields["exp_schedule_time"] = TURMDateDuration(
+        self.fields["exp_schedule_time"] = TURMTimeDuration(
             (ExpertObservation._meta.get_field("start_observation_time"), "Start Time"),
             (ExpertObservation._meta.get_field("end_observation_time"), "End Time"),
         ).add_dependencies(
