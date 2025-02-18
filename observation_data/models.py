@@ -176,5 +176,5 @@ class DefaultRequestSettings(models.Model):
     """
         Model for default values for observation requests.
     """
-    observation_type = models.CharField(choices=ObservationType, db_column="type")
-    settings = models.JSONField()
+    id = models.IntegerField(primary_key=True, default=0)
+    settings = models.JSONField(default=dict)
