@@ -16,7 +16,6 @@ class ObservationType(models.TextChoices):
     MONITORING = "Monitor"
     EXPERT = "Expert"
 
-
 class ObservationStatus(models.TextChoices):
     PENDING = "Pending Upload"
     UPLOADED = "Uploaded"

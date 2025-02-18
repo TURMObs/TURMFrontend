@@ -30,6 +30,13 @@ class Dependency(Enum):
     scheduling = "scheduling_dependent"
 
 
+class SchedulingType(Enum):
+    NO_CONSTRAINT = "No Constraint"
+    SCHEDULE = "Scheduling"
+    SCHEDULE_TIME = "Timed Scheduling"
+    TIMED = "Timed"
+
+
 class CelestialTargetForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
@@ -251,12 +258,6 @@ class ExposureSettingsForm(forms.Form):
         ).add_attrs({"placeholder": default_values.get("cadence", "")})
 
         # expert
-        class SchedulingType(Enum):
-            NO_CONSTRAINT = "No Constraint"
-            SCHEDULE = "Scheduling"
-            SCHEDULE_TIME = "Timed Scheduling"
-            TIMED = "Timed"
-
         self.fields["schedule_type"] = (
             TURMSelectField(
                 "schedule_type",
@@ -314,6 +315,7 @@ class ExposureSettingsForm(forms.Form):
             )
             .add_attrs({"placeholder": default_values.get("cadence", "")})
         )
+        self.fields["exp_cadence"].required = False
 
         self.fields["exp_start_end_observation"] = TURMDateTimeDuration(
             (

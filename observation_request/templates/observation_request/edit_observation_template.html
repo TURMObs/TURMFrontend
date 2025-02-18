@@ -88,6 +88,7 @@
 
         markInputAsCheckedIfEqual("id_observatory", existingRequest.observatory);
         markInputAsCheckedIfEqual("id_observation_type", existingRequest.observation_type);
+        markInputAsCheckedIfEqual("id_schedule_type", existingRequest.schedule_type);
         markInputAsChecked("id_filter_set", existingRequest.filter_set, (val) => existingRequest.filter_set.includes(val));
         markInputAsCheckedIfEqual("id_exposure_time", existingRequest.exposure_time);
 

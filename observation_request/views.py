@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 import json
 from TURMFrontend import settings
+from observation_data import forms
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureSettingsForm,
@@ -57,6 +58,17 @@ def build_observation_data(observation: AbstractObservation):
         "dec": observation.target.dec,
     }
 
+    if observation.observation_type == ObservationType.EXPERT:
+        if observation.start_scheduling:
+            if observation.start_observation_time:
+                content["schedule_type"] = forms.SchedulingType.SCHEDULE_TIME.name
+            else:
+                content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
+        elif observation.start_observation:
+            content["schedule_type"] = forms.SchedulingType.TIMED.name
+        else:
+            content["schedule_type"] = forms.SchedulingType.NO_CONSTRAINT.name
+
     if observation.observation_type in [
         ObservationType.IMAGING,
         ObservationType.EXOPLANET,
@@ -78,12 +90,13 @@ def build_observation_data(observation: AbstractObservation):
         ObservationType.EXOPLANET,
         ObservationType.EXPERT,
     ]:
-        content["start_observation"] = (
-            str(observation.start_observation.replace(tzinfo=None)).strip(),
-        )
-        content["end_observation"] = (
-            str(observation.end_observation.replace(tzinfo=None)).strip(),
-        )
+        if observation.start_observation:
+            content["start_observation"] = (
+                str(observation.start_observation.replace(tzinfo=None)).strip(),
+            )
+            content["end_observation"] = (
+                str(observation.end_observation.replace(tzinfo=None)).strip(),
+            )
 
     match observation.observation_type:
         case ObservationType.VARIABLE:
@@ -104,12 +117,13 @@ def build_observation_data(observation: AbstractObservation):
         ObservationType.MONITORING,
         ObservationType.EXPERT,
     ]:
-        content["start_scheduling"] = (
-            str(observation.start_scheduling.replace(tzinfo=None)).strip()[:10],
-        )
-        content["end_scheduling"] = (
-            str(observation.end_scheduling.replace(tzinfo=None)).strip()[:10],
-        )
-        content["cadence"] = observation.cadence
+        if observation.start_scheduling:
+            content["start_scheduling"] = (
+                str(observation.start_scheduling).strip()[:10],
+            )
+            content["end_scheduling"] = (
+                str(observation.end_scheduling).strip()[:10],
+            )
+            content["cadence"] = observation.cadence
 
     return content
