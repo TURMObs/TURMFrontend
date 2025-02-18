@@ -18,7 +18,7 @@ async function fetchSimbadCoordinates() {
       body: new URLSearchParams({ script }),
     });
 
-    const text = await response.text();
+    let text = await response.text();
     await checkResponse(text, catalog_id);
   } catch (error) {
     await showAlertModal(
@@ -30,11 +30,18 @@ async function fetchSimbadCoordinates() {
 
 async function checkResponse(response, catalog_id) {
   if (response.includes("error")) {
-    await showAlertModal(
-      "Failed to resolve coordinates",
-      `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`,
-    );
-    return;
+    if (!response.includes("data")) {
+      // special edge case where query return both an error but also the correct data
+      await showAlertModal(
+        "Failed to resolve coordinates",
+        `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`,
+      );
+      return;
+    } else {
+      // if the errors occurs but the data is also contained, the coordinates are always in the second last row
+      let lines = response.split(/\r?\n/);
+      response = lines[lines.length - 3].trim();
+    }
   }
   let split_res = response.replace(/\+/g, "").split(",");
   let ra = split_res[0].trim().split(":");
