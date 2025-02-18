@@ -105,9 +105,18 @@ function update_date_dependency(el) {
 function submitForm(event, form, post_address, redirect_address) {
   event.preventDefault();
   event.stopPropagation();
+
+  let data = new FormData(form);
+
+  console.log(data)
+
+  for (let [name, value] of gather_default_values()) {
+    data.set(name, value);
+  }
+
   fetch(post_address, {
     method: "POST",
-    body: new FormData(form),
+    body: data,
     credentials: "include",
     headers: {
       Accept: "application/json",
@@ -145,6 +154,25 @@ function submitForm(event, form, post_address, redirect_address) {
           .catch((error) => console.log(error, response));
     })
     .catch((error) => console.error("Error:", error));
+}
+
+/**
+ * Returns dict of empty inputs that have a placeholder
+ */
+function gather_default_values() {
+  const empty_inputs = Array.from(
+    document.getElementsByTagName("INPUT")
+  ).filter((el) => el.value === "");
+
+  const out = new Map();
+
+  for (let input of empty_inputs) {
+    const placeholder = input.getAttribute("placeholder");
+    if (placeholder && input.id !== "id_catalog_id") {
+      out.set(input.getAttribute("name"), placeholder)
+    }
+  }
+  return out
 }
 
 /**
