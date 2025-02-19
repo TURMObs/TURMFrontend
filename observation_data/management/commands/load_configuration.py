@@ -79,8 +79,8 @@ class Command(BaseCommand):
                     f"Observatory {observatory['name']} already exists. Set --overwrite to overwrite."
                 )
                 continue
-            self.stdout.write(f"Created observatory {observatory['name']}.")
-            obs, _ = Observatory.objects.update_or_create(
+
+            obs, created = Observatory.objects.update_or_create(
                 name=observatory["name"],
                 horizon_offset=observatory["horizon_offset"],
                 min_stars=observatory["min_stars"],
@@ -89,6 +89,13 @@ class Command(BaseCommand):
             )
             created_observatories.append(obs)
             obs_mapping[observatory["name"]] = observatory["filters"]
+
+            if not created:
+                self.stdout.write(
+                    f"Updated configuration for observatory {observatory['name']}."
+                )
+            else:
+                self.stdout.write(f"Created observatory {observatory['name']}.")
 
         untouched_observatories = Observatory.objects.exclude(
             pk__in=[obs.pk for obs in created_observatories]
@@ -151,15 +158,20 @@ class Command(BaseCommand):
                     exposure_settings = ExposureSettings.objects.filter(
                         gain=gain, offset=offset, binning=binning, subframe=subframe
                     ).first()
-                created, _ = ObservatoryExposureSettings.objects.update_or_create(
+                obj, created = ObservatoryExposureSettings.objects.update_or_create(
                     observatory=obs,
                     exposure_settings=exposure_settings,
                     observation_type=observation_type,
                 )
-                created_exposure_settings.append(created)
-                self.stdout.write(
-                    f"Created exposure settings for {observation_type} at {obs.name}."
-                )
+                created_exposure_settings.append(obj)
+                if not created:
+                    self.stdout.write(
+                        f"Updated configuration of exposure settings for {observation_type} at {obs.name}."
+                    )
+                else:
+                    self.stdout.write(
+                        f"Created exposure settings for {observation_type} at {obs.name}."
+                    )
 
         untouched_exposure_settings = ObservatoryExposureSettings.objects.exclude(
             pk__in=[obs.pk for obs in created_exposure_settings]
@@ -189,20 +201,23 @@ class Command(BaseCommand):
                     f"Filter {filter_type} already exists. Set --overwrite to overwrite."
                 )
                 continue
-            created, _ = Filter.objects.update_or_create(
+            obj, created = Filter.objects.update_or_create(
                 filter_type=filter_type,
                 moon_separation_angle=f["moon_separation_angle"],
                 moon_separation_width=f["moon_separation_width"],
             )
-            created_filters.append(created)
-            self.stdout.write(f"Created filter {f['name']}.")
+            created_filters.append(obj)
             for obs, filters in observatory_mapping.items():
                 if f["name"] in filters:
                     obs = Observatory.objects.get(name=obs)
-                    obs.filter_set.add(created)
+                    obs.filter_set.add(obj)
                     self.stdout.write(
                         f"Added filter {f['name']} to observatory {obs.name}."
                     )
+            if not created:
+                self.stdout.write(f"Updated configuration of filter {f['name']}.")
+            else:
+                self.stdout.write(f"Created filter {f['name']}.")
 
         untouched_filters = Filter.objects.exclude(
             pk__in=[f.pk for f in created_filters]
