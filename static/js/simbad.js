@@ -29,34 +29,18 @@ async function fetchSimbadCoordinates() {
 }
 
 async function checkResponse(response, catalog_id) {
-  if (response.includes("error")) {
-    if (!response.includes("data")) {
-      // special edge case where query return both an error but also the correct data
-      await showAlertModal(
-        "Failed to resolve coordinates",
-        `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`,
-      );
-      return;
-    } else {
-      /*
-      if the errors occurs but the data is also contained.
-      In this case the message has the following form (always >3 lines):
-      ----------------------------
-      :: error :::::::::::::::
-      [error message]
-
-      :: data :::::::::::::::
-
-       [coordinates]
-
-       ----------------------------
-      */
-
-
+  try {
+    if (response.includes("error")) {
+      if (!response.includes("data")) {
+        throw new Error("Response does not include valid data")
+      }
       let lines = response.split(/\r?\n/);
+      if (lines.length < 3) {
+        throw new Error("Response does not include valid data")
+      }
       response = lines[lines.length - 3].trim();
     }
-  }
+
   let split_res = response.replace(/\+/g, "").split(",");
   let ra = split_res[0].trim().split(":");
   let dec = split_res[1].trim().split(":");
@@ -92,4 +76,13 @@ async function checkResponse(response, catalog_id) {
 
   document.getElementById("id_ra").value = ra.join(" ");
   document.getElementById("id_dec").value = dec.join(" ");
+
+  } catch (error) {
+    await showAlertModal(
+        "Failed to resolve coordinates",
+        `Got an error for Catalog ID "${catalog_id}".\nTarget does probably not exist in SIMBAD database.`,
+      );
+  }
+
+
 }
