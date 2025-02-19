@@ -126,4 +126,9 @@ def build_observation_data(observation: AbstractObservation):
             )
             content["cadence"] = observation.cadence
 
+    if observation.observation_type == ObservationType.EXPERT:
+        if observation.start_observation_time:
+            content["start_observation_time"] = str(observation.start_observation_time)[:5]
+            content["end_observation_time"] = str(observation.end_observation_time)[:5]
+
     return content
