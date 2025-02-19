@@ -46,7 +46,11 @@ function disable_inputs(dependency_type, dependency) {
   ).filter((el) => !!el.getAttribute(dependency_type));
 
   for (let input of dependent_inputs) {
-    if (Array.from(input.getAttribute(dependency_type).split(" ")).some(el => el === dependency)) {
+    if (
+      Array.from(input.getAttribute(dependency_type).split(" ")).some(
+        (el) => el === dependency,
+      )
+    ) {
       input.disabled = false;
     } else {
       input.disabled = true;
@@ -69,7 +73,9 @@ function hide_inputs(dependency_type, dependency) {
   const to_call_later = [];
 
   for (let input of dependent_inputs) {
-    const hide_el = !Array.from(input.getAttribute(dependency_type).split(" ")).some(el => el === dependency);
+    const hide_el = !Array.from(
+      input.getAttribute(dependency_type).split(" "),
+    ).some((el) => el === dependency);
     let parent = input.parentElement;
     if (parent.classList.contains("radio-input-div")) {
       parent = input.parentElement.parentElement;
@@ -80,10 +86,11 @@ function hide_inputs(dependency_type, dependency) {
     } else {
       parent.removeAttribute("style");
       input.disabled = false;
-      if (input.type === "radio" && input.checked && input.onclick != null) to_call_later.push(input);
+      if (input.type === "radio" && input.checked && input.onclick != null)
+        to_call_later.push(input);
     }
   }
-  to_call_later.forEach(callable => callable.click())
+  to_call_later.forEach((callable) => callable.click());
 }
 
 function update_date_dependency(el) {
@@ -108,7 +115,7 @@ function submitForm(event, form, post_address, redirect_address) {
 
   let data = new FormData(form);
 
-  console.log(data)
+  console.log(data);
 
   for (let [name, value] of gather_default_values()) {
     data.set(name, value);
@@ -161,7 +168,7 @@ function submitForm(event, form, post_address, redirect_address) {
  */
 function gather_default_values() {
   const empty_inputs = Array.from(
-    document.getElementsByTagName("INPUT")
+    document.getElementsByTagName("INPUT"),
   ).filter((el) => el.value === "");
 
   const out = new Map();
@@ -169,10 +176,10 @@ function gather_default_values() {
   for (let input of empty_inputs) {
     const placeholder = input.getAttribute("placeholder");
     if (placeholder && input.id !== "id_catalog_id") {
-      out.set(input.getAttribute("name"), placeholder)
+      out.set(input.getAttribute("name"), placeholder);
     }
   }
-  return out
+  return out;
 }
 
 /**

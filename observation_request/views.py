@@ -121,14 +121,14 @@ def build_observation_data(observation: AbstractObservation):
             content["start_scheduling"] = (
                 str(observation.start_scheduling).strip()[:10],
             )
-            content["end_scheduling"] = (
-                str(observation.end_scheduling).strip()[:10],
-            )
+            content["end_scheduling"] = (str(observation.end_scheduling).strip()[:10],)
             content["cadence"] = observation.cadence
 
     if observation.observation_type == ObservationType.EXPERT:
         if observation.start_observation_time:
-            content["start_observation_time"] = str(observation.start_observation_time)[:5]
+            content["start_observation_time"] = str(observation.start_observation_time)[
+                :5
+            ]
             content["end_observation_time"] = str(observation.end_observation_time)[:5]
 
     return content
