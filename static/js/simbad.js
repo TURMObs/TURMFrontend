@@ -18,7 +18,7 @@ async function fetchSimbadCoordinates() {
       body: new URLSearchParams({ script }),
     });
 
-    let text = await response.text();
+    const text = await response.text();
     await checkResponse(text, catalog_id);
   } catch (error) {
     await showAlertModal(
@@ -38,7 +38,21 @@ async function checkResponse(response, catalog_id) {
       );
       return;
     } else {
-      // if the errors occurs but the data is also contained, the coordinates are always in the second last row
+      /*
+      if the errors occurs but the data is also contained.
+      In this case the message has the following form (always >3 lines):
+      ----------------------------
+      :: error :::::::::::::::
+      [error message]
+
+      :: data :::::::::::::::
+
+       [coordinates]
+
+       ----------------------------
+      */
+
+
       let lines = response.split(/\r?\n/);
       response = lines[lines.length - 3].trim();
     }
