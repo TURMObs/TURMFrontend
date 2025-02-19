@@ -149,3 +149,4 @@ app.log
 !nextcloud/test_data/upload_file.json
 package.json
 package-lock.json
+config.json

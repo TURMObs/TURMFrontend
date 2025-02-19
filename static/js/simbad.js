@@ -2,7 +2,7 @@ async function fetchSimbadCoordinates() {
   let catalog_id = document.getElementById("id_catalog_id").value;
 
   // see here for query documentation: https://simbad.cds.unistra.fr/guide/sim-fscript.htx
-  const url = "http://simbad.u-strasbg.fr/simbad/sim-script";
+  const url = "https://simbad.u-strasbg.fr/simbad/sim-script";
   const script = `
     output console=off script=off
     format object form1 "%COO(s:; A, D; ICRS; J2000)"
