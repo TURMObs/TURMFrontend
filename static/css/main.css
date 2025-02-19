@@ -50,11 +50,23 @@
 }
 
 body {
-  background:
-    url(../img/HeartNebula.jpg) no-repeat,
-    var(--color-gray-500);
+  background-color: var(--color-gray-500);
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(../img/HeartNebula.jpg);
+  background-repeat: no-repeat;
   background-size: cover;
   background-position: top center;
+  z-index: -1;
 }
 
 /* typography */
