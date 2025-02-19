@@ -32,8 +32,8 @@ class Dependency(Enum):
 
 class SchedulingType(Enum):
     NO_CONSTRAINT = "No Constraint"
-    SCHEDULE = "Scheduling"
-    SCHEDULE_TIME = "Timed Scheduling"
+    SCHEDULE = "Scheduled"
+    SCHEDULE_TIME = "Timed + Scheduled"
     TIMED = "Timed"
 
 
