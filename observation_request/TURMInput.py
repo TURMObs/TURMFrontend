@@ -210,11 +210,13 @@ class TURMDateInput(_TURMDateTimeInput):
         super().__init__(name, minimum, maximum, *args, **kwargs)
         self.attrs["type"] = "date"
 
+
 class TURMTimeInput(_TURMDateTimeInput):
     def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
         super().__init__(name, minimum, maximum, *args, **kwargs)
         self.attrs["type"] = "time"
         self.attrs["type"] = "time"
+
 
 """ --- TURM Choice Inputs """
 

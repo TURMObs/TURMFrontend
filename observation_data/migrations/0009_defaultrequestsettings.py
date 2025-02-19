@@ -4,17 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0008_expertobservation_end_observation_time_and_more'),
+        ("observation_data", "0008_expertobservation_end_observation_time_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DefaultRequestSettings',
+            name="DefaultRequestSettings",
             fields=[
-                ('id', models.IntegerField(default=0, primary_key=True, serialize=False)),
-                ('settings', models.JSONField(default=dict)),
+                (
+                    "id",
+                    models.IntegerField(default=0, primary_key=True, serialize=False),
+                ),
+                ("settings", models.JSONField(default=dict)),
             ],
         ),
     ]

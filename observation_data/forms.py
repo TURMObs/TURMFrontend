@@ -9,7 +9,8 @@ from observation_request.TURMField import (
     TURMRadioInput,
     TURMSelectField,
     TURMDateDuration,
-    TURMDateTimeDuration, TURMTimeDuration,
+    TURMDateTimeDuration,
+    TURMTimeDuration,
 )
 from observation_request.TURMInput import TURMCharInput, TURMButtonInput
 from .models import (
@@ -23,6 +24,7 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 class Dependency(Enum):
     observation_type = "observation_type_dependent"
@@ -156,7 +158,9 @@ class ExposureSettingsForm(forms.Form):
             (
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("frames_per_filter")
-                ).add_attrs({"placeholder": default_values.get("frames_per_filter", "")}),
+                ).add_attrs(
+                    {"placeholder": default_values.get("frames_per_filter", "")}
+                ),
                 "Frames per Filter",
             ),
             (
@@ -191,23 +195,29 @@ class ExposureSettingsForm(forms.Form):
             ),
         ]
 
-        self.fields["exposure"] = TURMGridField(exposure_settings, (2, 3)).add_dependencies(
+        self.fields["exposure"] = TURMGridField(
+            exposure_settings, (2, 3)
+        ).add_dependencies(
             {Dependency.observation_type.value: [ObservationType.EXPERT]}
         )
         self.fields["exposure"].required = False
         # imaging
-        self.fields["frames_per_filter"] = TURMField.init_from_model(
-            ExpertObservation._meta.get_field("frames_per_filter"),
-            label_name="Frames per Filter",
-        ).add_dependencies(
-            {
-                Dependency.observation_type.value: [
-                    ObservationType.IMAGING,
-                    ObservationType.VARIABLE,
-                    ObservationType.MONITORING,
-                ]
-            }
-        ).add_attrs({"placeholder": default_values.get("frames_per_filter", "")})
+        self.fields["frames_per_filter"] = (
+            TURMField.init_from_model(
+                ExpertObservation._meta.get_field("frames_per_filter"),
+                label_name="Frames per Filter",
+            )
+            .add_dependencies(
+                {
+                    Dependency.observation_type.value: [
+                        ObservationType.IMAGING,
+                        ObservationType.VARIABLE,
+                        ObservationType.MONITORING,
+                    ]
+                }
+            )
+            .add_attrs({"placeholder": default_values.get("frames_per_filter", "")})
+        )
 
         # exoplanet
         self.fields["start_end_observation"] = TURMDateTimeDuration(
@@ -224,16 +234,20 @@ class ExposureSettingsForm(forms.Form):
             }
         )
         # variable
-        self.fields["minimum_altitude"] = TURMField.init_from_model(
-            ExpertObservation._meta.get_field("minimum_altitude")
-        ).add_dependencies(
-            {
-                Dependency.observation_type.value: [
-                    ObservationType.VARIABLE,
-                    # ObservationType.EXPERT,
-                ]
-            }
-        ).add_attrs({"placeholder": default_values.get("minimum_altitude", "")})
+        self.fields["minimum_altitude"] = (
+            TURMField.init_from_model(
+                ExpertObservation._meta.get_field("minimum_altitude")
+            )
+            .add_dependencies(
+                {
+                    Dependency.observation_type.value: [
+                        ObservationType.VARIABLE,
+                        # ObservationType.EXPERT,
+                    ]
+                }
+            )
+            .add_attrs({"placeholder": default_values.get("minimum_altitude", "")})
+        )
 
         # monitoring
         self.fields["scheduling"] = TURMDateDuration(
@@ -247,15 +261,17 @@ class ExposureSettingsForm(forms.Form):
             }
         )
 
-        self.fields["cadence"] = TURMField.init_from_model(
-            ExpertObservation._meta.get_field("cadence")
-        ).add_dependencies(
-            {
-                Dependency.observation_type.value: [
-                    ObservationType.MONITORING,
-                ]
-            }
-        ).add_attrs({"placeholder": default_values.get("cadence", "")})
+        self.fields["cadence"] = (
+            TURMField.init_from_model(ExpertObservation._meta.get_field("cadence"))
+            .add_dependencies(
+                {
+                    Dependency.observation_type.value: [
+                        ObservationType.MONITORING,
+                    ]
+                }
+            )
+            .add_attrs({"placeholder": default_values.get("cadence", "")})
+        )
 
         # expert
         self.fields["schedule_type"] = (
@@ -351,13 +367,17 @@ class ExposureSettingsForm(forms.Form):
             (
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("moon_separation_angle")
-                ).add_attrs({"placeholder": default_values.get("moon_separation_angle", "")}),
+                ).add_attrs(
+                    {"placeholder": default_values.get("moon_separation_angle", "")}
+                ),
                 "Moon Separation Angle",
             ),
             (
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("moon_separation_width")
-                ).add_attrs({"placeholder": default_values.get("moon_separation_width", "")}),
+                ).add_attrs(
+                    {"placeholder": default_values.get("moon_separation_width", "")}
+                ),
                 "Moon Separation Width",
             ),
         ]

@@ -3,7 +3,6 @@ import os
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
-from yaml import serialize
 
 from observation_data.models import (
     Observatory,
@@ -11,8 +10,9 @@ from observation_data.models import (
     ObservatoryExposureSettings,
     ObservationType,
     Filter,
-    DefaultRequestSettings
+    DefaultRequestSettings,
 )
+
 
 class Command(BaseCommand):
     help = "Loads the observatories, exposure settings and filters into the database."
@@ -58,7 +58,9 @@ class Command(BaseCommand):
         )
         untouched_filters = self.populate_filters(overwrite, data, obs_mapping, delete)
 
-        untouched_default_settings = self.populate_default_request_settings(overwrite, data)
+        untouched_default_settings = self.populate_default_request_settings(
+            overwrite, data
+        )
 
         if delete:
             try:
@@ -220,19 +222,16 @@ class Command(BaseCommand):
         return untouched_filters
 
     def populate_default_request_settings(self, overwrite, data):
-        if (
-                not overwrite
-                and DefaultRequestSettings.objects.filter(id=0).exists()
-        ):
+        if not overwrite and DefaultRequestSettings.objects.filter(id=0).exists():
             self.stdout.write(
-                f"Default request settings already exists. Set --overwrite to overwrite."
+                "Default request settings already exists. Set --overwrite to overwrite."
             )
             return None
         if not DefaultRequestSettings.objects.filter(id=0).exists():
-            self.stdout.write(f"Created Default request settings.")
+            self.stdout.write("Created Default request settings.")
 
         settings, _ = DefaultRequestSettings.objects.update_or_create(
-            id= 0,
-            settings = data["request_settings_defaults"],
+            id=0,
+            settings=data["request_settings_defaults"],
         )
         return settings
