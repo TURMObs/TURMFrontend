@@ -215,9 +215,9 @@ class Command(BaseCommand):
                         f"Added filter {f['name']} to observatory {obs.name}."
                     )
             if not created:
-                self.stdout.write(f"Updated configuration of filter {filter_type}.")
+                self.stdout.write(f"Updated configuration of filter {f['name']}.")
             else:
-                self.stdout.write(f"Created filter {filter_type}.")
+                self.stdout.write(f"Created filter {f['name']}.")
 
         untouched_filters = Filter.objects.exclude(
             pk__in=[f.pk for f in created_filters]
