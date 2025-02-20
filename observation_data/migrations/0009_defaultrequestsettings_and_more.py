@@ -4,77 +4,79 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('observation_data', '0008_alter_filter_filter_type'),
+        ("observation_data", "0008_alter_filter_filter_type"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DefaultRequestSettings',
+            name="DefaultRequestSettings",
             fields=[
-                ('id', models.IntegerField(default=0, primary_key=True, serialize=False)),
-                ('settings', models.JSONField(default=dict)),
+                (
+                    "id",
+                    models.IntegerField(default=0, primary_key=True, serialize=False),
+                ),
+                ("settings", models.JSONField(default=dict)),
             ],
         ),
         migrations.AddField(
-            model_name='expertobservation',
-            name='end_observation_time',
+            model_name="expertobservation",
+            name="end_observation_time",
             field=models.TimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='expertobservation',
-            name='start_observation_time',
+            model_name="expertobservation",
+            name="start_observation_time",
             field=models.TimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='expertobservation',
-            name='cadence',
+            model_name="expertobservation",
+            name="cadence",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='expertobservation',
-            name='end_observation',
+            model_name="expertobservation",
+            name="end_observation",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='expertobservation',
-            name='end_scheduling',
+            model_name="expertobservation",
+            name="end_scheduling",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='expertobservation',
-            name='next_upload',
+            model_name="expertobservation",
+            name="next_upload",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='expertobservation',
-            name='start_observation',
+            model_name="expertobservation",
+            name="start_observation",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='expertobservation',
-            name='start_scheduling',
+            model_name="expertobservation",
+            name="start_scheduling",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='monitoringobservation',
-            name='cadence',
+            model_name="monitoringobservation",
+            name="cadence",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='monitoringobservation',
-            name='end_scheduling',
+            model_name="monitoringobservation",
+            name="end_scheduling",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='monitoringobservation',
-            name='next_upload',
+            model_name="monitoringobservation",
+            name="next_upload",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='monitoringobservation',
-            name='start_scheduling',
+            model_name="monitoringobservation",
+            name="start_scheduling",
             field=models.DateField(blank=True, null=True),
         ),
     ]

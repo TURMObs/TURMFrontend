@@ -165,9 +165,9 @@ function submitForm(event, form, postAddress, redirectAddress) {
  * Returns dict of empty inputs that have a placeholder
  */
 function gatherDefaultValues() {
-  const emptyInputs = Array.from(
-    document.getElementsByTagName("INPUT"),
-  ).filter((el) => el.value === "");
+  const emptyInputs = Array.from(document.getElementsByTagName("INPUT")).filter(
+    (el) => el.value === "",
+  );
 
   const out = new Map();
 
