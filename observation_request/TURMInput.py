@@ -148,7 +148,7 @@ class TURMIntegerInput(_TURMNumericInput):
             *args,
             **kwargs,
         )
-        self.attrs["oninput"] = "discard_input(event, this, '[^\\\\d*\\\\s*]')"
+        self.attrs["oninput"] = "discardInput(event, this, '[^\\\\d*\\\\s*]')"
 
 
 class TURMFloatInput(_TURMNumericInput):

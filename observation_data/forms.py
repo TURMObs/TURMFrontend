@@ -75,7 +75,7 @@ class TURMProjectForm(forms.Form):
             model_field=AbstractObservation._meta.get_field("observatory"),
             label_name="",
         ).add_on_click(
-            lambda o_type: f"disable_inputs('{Dependency.observatory.value}','{o_type}')"
+            lambda o_type: f"disableInputs('{Dependency.observatory.value}','{o_type}')"
         )
     except ProgrammingError as error:
         error_message = str(error).split("\n")[0]
@@ -110,7 +110,7 @@ class ExposureSettingsForm(forms.Form):
             [(o_type[1], o_type[0]) for o_type in ObservationType.choices],
             label_name="Observation Type",
         ).add_on_click(
-            lambda o_type: f"hide_inputs('{Dependency.observation_type.value}','{o_type}')"
+            lambda o_type: f"hideInputs('{Dependency.observation_type.value}','{o_type}')"
         )
         # combined
         self.fields["filter_set"] = (
@@ -284,7 +284,7 @@ class ExposureSettingsForm(forms.Form):
                 label_name="Time Constrains",
             )
             .add_on_click(
-                lambda s_type: f"hide_inputs('{Dependency.scheduling.value}','{s_type}')"
+                lambda s_type: f"hideInputs('{Dependency.scheduling.value}','{s_type}')"
             )
             .add_dependencies(
                 {Dependency.observation_type.value: [ObservationType.EXPERT]}
