@@ -1,6 +1,7 @@
 import logging
 
 from django.core.exceptions import BadRequest
+from django.db.models import Q
 from nc_py_api import NextcloudException
 
 from accounts.models import ObservatoryUser
@@ -64,7 +65,8 @@ def process_pending_deletion_observations():
         return
 
     for obs in AbstractObservation.objects.filter(
-        project_status=ObservationStatus.PENDING_DELETION
+        Q(project_status=ObservationStatus.PENDING_DELETION)
+        | Q(project_status=ObservationStatus.PENDING_COMPLETION)
     ):
         nc_path = generate_observation_path(obs)
         if nm.file_exists(nc_path):
@@ -77,10 +79,17 @@ def process_pending_deletion_observations():
                 f"Observation {obs.id} with target {obs.target.name} does not exist in Nextcloud."
             )
 
-        obs.delete()
-        logger.info(
-            f"Observation {obs.id} with target {obs.target.name} deleted successfully from database."
-        )
+        if obs.project_status == ObservationStatus.PENDING_COMPLETION:
+            obs.project_status = ObservationStatus.COMPLETED
+            logger.info(
+                f"Status of observation {obs.id} with target {obs.target.name} set to {obs.project_status}"
+            )
+            obs.save()
+        else:
+            obs.delete()
+            logger.info(
+                f"Observation {obs.id} with target {obs.target.name} deleted successfully from database."
+            )
     logger.info("All observations with status PENDING_DELETE deleted successfully.")
 
 

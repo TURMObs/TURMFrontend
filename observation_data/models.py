@@ -23,6 +23,7 @@ class ObservationStatus(models.TextChoices):
     ERROR = "Error"
     COMPLETED = "Completed"
     PENDING_DELETION = "Pending Deletion"
+    PENDING_COMPLETION = "Pending Completion"
 
 
 class CelestialTarget(models.Model):
