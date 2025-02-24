@@ -962,7 +962,7 @@ class EditObservationTestCase(django.test.TestCase):
 
     def test_missing_observation_id(self):
         response = self._send_post_request(1, {})
-        self._assert_error_response(response, 404, {"error": "Observation not found"})
+        self._assert_error_response(response, 404, {"error": "Observation 1 not found"})
 
     def test_missing_target_field_flat(self):
         (_, id) = self._create_imaging_observation()
