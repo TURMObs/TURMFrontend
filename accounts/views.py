@@ -294,6 +294,10 @@ def generate_user_invitation(request):
     role = form.cleaned_data["role"]
     expert = form.cleaned_data["expert"]
 
+    print(
+        f"email: {email}, username: {username}, quota: {quota}, lifetime: {lifetime}, role: {role}, expert: {expert}"
+    )
+
     if username is None or username == "":
         username = email
 
