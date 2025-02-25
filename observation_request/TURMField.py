@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.forms.fields import Field
 from django.db import models
+
 from observation_request.TURMInput import (
     _TURMInput,
     TURMIntegerInput,
@@ -12,6 +13,7 @@ from observation_request.TURMInput import (
     TURMDateInput,
     _TURMChoiceInput,
     TURMCharInput,
+    TURMTimeInput,
 )
 
 
@@ -223,6 +225,34 @@ class TURMDateTimeDuration(TURMField):
                 start[1],
             ),  # "%Y-%m-%dT%X"
             (TURMDateTimeInput(end[0].name, *args, **kwargs), end[1]),
+        ]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
+        super().__init__(widget=widget, label_name="", *args, **kwargs)
+
+
+class TURMTimeDuration(TURMField):
+    """
+    provides two Time inputs for a duration
+    """
+
+    def __init__(
+        self,
+        start: tuple[models.Field, str],
+        end: tuple[models.Field, str],
+        *args,
+        **kwargs,
+    ):
+        sub_widgets = [
+            (
+                TURMTimeInput(
+                    start[0].name,
+                    minimum="17:00",
+                    *args,
+                    **kwargs,
+                ),
+                start[1],
+            ),
+            (TURMTimeInput(end[0].name, maximum="9:00", *args, **kwargs), end[1]),
         ]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
