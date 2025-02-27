@@ -299,6 +299,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         exposure_time: float = 10.0,
         start_scheduling: datetime = timezone.now(),
         end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
+        minimum_altitude: float = 30.0,
         frames_per_filter: int = 10,
         cadence: int = 1,
     ):
@@ -322,6 +323,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             exposure_time=exposure_time,
             start_scheduling=start_scheduling,
             end_scheduling=end_scheduling,
+            minimum_altitude=minimum_altitude,
             next_upload=start_scheduling,
             cadence=cadence,
             frames_per_filter=frames_per_filter,

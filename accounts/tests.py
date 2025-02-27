@@ -85,7 +85,10 @@ class DSGVOUserDataTestCase(django.test.TestCase):
 
     def setUp(self):
         ObservatoryUser.objects.create_user(
-            username="testuser", password="testpassword", is_superuser=True
+            email="testuser",
+            username="testuser",
+            password="testpassword",
+            is_superuser=True,
         )
         self.user = ObservatoryUser.objects.get(username="testuser")
         call_command(
@@ -182,7 +185,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         self._create_imaging_observation(
             "M52",
             ObservatoryUser.objects.create_user(
-                username="testuser2", password="testpassword"
+                email="testuser2", username="testuser2", password="testpassword"
             ),
         )
         response = self.client.delete(f"/accounts/delete-user/{self.user.id}")
@@ -201,7 +204,7 @@ class DSGVOUserDataTestCase(django.test.TestCase):
         im2 = self._create_imaging_observation(
             "M52",
             ObservatoryUser.objects.create_user(
-                username="testuser2", password="testpassword"
+                email="testuser2", username="testuser2", password="testpassword"
             ),
         )
         mkdir(f"{self.prefix}/TURMX/Projects")

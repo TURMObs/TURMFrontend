@@ -1617,7 +1617,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(1, AbstractObservation.objects.count())
 
         other_test_instance = django.test.Client()
-        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        ObservatoryUser.objects.create_user(username="Max Mustermann", email="testuser")
         other_test_instance.user = ObservatoryUser.objects.get(
             username="Max Mustermann"
         )
@@ -1637,7 +1637,7 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.create_test_observation(obs_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
-        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        ObservatoryUser.objects.create_user(username="Max Mustermann", email="testuser")
         obs.user = ObservatoryUser.objects.get(username="Max Mustermann")
         obs.save()
 
@@ -1660,7 +1660,7 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.create_test_observation(obs_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
-        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        ObservatoryUser.objects.create_user(username="Max Mustermann", email="testuser")
         obs.save()
         self.assertEqual(1, AbstractObservation.objects.count())
 
