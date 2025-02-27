@@ -19,7 +19,6 @@
         }
 
         .observations-table {
-            min-width: 1024px;
             margin: 16px 0px;
         }
 
@@ -70,8 +69,8 @@
         .actions-container {
             height: 100%;
             display: flex;
+            gap: 4px;
             flex-direction: row;
-            justify-content: space-between;
             align-items: center;
         }
 
@@ -156,7 +155,7 @@
                                         </div>
                                     </td>
                                     <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                    <td class="text-align-left">{{ observation.target.name }}</td>
+                                    <td class="table-cell-truncate text-align-left">{{ observation.target.name }}</td>
                                     <td class="text-align-left">{{ observation.observation_type }}</td>
                                     <td>
                                         <div class="filter-set-container">
