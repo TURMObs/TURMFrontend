@@ -962,7 +962,7 @@ class EditObservationTestCase(django.test.TestCase):
 
     def test_missing_observation_id(self):
         response = self._send_post_request(1, {})
-        self._assert_error_response(response, 404, {"error": "Observation not found"})
+        self._assert_error_response(response, 404, {"error": "Observation 1 not found"})
 
     def test_missing_target_field_flat(self):
         (_, id) = self._create_imaging_observation()
@@ -1040,6 +1040,239 @@ class EditObservationTestCase(django.test.TestCase):
         self.assertEqual(observation.observation_type, ObservationType.VARIABLE)
         self.assertEqual(observation.minimum_altitude, 40.0)
         self.assertEqual(observation.frames_per_filter, 120)
+
+
+class FinishObservationTestCase(django.test.TestCase):
+    def setUp(self):
+        self.user = None
+        self.client = django.test.Client()
+        _create_user_and_login(self)
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            stdout=io.StringIO(),
+        )
+        self.base_request = self._get_base_request()
+
+    @staticmethod
+    def _get_base_request():
+        return {
+            "observatory": "TURMX",
+            "target": {
+                "name": "SagittariusA*",
+                "catalog_id": "SagA*",
+                "ra": "17 45 40.03599",
+                "dec": "-29 00 28.1699",
+            },
+            "observation_type": "Invalid",
+            "exposure_time": 60.0,
+            "filter_set": ["L"],
+        }
+
+    @staticmethod
+    def _get_flat_base_request():
+        return {
+            "observatory": "TURMX",
+            "name": "SagittariusA*",
+            "catalog_id": "SagA*",
+            "ra": "17 45 40.03599",
+            "dec": "-29 00 28.1699",
+            "observation_type": "Invalid",
+            "exposure_time": 60.0,
+            "filter_set": ["L"],
+        }
+
+    def _send_post_request(self, observation_id, data):
+        return self.client.post(
+            path=f"/observation-data/edit/{observation_id}",
+            data=data,
+            content_type="application/json",
+        )
+
+    def _assert_error_response(self, response, expected_status, expected_error):
+        self.assertEqual(response.status_code, expected_status, response.json())
+        self.assertEqual(response.json(), expected_error)
+
+    def _edit_observation(self, observation_id, data):
+        response = self._send_post_request(observation_id, data)
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def _create_imaging_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "LBN437",
+                "ra": "22 32 01",
+                "dec": "40 49 24",
+            },
+            "observation_type": ObservationType.IMAGING,
+            "exposure_time": 300.0,
+            "filter_set": ["H"],
+            "frames_per_filter": 100,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, ImagingObservation.objects.get().id)
+
+    def _create_exoplanet_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "Qatar-4b",
+                "ra": "00 19 26",
+                "dec": "+44 01 39",
+            },
+            "observation_type": ObservationType.EXOPLANET,
+            "start_observation": base_time.replace(
+                hour=19, minute=30, second=0
+            ).isoformat(),
+            "end_observation": base_time.replace(
+                hour=23, minute=30, second=0
+            ).isoformat(),
+            "exposure_time": 120.0,
+            "filter_set": ["L"],
+        }
+        response = self.client.post(
+            path="/observation-data/create/",
+            data=data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, ExoplanetObservation.objects.get().id)
+
+    def _create_variable_observation(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "RV-Ari",
+                "catalog_id": "RV-Ari",
+                "ra": "02 15 07",
+                "dec": "+18 04 28",
+            },
+            "observation_type": ObservationType.VARIABLE,
+            "exposure_time": 60.0,
+            "filter_set": ["L"],
+            "minimum_altitude": 30.0,
+            "frames_per_filter": 450,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, VariableObservation.objects.get().id)
+
+    def _create_monitoring_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "T-CrB",
+                "ra": "15 59 30",
+                "dec": "+25 55 13",
+            },
+            "cadence": 1,
+            "exposure_time": 30.0,
+            "start_scheduling": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
+            "observation_type": ObservationType.MONITORING,
+            "filter_set": ["R", "G", "B"],
+            "frames_per_filter": 10,
+            "minimum_altitude": 35.0,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, MonitoringObservation.objects.get().id)
+
+    def _create_expert_observation(self):
+        base_time = datetime.now(timezone.utc) + timedelta(days=1)
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "T-CrB",
+                "ra": "15 59 30",
+                "dec": "+25 55 13",
+            },
+            "priority": 5000,
+            "cadence": 1,
+            "exposure_time": 30.0,
+            "start_scheduling": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_scheduling": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
+            "observation_type": ObservationType.EXPERT,
+            "filter_set": ["R", "G", "B"],
+            "frames_per_filter": 10,
+            "dither_every": 1,
+            "binning": 1,
+            "subframe": 1.0000,
+            "gain": 1,
+            "offset": 1,
+            "start_observation": base_time.replace(
+                hour=22, minute=0, second=0
+            ).isoformat(),
+            "end_observation": (base_time + timedelta(days=2))
+            .replace(hour=23, minute=0, second=0)
+            .isoformat(),
+            "moon_separation_angle": 30.00,
+            "moon_separation_width": 7,
+            "minimum_altitude": 35.00,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        return (data, ExpertObservation.objects.get().id)
+
+    def test_imaging_completion(self):
+        (data, id) = self._create_imaging_observation()
+        response = self.client.post(
+            path=f"/observation-data/finish/{id}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        observation = ImagingObservation.objects.get()
+        self.assertEqual(observation.project_status, ObservationStatus.COMPLETED)
+
+    def test_uploaded_imaging_completion(self):
+        (data, id) = self._create_imaging_observation()
+        obs = ImagingObservation.objects.get()
+        obs.project_status = ObservationStatus.UPLOADED
+        obs.save()
+        response = self.client.post(
+            path=f"/observation-data/finish/{id}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        observation = ImagingObservation.objects.get()
+        self.assertEqual(
+            observation.project_status, ObservationStatus.PENDING_COMPLETION
+        )
+
+    def test_scheduled_observation_completion(self):
+        (data, id) = self._create_expert_observation()
+        obs = ExpertObservation.objects.get()
+        obs.project_status = ObservationStatus.UPLOADED
+        obs.save()
+        response = self.client.post(
+            path=f"/observation-data/finish/{id}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        observation = ExpertObservation.objects.get()
+        self.assertEqual(
+            observation.project_status, ObservationStatus.PENDING_COMPLETION
+        )
 
 
 class JsonFormattingTestCase(django.test.TestCase):
@@ -1384,7 +1617,7 @@ class ObservationManagementTestCase(django.test.TestCase):
         self.assertEqual(1, AbstractObservation.objects.count())
 
         other_test_instance = django.test.Client()
-        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        ObservatoryUser.objects.create_user(username="Max Mustermann", email="testuser")
         other_test_instance.user = ObservatoryUser.objects.get(
             username="Max Mustermann"
         )
@@ -1404,7 +1637,7 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.create_test_observation(obs_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
-        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        ObservatoryUser.objects.create_user(username="Max Mustermann", email="testuser")
         obs.user = ObservatoryUser.objects.get(username="Max Mustermann")
         obs.save()
 
@@ -1427,7 +1660,7 @@ class ObservationManagementTestCase(django.test.TestCase):
 
         self.create_test_observation(obs_id=obs_id)
         obs = AbstractObservation.objects.get(id=obs_id)
-        ObservatoryUser.objects.create_user(username="Max Mustermann")
+        ObservatoryUser.objects.create_user(username="Max Mustermann", email="testuser")
         obs.save()
         self.assertEqual(1, AbstractObservation.objects.count())
 

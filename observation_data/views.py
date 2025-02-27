@@ -98,6 +98,31 @@ def create_observation(request):
 
 @require_POST
 @api_view(["POST"])
+def finish_observation(request, observation_id):
+    user = request.user
+    observation, response = _fetch_observation(user, observation_id)
+    if response:
+        return response
+    can_finish = (
+        user.has_perm(UserPermission.CAN_EDIT_ALL_OBSERVATIONS)
+        or user == observation.user
+    )
+    if not can_finish:
+        return Response(
+            {"error": "Permission denied"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if observation.project_status == ObservationStatus.UPLOADED:
+        observation.project_status = ObservationStatus.PENDING_COMPLETION
+    else:
+        observation.project_status = ObservationStatus.COMPLETED
+    observation.save()
+    return Response(status=status.HTTP_202_ACCEPTED)
+
+
+@require_POST
+@api_view(["POST"])
 def edit_observation(request, observation_id):
     """
     Edit an observation which is identified by the observation id.
@@ -109,26 +134,9 @@ def edit_observation(request, observation_id):
     """
 
     user = request.user
-
-    if not isinstance(user, ObservatoryUser):
-        return Response(
-            {"error": "Invalid user model"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not isinstance(observation_id, int):
-        return Response(
-            {"error": f"Invalid observation id: {observation_id}"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        observation = AbstractObservation.objects.get(id=observation_id)
-    except AbstractObservation.DoesNotExist:
-        return Response(
-            {"error": "Observation not found"},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+    observation, response = _fetch_observation(user, observation_id)
+    if response:
+        return response
 
     if observation.project_status != ObservationStatus.PENDING:
         return Response(
@@ -161,7 +169,6 @@ def edit_observation(request, observation_id):
             request.data.copy(), serializer_class.Meta.model
         )
 
-    observation_type = request_data.get("observation_type")
     request_data["user"] = request.user.id
 
     if isinstance(request_data.get("name", ""), str):
@@ -179,7 +186,7 @@ def edit_observation(request, observation_id):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    observation = serializer.save()
+    serializer.save()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -190,28 +197,13 @@ def delete_observation(request, observation_id):
     Deletes the observation with the passed id.
     User must be the owner of the observation or admin to delete the observation.
     :param request: HTTP request with observation data
+    :param observation_id: The id of the observation to be deleted
     :return: HTTP response success or error with error message
     """
     user = request.user
-
-    if not isinstance(user, ObservatoryUser):
-        return Response(
-            {"error": "Invalid user model"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not isinstance(observation_id, int):
-        return Response(
-            {"error": "Invalid observation id"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        obs = AbstractObservation.objects.get(id=observation_id)
-    except AbstractObservation.DoesNotExist as e:
-        response = f"Tried to delete observation {observation_id} but no such observations exists. Got {str(e)}"
-        logger.error(response)
-        return Response({response}, status=status.HTTP_404_NOT_FOUND)
+    obs, response = _fetch_observation(user, observation_id)
+    if response:
+        return response
 
     if not user == obs.user and not user.has_perm(
         UserPermission.CAN_DELETE_ALL_OBSERVATIONS
@@ -233,6 +225,30 @@ def delete_observation(request, observation_id):
         return Response({response}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_202_ACCEPTED)
+
+
+def _fetch_observation(user, observation_id) -> (AbstractObservation, Response):
+    if not isinstance(user, ObservatoryUser):
+        return None, Response(
+            {"error": "Invalid user model"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not isinstance(observation_id, int):
+        return None, Response(
+            {"error": "Invalid observation id"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        obs = AbstractObservation.objects.get(id=observation_id)
+    except AbstractObservation.DoesNotExist:
+        return None, Response(
+            {"error": f"Observation {observation_id} not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    return obs, None
 
 
 def _nest_observation_request(data, mappings):
