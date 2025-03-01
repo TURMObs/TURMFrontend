@@ -64,6 +64,7 @@ def build_observation_data(observation: AbstractObservation):
                 content["schedule_type"] = forms.SchedulingType.SCHEDULE_TIME.name
             else:
                 content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
+            content["exp_cadence"] = observation.cadence
         elif observation.start_observation:
             content["schedule_type"] = forms.SchedulingType.TIMED.name
         else:
