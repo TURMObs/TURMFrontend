@@ -1,21 +1,29 @@
 from django.shortcuts import redirect, render
 import json
+
 from TURMFrontend import settings
+from accounts.models import ObservatoryUser, UserPermission
 from observation_data import forms
 from observation_data.forms import (
     CelestialTargetForm,
     ExposureSettingsForm,
     TURMProjectForm,
+    ExpertExposureSettingsForm,
 )
 from observation_data.models import AbstractObservation, ObservationType
 
 
 def create_observation_request(request):
+    if isinstance(request.user, ObservatoryUser) and request.user.has_perm(UserPermission.CAN_CREATE_EXPERT_OBSERVATION):
+        exposure_form = ExpertExposureSettingsForm()
+    else:
+        exposure_form = ExposureSettingsForm()
+
     context = {
         "forms": [
             ("Observatory", TURMProjectForm()),
             ("Target", CelestialTargetForm()),
-            ("Exposure", ExposureSettingsForm()),
+            ("Exposure", exposure_form),
         ],
         "create_form_url": settings.SUBPATH + "/observation-data/create/",
     }
@@ -31,11 +39,16 @@ def edit_observation_request(request, observation_id):
 
     existing_request = build_observation_data(observation)
 
+    if isinstance(request.user, ObservatoryUser) and request.user.has_perm(UserPermission.CAN_CREATE_EXPERT_OBSERVATION):
+        exposure_form = ExpertExposureSettingsForm()
+    else:
+        exposure_form = ExposureSettingsForm()
+
     context = {
         "forms": [
             ("Observatory", TURMProjectForm()),
             ("Target", CelestialTargetForm()),
-            ("Exposure", ExposureSettingsForm()),
+            ("Exposure", exposure_form),
         ],
         "edit_form_url": settings.SUBPATH
         + "/observation-data/edit/"
