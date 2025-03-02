@@ -242,7 +242,7 @@ class ExposureSettingsForm(forms.Form):
                 {
                     Dependency.observation_type.value: [
                         ObservationType.VARIABLE,
-                        # ObservationType.EXPERT,
+                        ObservationType.MONITORING
                     ]
                 }
             )
