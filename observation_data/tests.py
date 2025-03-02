@@ -1369,12 +1369,10 @@ class FinishObservationTestCase(django.test.TestCase):
             "priority": 5000,
             "cadence": 1,
             "exposure_time": 30.0,
-            "start_scheduling": base_time.replace(
-                hour=22, minute=0, second=0
-            ).isoformat(),
+            "start_scheduling": base_time.replace(hour=22, minute=0, second=0).date(),
             "end_scheduling": (base_time + timedelta(days=2))
             .replace(hour=23, minute=0, second=0)
-            .isoformat(),
+            .date(),
             "observation_type": ObservationType.EXPERT,
             "filter_set": ["R", "G", "B"],
             "frames_per_filter": 10,
@@ -1383,12 +1381,6 @@ class FinishObservationTestCase(django.test.TestCase):
             "subframe": 1.0000,
             "gain": 1,
             "offset": 1,
-            "start_observation": base_time.replace(
-                hour=22, minute=0, second=0
-            ).isoformat(),
-            "end_observation": (base_time + timedelta(days=2))
-            .replace(hour=23, minute=0, second=0)
-            .isoformat(),
             "moon_separation_angle": 30.00,
             "moon_separation_width": 7,
             "minimum_altitude": 35.00,
