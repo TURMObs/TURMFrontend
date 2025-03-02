@@ -45,11 +45,24 @@ class CelestialTargetForm(forms.Form):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
         self.label_suffix = ""
 
-        self.fields["name"] = TURMField.init_from_model(CelestialTarget._meta.get_field("name")).add_attrs({"placeholder": "OrionNebula"})
-        target_widgets = [(TURMCharInput("catalog_id", "M42"), "Catalog ID"),(TURMButtonInput("Fetch SIMBAD coordinates", "fetchSimbadCoordinates()"), " "),]
+        self.fields["name"] = TURMField.init_from_model(
+            CelestialTarget._meta.get_field("name")
+        ).add_attrs({"placeholder": "OrionNebula"})
+        target_widgets = [
+            (TURMCharInput("catalog_id", "M42"), "Catalog ID"),
+            (
+                TURMButtonInput("Fetch SIMBAD coordinates", "fetchSimbadCoordinates()"),
+                " ",
+            ),
+        ]
         self.fields["catalog_id"] = TURMGridField(target_widgets, (2, 1))
-        self.fields["ra"] = TURMField.init_from_model(CelestialTarget._meta.get_field("ra"), label_name="RA").add_attrs({"placeholder": "hh mm ss"})
-        self.fields["dec"] = TURMField.init_from_model(CelestialTarget._meta.get_field("dec"), label_name="DEC").add_attrs({"placeholder": "hh mm ss"})
+        self.fields["ra"] = TURMField.init_from_model(
+            CelestialTarget._meta.get_field("ra"), label_name="RA"
+        ).add_attrs({"placeholder": "hh mm ss"})
+        self.fields["dec"] = TURMField.init_from_model(
+            CelestialTarget._meta.get_field("dec"), label_name="DEC"
+        ).add_attrs({"placeholder": "hh mm ss"})
+
 
 class TURMProjectForm(forms.Form):
     """
@@ -85,17 +98,24 @@ class ExposureSettingsForm(forms.Form):
 
     default_values = {}
 
-    def __init__(self,*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ""
 
         if DefaultRequestSettings.objects.get(id=0):
-           self.default_values = DefaultRequestSettings.objects.get(id=0).settings
+            self.default_values = DefaultRequestSettings.objects.get(id=0).settings
 
         # init fields
         self.fields["observation_type"] = TURMSelectField(
             "observation_type",
-            [(o_type[1], o_type[0]) for o_type in [item for item in ObservationType.choices if not item[0] == ObservationType.EXPERT]],
+            [
+                (o_type[1], o_type[0])
+                for o_type in [
+                    item
+                    for item in ObservationType.choices
+                    if not item[0] == ObservationType.EXPERT
+                ]
+            ],
             label_name="Observation Type",
         ).add_on_click(
             lambda o_type: f"hideInputs('{Dependency.observation_type.value}','{o_type}')"
@@ -137,7 +157,7 @@ class ExposureSettingsForm(forms.Form):
             .add_dependencies(
                 {Dependency.observation_type.value: [ObservationType.EXPERT]}
             )
-            .add_attrs({"placeholder":self.default_values.get("exposure_time", "")})
+            .add_attrs({"placeholder": self.default_values.get("exposure_time", "")})
         )
         self.fields["exposure_time_expert"].required = False
 
@@ -147,38 +167,40 @@ class ExposureSettingsForm(forms.Form):
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("frames_per_filter")
                 ).add_attrs(
-                    {"placeholder":self.default_values.get("frames_per_filter", "")}
+                    {"placeholder": self.default_values.get("frames_per_filter", "")}
                 ),
                 "Frames per Filter",
             ),
             (
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("dither_every")
-                ).add_attrs({"placeholder":self.default_values.get("dither_every", "")}),
+                ).add_attrs(
+                    {"placeholder": self.default_values.get("dither_every", "")}
+                ),
                 "Dither Every",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("binning")
-                ).add_attrs({"placeholder":self.default_values.get("binning", "")}),
+                ).add_attrs({"placeholder": self.default_values.get("binning", "")}),
                 "Binning",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("subframe")
-                ).add_attrs({"placeholder":self.default_values.get("subframe", "")}),
+                ).add_attrs({"placeholder": self.default_values.get("subframe", "")}),
                 "Sub Frame",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("gain")
-                ).add_attrs({"placeholder":self.default_values.get("gain", "")}),
+                ).add_attrs({"placeholder": self.default_values.get("gain", "")}),
                 "Gain",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("offset")
-                ).add_attrs({"placeholder":self.default_values.get("offset", "")}),
+                ).add_attrs({"placeholder": self.default_values.get("offset", "")}),
                 "Offset",
             ),
         ]
@@ -204,7 +226,9 @@ class ExposureSettingsForm(forms.Form):
                     ]
                 }
             )
-            .add_attrs({"placeholder":self.default_values.get("frames_per_filter", "")})
+            .add_attrs(
+                {"placeholder": self.default_values.get("frames_per_filter", "")}
+            )
         )
 
         # exoplanet
@@ -230,11 +254,11 @@ class ExposureSettingsForm(forms.Form):
                 {
                     Dependency.observation_type.value: [
                         ObservationType.VARIABLE,
-                        ObservationType.MONITORING
+                        ObservationType.MONITORING,
                     ]
                 }
             )
-            .add_attrs({"placeholder":self.default_values.get("minimum_altitude", "")})
+            .add_attrs({"placeholder": self.default_values.get("minimum_altitude", "")})
         )
 
         # monitoring
@@ -258,8 +282,9 @@ class ExposureSettingsForm(forms.Form):
                     ]
                 }
             )
-            .add_attrs({"placeholder":self.default_values.get("cadence", "")})
+            .add_attrs({"placeholder": self.default_values.get("cadence", "")})
         )
+
 
 class ExpertExposureSettingsForm(ExposureSettingsForm):
     def __init__(self, *args, **kwargs):
@@ -368,7 +393,11 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("moon_separation_angle")
                 ).add_attrs(
-                    {"placeholder": self.default_values.get("moon_separation_angle", "")}
+                    {
+                        "placeholder": self.default_values.get(
+                            "moon_separation_angle", ""
+                        )
+                    }
                 ),
                 "Moon Separation Angle",
             ),
@@ -376,7 +405,11 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("moon_separation_width")
                 ).add_attrs(
-                    {"placeholder":self.default_values.get("moon_separation_width", "")}
+                    {
+                        "placeholder": self.default_values.get(
+                            "moon_separation_width", ""
+                        )
+                    }
                 ),
                 "Moon Separation Width",
             ),
@@ -393,6 +426,6 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             .add_dependencies(
                 {Dependency.observation_type.value: [ObservationType.EXPERT]}
             )
-            .add_attrs({"placeholder":self.default_values.get("priority", "")})
+            .add_attrs({"placeholder": self.default_values.get("priority", "")})
         )
         self.fields["priority"].required = False

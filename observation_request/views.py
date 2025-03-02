@@ -14,7 +14,9 @@ from observation_data.models import AbstractObservation, ObservationType
 
 
 def create_observation_request(request):
-    if isinstance(request.user, ObservatoryUser) and request.user.has_perm(UserPermission.CAN_CREATE_EXPERT_OBSERVATION):
+    if isinstance(request.user, ObservatoryUser) and request.user.has_perm(
+        UserPermission.CAN_CREATE_EXPERT_OBSERVATION
+    ):
         exposure_form = ExpertExposureSettingsForm()
     else:
         exposure_form = ExposureSettingsForm()
@@ -39,7 +41,9 @@ def edit_observation_request(request, observation_id):
 
     existing_request = build_observation_data(observation)
 
-    if isinstance(request.user, ObservatoryUser) and request.user.has_perm(UserPermission.CAN_CREATE_EXPERT_OBSERVATION):
+    if isinstance(request.user, ObservatoryUser) and request.user.has_perm(
+        UserPermission.CAN_CREATE_EXPERT_OBSERVATION
+    ):
         exposure_form = ExpertExposureSettingsForm()
     else:
         exposure_form = ExposureSettingsForm()
@@ -69,22 +73,28 @@ def build_observation_data(observation: AbstractObservation):
         "catalog_id": observation.target.catalog_id,
         "ra": observation.target.ra,
         "dec": observation.target.dec,
-        "exposure_time": float(observation.exposure_time)
+        "exposure_time": float(observation.exposure_time),
     }
 
     match observation.observation_type:
         case ObservationType.IMAGING:
             content["frames_per_filter"] = observation.frames_per_filter
         case ObservationType.EXOPLANET:
-            content["start_observation"] = (str(observation.start_observation.replace(tzinfo=None)).strip(),)
-            content["end_observation"] = (str(observation.end_observation.replace(tzinfo=None)).strip(),)
+            content["start_observation"] = (
+                str(observation.start_observation.replace(tzinfo=None)).strip(),
+            )
+            content["end_observation"] = (
+                str(observation.end_observation.replace(tzinfo=None)).strip(),
+            )
         case ObservationType.VARIABLE:
             content["frames_per_filter"] = observation.frames_per_filter
             content["minimum_altitude"] = float(observation.minimum_altitude)
         case ObservationType.MONITORING:
             content["frames_per_filter"] = observation.frames_per_filter
             content["minimum_altitude"] = float(observation.minimum_altitude)
-            content["start_scheduling"] = (str(observation.start_scheduling).strip()[:10],)
+            content["start_scheduling"] = (
+                str(observation.start_scheduling).strip()[:10],
+            )
             content["end_scheduling"] = (str(observation.end_scheduling).strip()[:10],)
             content["cadence"] = observation.cadence
         case ObservationType.EXPERT:
@@ -99,18 +109,30 @@ def build_observation_data(observation: AbstractObservation):
             content["moon_separation_width"] = observation.moon_separation_width
             content["priority"] = observation.priority
             if observation.start_scheduling:
-                content["start_scheduling"] = (str(observation.start_scheduling).strip()[:10],)
-                content["end_scheduling"] = (str(observation.end_scheduling).strip()[:10],)
+                content["start_scheduling"] = (
+                    str(observation.start_scheduling).strip()[:10],
+                )
+                content["end_scheduling"] = (
+                    str(observation.end_scheduling).strip()[:10],
+                )
                 content["cadence"] = observation.cadence
                 if observation.start_observation_time:
-                    content["start_observation_time"] = str(observation.start_observation_time)[:5]
-                    content["end_observation_time"] = str(observation.end_observation_time)[:5]
+                    content["start_observation_time"] = str(
+                        observation.start_observation_time
+                    )[:5]
+                    content["end_observation_time"] = str(
+                        observation.end_observation_time
+                    )[:5]
                     content["schedule_type"] = forms.SchedulingType.SCHEDULE_TIME.name
                 else:
                     content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
             elif observation.start_observation:
-                content["start_observation"] = (str(observation.start_observation.replace(tzinfo=None)).strip(),)
-                content["end_observation"] = (str(observation.end_observation.replace(tzinfo=None)).strip(),)
+                content["start_observation"] = (
+                    str(observation.start_observation.replace(tzinfo=None)).strip(),
+                )
+                content["end_observation"] = (
+                    str(observation.end_observation.replace(tzinfo=None)).strip(),
+                )
                 content["schedule_type"] = forms.SchedulingType.TIMED.name
             else:
                 content["schedule_type"] = forms.SchedulingType.NO_CONSTRAINT.name
