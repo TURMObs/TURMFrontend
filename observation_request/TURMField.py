@@ -223,7 +223,7 @@ class TURMDateTimeDuration(TURMField):
                     **kwargs,
                 ).add_on_value_changed("UpdateDateDependency(this)"),
                 start[1],
-            ),  # "%Y-%m-%dT%X"
+            ),
             (TURMDateTimeInput(end[0].name, *args, **kwargs), end[1]),
         ]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
