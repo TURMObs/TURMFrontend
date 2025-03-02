@@ -114,7 +114,6 @@ function submitForm(event, form, postAddress, redirectAddress) {
   event.stopPropagation();
 
   let data = new FormData(form);
-
   for (let [name, value] of gatherDefaultValues()) {
     data.set(name, value);
   }
@@ -165,7 +164,7 @@ function submitForm(event, form, postAddress, redirectAddress) {
  * Returns dict of empty inputs that have a placeholder
  */
 function gatherDefaultValues() {
-  const emptyInputs = Array.from(document.getElementsByTagName("INPUT")).filter(
+  const emptyInputs = Array.from(document.getElementsByTagName("INPUT")).filter(el => !el.disabled).filter(
     (el) => el.value === "",
   );
 
