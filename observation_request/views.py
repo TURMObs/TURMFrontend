@@ -56,80 +56,49 @@ def build_observation_data(observation: AbstractObservation):
         "catalog_id": observation.target.catalog_id,
         "ra": observation.target.ra,
         "dec": observation.target.dec,
+        "exposure_time": float(observation.exposure_time)
     }
 
-    if observation.observation_type == ObservationType.EXPERT:
-        if observation.start_scheduling:
-            if observation.start_observation_time:
-                content["schedule_type"] = forms.SchedulingType.SCHEDULE_TIME.name
-            else:
-                content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
-            content["exp_cadence"] = observation.cadence
-        elif observation.start_observation:
-            content["schedule_type"] = forms.SchedulingType.TIMED.name
-        else:
-            content["schedule_type"] = forms.SchedulingType.NO_CONSTRAINT.name
-
-    if observation.observation_type in [
-        ObservationType.IMAGING,
-        ObservationType.EXOPLANET,
-        ObservationType.VARIABLE,
-        ObservationType.MONITORING,
-        ObservationType.EXPERT,
-    ]:
-        content["exposure_time"] = float(observation.exposure_time)
-
-    if observation.observation_type in [
-        ObservationType.IMAGING,
-        ObservationType.VARIABLE,
-        ObservationType.MONITORING,
-        ObservationType.EXPERT,
-    ]:
-        content["frames_per_filter"] = observation.frames_per_filter
-
-    if observation.observation_type in [
-        ObservationType.EXOPLANET,
-        ObservationType.EXPERT,
-    ]:
-        if observation.start_observation:
-            content["start_observation"] = (
-                str(observation.start_observation.replace(tzinfo=None)).strip(),
-            )
-            content["end_observation"] = (
-                str(observation.end_observation.replace(tzinfo=None)).strip(),
-            )
-
     match observation.observation_type:
+        case ObservationType.IMAGING:
+            content["frames_per_filter"] = observation.frames_per_filter
+        case ObservationType.EXOPLANET:
+            content["start_observation"] = (str(observation.start_observation.replace(tzinfo=None)).strip(),)
+            content["end_observation"] = (str(observation.end_observation.replace(tzinfo=None)).strip(),)
         case ObservationType.VARIABLE:
+            content["frames_per_filter"] = observation.frames_per_filter
             content["minimum_altitude"] = float(observation.minimum_altitude)
-
-        case ObservationType.EXPERT:
-            content["priority"] = observation.priority
-            content["dither_every"] = observation.dither_every
-            content["subframe"] = float(observation.subframe)
-            content["binning"] = observation.binning
-            content["gain"] = observation.gain
-            content["offset"] = observation.offset
-            content["moon_separation_angle"] = float(observation.moon_separation_angle)
-            content["moon_separation_width"] = observation.moon_separation_width
+        case ObservationType.MONITORING:
+            content["frames_per_filter"] = observation.frames_per_filter
             content["minimum_altitude"] = float(observation.minimum_altitude)
-
-    if observation.observation_type in [
-        ObservationType.MONITORING,
-        ObservationType.EXPERT,
-    ]:
-        if observation.start_scheduling:
-            content["start_scheduling"] = (
-                str(observation.start_scheduling).strip()[:10],
-            )
+            content["start_scheduling"] = (str(observation.start_scheduling).strip()[:10],)
             content["end_scheduling"] = (str(observation.end_scheduling).strip()[:10],)
             content["cadence"] = observation.cadence
-
-    if observation.observation_type == ObservationType.EXPERT:
-        if observation.start_observation_time:
-            content["start_observation_time"] = str(observation.start_observation_time)[
-                :5
-            ]
-            content["end_observation_time"] = str(observation.end_observation_time)[:5]
-
+        case ObservationType.EXPERT:
+            content["frames_per_filter"] = observation.frames_per_filter
+            content["dither_every"] = observation.dither_every
+            content["binning"] = observation.binning
+            content["subframe"] = float(observation.subframe)
+            content["gain"] = observation.gain
+            content["offset"] = observation.offset
+            content["minimum_altitude"] = float(observation.minimum_altitude)
+            content["moon_separation_angle"] = float(observation.moon_separation_angle)
+            content["moon_separation_width"] = observation.moon_separation_width
+            content["priority"] = observation.priority
+            if observation.start_scheduling:
+                content["start_scheduling"] = (str(observation.start_scheduling).strip()[:10],)
+                content["end_scheduling"] = (str(observation.end_scheduling).strip()[:10],)
+                content["cadence"] = observation.cadence
+                if observation.start_observation_time:
+                    content["start_observation_time"] = str(observation.start_observation_time)[:5]
+                    content["end_observation_time"] = str(observation.end_observation_time)[:5]
+                    content["schedule_type"] = forms.SchedulingType.SCHEDULE_TIME.name
+                else:
+                    content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
+            elif observation.start_observation:
+                content["start_observation"] = (str(observation.start_observation.replace(tzinfo=None)).strip(),)
+                content["end_observation"] = (str(observation.end_observation.replace(tzinfo=None)).strip(),)
+                content["schedule_type"] = forms.SchedulingType.TIMED.name
+            else:
+                content["schedule_type"] = forms.SchedulingType.NO_CONSTRAINT.name
     return content

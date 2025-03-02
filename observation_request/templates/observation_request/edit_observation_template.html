@@ -78,7 +78,7 @@
             if (value === undefined || value === null) {
                 return;
             }
-            const queryString = `input[id^="${query}"]`;
+            const queryString = `input[id^="id_${query}"],input[id^="id_exp_${query}"]`;
             for (const input of document.querySelectorAll(queryString)) {
                 input.value = value;
             }
@@ -92,32 +92,32 @@
         markInputAsChecked("id_filter_set", existingRequest.filter_set, (val) => existingRequest.filter_set.includes(val));
         markInputAsCheckedIfEqual("id_exposure_time", existingRequest.exposure_time);
 
-        fillInput("id_name", existingRequest.target_name);
-        fillInput("id_catalog_id", existingRequest.catalog_id);
-        fillInput("id_ra", existingRequest.ra);
-        fillInput("id_dec", existingRequest.dec);
+        fillInput("name", existingRequest.target_name);
+        fillInput("catalog_id", existingRequest.catalog_id);
+        fillInput("ra", existingRequest.ra);
+        fillInput("dec", existingRequest.dec);
 
-        fillInput("id_frames_per_filter", existingRequest.frames_per_filter);
-        fillInput("id_start_observation", existingRequest.start_observation);
-        fillInput("id_end_observation", existingRequest.end_observation);
-        fillInput("id_minimum_altitude", existingRequest.minimum_altitude);
-        fillInput("id_start_scheduling", existingRequest.start_scheduling);
-        fillInput("id_end_scheduling", existingRequest.end_scheduling);
-        fillInput("id_start_observation_time", existingRequest.start_observation_time);
-        fillInput("id_end_observation_time", existingRequest.end_observation_time);
-        fillInput("id_cadence", existingRequest.cadence);
-        fillInput("id_exp_cadence", existingRequest.exp_cadence);
 
-        fillInput("id_priority", existingRequest.priority);
-        fillInput("id_exposure_time_expert", existingRequest.exposure_time);
-        fillInput("id_dither_every", existingRequest.dither_every);
-        fillInput("id_binning", existingRequest.binning);
-        fillInput("id_subframe", existingRequest.subframe);
-        fillInput("id_gain", existingRequest.gain);
-        fillInput("id_offset", existingRequest.offset);
-        fillInput("id_moon_separation_angle", existingRequest.moon_separation_angle);
-        fillInput("id_moon_separation_width", existingRequest.moon_separation_width);
-        fillInput("id_minimum_altitude", existingRequest.minimum_altitude);
+        fillInput("exposure_time_expert", existingRequest.exposure_time);
+        fillInput("frames_per_filter", existingRequest.frames_per_filter);
+        fillInput("dither_every", existingRequest.dither_every);
+        fillInput("binning", existingRequest.binning);
+        fillInput("subframe", existingRequest.subframe);
+        fillInput("gain", existingRequest.gain);
+        fillInput("offset", existingRequest.offset);
+
+        fillInput("minimum_altitude", existingRequest.minimum_altitude);
+        fillInput("moon_separation_angle", existingRequest.moon_separation_angle);
+        fillInput("moon_separation_width", existingRequest.moon_separation_width);
+        fillInput("priority", existingRequest.priority);
+
+        fillInput("start_observation", existingRequest.start_observation);
+        fillInput("end_observation", existingRequest.end_observation);
+        fillInput("start_scheduling", existingRequest.start_scheduling);
+        fillInput("end_scheduling", existingRequest.end_scheduling);
+        fillInput("start_observation_time", existingRequest.start_observation_time);
+        fillInput("end_observation_time", existingRequest.end_observation_time);
+        fillInput("cadence", existingRequest.cadence);
 
         checkRadioIfNoneSelected()
     };
