@@ -361,10 +361,10 @@
 
             const formData = new FormData(form);
 
-            if (document.getElementById('quotaField').style.display === 'none') {
+            if (!form.elements['set_quota'].checked) {
                 formData.delete('quota');
             }
-            if (document.getElementById('lifetimeField').style.display === 'none') {
+            if (!form.elements['set_lifetime'].checked) {
                 formData.delete('lifetime');
             }
 

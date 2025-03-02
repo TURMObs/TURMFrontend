@@ -4,94 +4,106 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
           rel='stylesheet'>
     <style>
-    .empty-container {
-        min-height: 128px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        justify-content: center;
-        align-items: center;
-    }
+        .empty-container {
+            min-height: 128px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .empty-text p {
-        text-align: center;
-        padding: 20px;
-    }
+        .empty-text p {
+            text-align: center;
+            padding: 20px;
+        }
 
-    .observations-table {
-        min-width: 1024px;
-        margin: 16px 0px;
-    }
+        .observations-table {
+            margin: 16px 0px;
+        }
 
-    .project-status-container {
-        background: var(--color-gray-500);
-        border: var(--border-md) solid var(--color-gray-400);
-        border-radius: var(--radius-md);
-        padding: 4px 8px;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        white-space: nowrap;
-    }
+        .project-status-container {
+            background: var(--color-gray-500);
+            border: var(--border-md) solid var(--color-gray-400);
+            border-radius: var(--radius-md);
+            padding: 4px 8px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap;
+        }
 
-    .project-status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 6px;
-    }
+        .project-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
 
-    .status-pending { background-color: var(--status-pending); }
-    .status-uploaded { background-color: var(--status-active); }
-    .status-completed { background-color: var(--status-success); }
-    .status-error { background-color: var(--status-failed); }
-    .status-pending-deletion { background-color: var(--status-neutral); }
+        .status-pending {
+            background-color: var(--status-pending);
+        }
 
-    .filter-set-container {
-        display: flex;
-        gap: 8px;
-        align-content: center;
-    }
+        .status-uploaded {
+            background-color: var(--status-active);
+        }
 
-    .actions-container {
-        height: 100%;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 90px;
-    }
+        .status-completed {
+            background-color: var(--status-success);
+        }
 
-    .expand-row-container {
-        width: 40px;
-    }
+        .status-error {
+            background-color: var(--status-failed);
+        }
 
-    .expander-content {
-        margin-left: 48px;
-    }
+        .status-pending-deletion {
+            background-color: var(--status-neutral);
+        }
 
-    .observations-container {
-        display: flex;
-        flex-direction: column;
-        gap: 64px;
-    }
+        .filter-set-container {
+            display: flex;
+            gap: 8px;
+            align-content: center;
+        }
 
-    .no-completed-observations-text {
-        margin-top: 16px;
-    }
+        .actions-container {
+            height: 100%;
+            display: flex;
+            gap: 4px;
+            flex-direction: row;
+            align-items: center;
+        }
 
-    .active-observations-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
+        .expand-row-container {
+            width: 40px;
+        }
 
-    .scroll-to-completed-observations-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
+        .expander-content {
+            margin-left: 48px;
+        }
+
+        .observations-container {
+            display: flex;
+            flex-direction: column;
+            gap: 64px;
+        }
+
+        .no-completed-observations-text {
+            margin-top: 16px;
+        }
+
+        .active-observations-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .scroll-to-completed-observations-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -143,7 +155,7 @@
                                         </div>
                                     </td>
                                     <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                    <td class="text-align-left">{{ observation.target.name }}</td>
+                                    <td class="table-cell-truncate text-align-left">{{ observation.target.name }}</td>
                                     <td class="text-align-left">{{ observation.observation_type }}</td>
                                     <td>
                                         <div class="filter-set-container">
@@ -167,6 +179,8 @@
                                                 <span class="project-status-dot status-error"></span>
                                             {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
                                                 <span class="project-status-dot status-pending-deletion"></span>
+                                            {% elif observation.project_status == ObservationStatus.PENDING_COMPLETION %}
+                                                <span class="project-status-dot status-completed"></span>
                                             {% endif %}
                                             <span class="text">{{ observation.project_status }}</span>
                                         </div>
@@ -183,6 +197,12 @@
                                            title="Delete Observation"
                                            class="icon-btn">
                                             <i class="bx bx-trash"></i>
+                                        </a>
+                                        <a href="#"
+                                           onclick="finish_observation('{% url 'finish-observation' observation.id %}'); return false;"
+                                           title="Finish Observation"
+                                           class="icon-btn">
+                                            <i class="bx bx-check"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -276,7 +296,10 @@
                                                 {% if observation.observation_type == ObservationType.IMAGING %}
                                                     <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
                                                 {% elif observation.observation_type == ObservationType.EXOPLANET %}
-                                                    <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                    <p>
+                                                        Start
+                                                        Observation: {{ observation.start_observation|date:"d.m.Y" }}
+                                                    </p>
                                                     <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
                                                 {% elif observation.observation_type == ObservationType.VARIABLE %}
                                                     <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
@@ -291,7 +314,10 @@
                                                     <p>Binning: {{ observation.binning }}</p>
                                                     <p>Gain: {{ observation.gain }}</p>
                                                     <p>Offset: {{ observation.offset }}</p>
-                                                    <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                    <p>
+                                                        Start
+                                                        Observation: {{ observation.start_observation|date:"d.m.Y" }}
+                                                    </p>
                                                     <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
                                                     <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
                                                     <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
@@ -314,52 +340,76 @@
 {% endblock %}
 {% block scripts %}
     <script>
-    function scrollToCompletedObservations() {
-        const completedObservationsElement = document.getElementById('completed-observations');
-        if (completedObservationsElement) {
-            completedObservationsElement.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    function toggleExpander(id) {
-        const expander = document.getElementById(`expander-${id}`);
-        const icon = document.querySelector(`#expander-trigger-${id} i`);
-
-        if (expander.style.display === 'none' || expander.style.display === '') {
-            expander.style.display = 'table-row';
-            icon.className = 'bx bx-chevron-down';
-        } else {
-            expander.style.display = 'none';
-            icon.className = 'bx bx-chevron-right';
-        }
-    }
-
-    /**
-        * Sends api request to delete observation with the given id.
-        * @param {string} url - The url to send the request to.
-        */
-    async function delete_observation(url) {
-        if (await showConfirmModal("Delete Observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": '{{ csrf_token }}',
-                    },
-                    method: "POST",
-                });
-
-                if (response.ok) {
-                    window.location.reload();
-                    return;
-                }
-
-                const jsonResponse = await response.json();
-                await showAlertModal("Failed to delete Observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
-            } catch (err) {
-                await showAlertModal("Failed to delete Observation", "An unknown error occurred while deleting your observation. Please try again.");
+        function scrollToCompletedObservations() {
+            const completedObservationsElement = document.getElementById('completed-observations');
+            if (completedObservationsElement) {
+                completedObservationsElement.scrollIntoView({behavior: 'smooth'});
             }
         }
-    }
+
+        function toggleExpander(id) {
+            const expander = document.getElementById(`expander-${id}`);
+            const icon = document.querySelector(`#expander-trigger-${id} i`);
+
+            if (expander.style.display === 'none' || expander.style.display === '') {
+                expander.style.display = 'table-row';
+                icon.className = 'bx bx-chevron-down';
+            } else {
+                expander.style.display = 'none';
+                icon.className = 'bx bx-chevron-right';
+            }
+        }
+
+        /**
+         * Sends api request to delete observation with the given id.
+         * @param {string} url - The url to send the request to.
+         */
+        async function delete_observation(url) {
+            if (await showConfirmModal("Delete Observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": '{{ csrf_token }}',
+                        },
+                        method: "POST",
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    const jsonResponse = await response.json();
+                    await showAlertModal("Failed to delete Observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
+                } catch (err) {
+                    await showAlertModal("Failed to delete Observation", "An unknown error occurred while deleting your observation. Please try again.");
+                }
+            }
+        }
+
+        async function finish_observation(url) {
+            if (await showConfirmModal("Finish Observation", "Are you sure you want to mark this observation as completed?", "Finish Observation")) {
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": '{{ csrf_token }}',
+                        },
+                        method: "POST",
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    const jsonResponse = await response.json();
+                    await showAlertModal("Failed to complete Observation", "An error occurred while completing your observation.\n" + jsonResponse["error"]);
+                } catch (err) {
+                    await showAlertModal("Failed to complete Observation", "An unknown error occurred while deleting your observation. Please try again.");
+                }
+            }
+        }
     </script>
 {% endblock %}

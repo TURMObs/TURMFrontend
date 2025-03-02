@@ -303,9 +303,9 @@ class NextcloudSyncTestCase(django.test.TestCase):
         project_completion: float = 0.0,
         priority: int = 1,
         exposure_time: float = 10.0,
-        start_scheduling: datetime.date = timezone.now().date(),
-        end_scheduling: datetime.date = timezone.now().date() + timedelta(days=1),
-        minimum_altitude: float = 10.0,
+        start_scheduling: datetime = timezone.now(),
+        end_scheduling: datetime = (timezone.now() + timedelta(days=1)),
+        minimum_altitude: float = 30.0,
         frames_per_filter: int = 10,
         cadence: int = 1,
     ):
