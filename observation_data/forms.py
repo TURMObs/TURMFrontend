@@ -44,21 +44,11 @@ class CelestialTargetForm(forms.Form):
         super(CelestialTargetForm, self).__init__(*args, **kwargs)
         self.label_suffix = ""
 
-    name = TURMField.init_from_model(CelestialTarget._meta.get_field("name")).add_attrs(
-        {"placeholder": "OrionNebula"}
-    )
-    target_widgets = [
-        (TURMCharInput("catalog_id", "M42"), "Catalog ID"),
-        (TURMButtonInput("Fetch SIMBAD coordinates", "fetchSimbadCoordinates()"), " "),
-    ]
-    catalog_id = TURMGridField(target_widgets, (2, 1))
-    ra = TURMField.init_from_model(
-        CelestialTarget._meta.get_field("ra"), label_name="RA"
-    ).add_attrs({"placeholder": "hh mm ss"})
-    dec = TURMField.init_from_model(
-        CelestialTarget._meta.get_field("dec"), label_name="DEC"
-    ).add_attrs({"placeholder": "dd mm ss"})
-
+        self.fields["name"] = TURMField.init_from_model(CelestialTarget._meta.get_field("name")).add_attrs({"placeholder": "OrionNebula"})
+        target_widgets = [(TURMCharInput("catalog_id", "M42"), "Catalog ID"),(TURMButtonInput("Fetch SIMBAD coordinates", "fetchSimbadCoordinates()"), " "),]
+        self.fields["catalog_id"] = TURMGridField(target_widgets, (2, 1))
+        self.fields["ra"] = TURMField.init_from_model(CelestialTarget._meta.get_field("ra"), label_name="RA").add_attrs({"placeholder": "hh mm ss"})
+        self.fields["dec"] = TURMField.init_from_model(CelestialTarget._meta.get_field("dec"), label_name="DEC").add_attrs({"placeholder": "hh mm ss"})
 
 class TURMProjectForm(forms.Form):
     """
@@ -70,16 +60,12 @@ class TURMProjectForm(forms.Form):
         super(TURMProjectForm, self).__init__(*args, **kwargs)
         self.label_suffix = ""
 
-    try:
-        observatory = TURMField.init_from_model(
+        self.fields["observatory"] = TURMField.init_from_model(
             model_field=AbstractObservation._meta.get_field("observatory"),
             label_name="",
         ).add_on_click(
             lambda o_type: f"disableInputs('{Dependency.observatory.value}','{o_type}')"
         )
-    except ProgrammingError as error:
-        error_message = str(error).split("\n")[0]
-        logger.warning(f"DB seems to be badly configured. \n{error_message}")
 
 
 def filter_set_dependency_generator(filter):
