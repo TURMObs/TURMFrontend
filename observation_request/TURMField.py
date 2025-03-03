@@ -221,7 +221,7 @@ class TURMDateTimeDuration(TURMField):
                     minimum=datetime.now().strftime("%Y-%m-%dT23:59"),
                     *args,
                     **kwargs,
-                ).add_on_value_changed("UpdateDateDependency(this)"),
+                ).add_on_value_changed("updateDateDependency(this)"),
                 start[1],
             ),
             (TURMDateTimeInput(end[0].name, *args, **kwargs), end[1]),
