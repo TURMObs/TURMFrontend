@@ -156,5 +156,6 @@
       "moon_separation_angle": 50,
       "moon_separation_width": 7
     }
-  ]
+  ],
+  "request_settings_defaults": {}
 }

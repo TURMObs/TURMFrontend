@@ -147,10 +147,10 @@ class ScheduledObservation(AbstractObservation):
     class Meta:
         abstract = True
 
-    start_scheduling = models.DateTimeField()
-    end_scheduling = models.DateTimeField()
-    next_upload = models.DateTimeField()
-    cadence = models.IntegerField()
+    start_scheduling = models.DateField(blank=True, null=True)
+    end_scheduling = models.DateField(blank=True, null=True)
+    next_upload = models.DateField(blank=True, null=True)
+    cadence = models.IntegerField(blank=True, null=True)
 
 
 class MonitoringObservation(ScheduledObservation):
@@ -165,8 +165,19 @@ class ExpertObservation(ScheduledObservation):
     subframe = models.DecimalField(max_digits=5, decimal_places=4)
     gain = models.IntegerField()
     offset = models.IntegerField()
-    start_observation = models.DateTimeField()
-    end_observation = models.DateTimeField()
+    start_observation = models.DateTimeField(blank=True, null=True)
+    end_observation = models.DateTimeField(blank=True, null=True)
+    start_observation_time = models.TimeField(blank=True, null=True)
+    end_observation_time = models.TimeField(blank=True, null=True)
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+
+
+class DefaultRequestSettings(models.Model):
+    """
+    Model for default values for observation requests.
+    """
+
+    id = models.IntegerField(primary_key=True, default=0)
+    settings = models.JSONField(default=dict)
