@@ -202,8 +202,7 @@ class _TURMDateTimeInput(_TURMInput):
 class TURMDateTimeInput(_TURMDateTimeInput):
     def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
         super().__init__(name, minimum, maximum, *args, **kwargs)
-        #self.attrs["type"] = "datetime-local"
-        self.attrs["type"] = "text"
+        self.attrs["type"] = "datetime-local"
 
 class TURMDateInput(_TURMDateTimeInput):
     def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
