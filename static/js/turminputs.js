@@ -1,18 +1,4 @@
 /**
- * event hook that prevents the specified characters from being typed into a textfield
- * @param event html event that was triggered
- * @param el the HTML element that triggered the event
- * @param suppressed RegExp of what should be suppressed
- */
-
-function discardInput(event, el, suppressed) {
-  el.value = el.value.replace(RegExp(suppressed), "");
-  event.stopPropagation();
-  event.preventDefault();
-}
-
-
-/**
  * Returns the string without all parts that are not matched by regex.
  * Regex mustn't generate overlapping sections of selection
  * @param value string that is to be sanitized
@@ -125,6 +111,43 @@ function enforceDateTimeRules(val, format) {
   }
   return val
 }
+
+/* --- Numbers --- */
+/**
+ * oninput handler for Integer fields
+ */
+function integerInputHandler() {
+  const target = event.target;
+  target.value = sanitize(target.value, /\d/g)
+}
+
+/**
+ * oninput handler for Decimal fields
+ */
+function decimalInputHandler() {
+  const target = event.target;
+  let val = target.value
+  const decimalIndexPoint = val.indexOf(".")
+  const decimalIndexComma = val.indexOf(",")
+
+  if (decimalIndexPoint === -1 && decimalIndexComma === -1) {
+    target.value = sanitize(val, /\d/g);
+    return
+  }
+
+  let minDecimalIndex;
+  if (decimalIndexPoint === -1) {
+    minDecimalIndex = decimalIndexComma;
+  }
+  else if (decimalIndexComma === -1) minDecimalIndex = decimalIndexPoint;
+  else minDecimalIndex = Math.min(decimalIndexPoint, decimalIndexComma)
+  const decimalCharacter = val[minDecimalIndex];
+  val = sanitize(val, /\d/g)
+  target.value = val.slice(0, minDecimalIndex) + decimalCharacter + val.slice(minDecimalIndex, val.length)
+}
+
+
+
 /* --- on page load --- */
 
 /**

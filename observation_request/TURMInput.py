@@ -148,7 +148,7 @@ class TURMIntegerInput(_TURMNumericInput):
             *args,
             **kwargs,
         )
-        self.attrs["oninput"] = "discardInput(event, this, '[^\\\\d*\\\\s*]')"
+        self.attrs["oninput"] = "integerInputHandler()"
 
 
 class TURMFloatInput(_TURMNumericInput):
@@ -175,9 +175,7 @@ class TURMFloatInput(_TURMNumericInput):
             *args,
             **kwargs,
         )
-        self.attrs["oninput"] = (
-            "discard_input(event, this, '[^\\\\d*\\\\s*\\\\.*]')"  # todo restrict multiple dots
-        )
+        self.attrs["oninput"] = "decimalInputHandler()"
 
 
 """ --- TURM Choice Inputs """
