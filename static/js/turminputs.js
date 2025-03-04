@@ -11,43 +11,10 @@ function discardInput(event, el, suppressed) {
   event.preventDefault();
 }
 
-function dateInput() {
-  const target = event.target;
-  const beforeValue = target.value;
-  target.addEventListener("input", (afterEvent) => {
-    if (!!afterEvent.data) {
-
-    } else {
-      handleDeletion(afterEvent, base, )
-    }
-  });
-}
 
 /**
- * oninput handler for RA and DEC Field
- */
-function raDecInputHandler() {
-  const target = event.target;
-  const rawInput = event.data
-  if (!rawInput) {
-    target.value = enforceRaDecDeletion(target.value);
-  }
-  else {
-    target.value = enforceRaDecRules(target.value, rawInput.match(/[+\-]/));
-  }
-}
-
-/**
- * Auto removes spaces and dots at the end of string
- * @param val input string
- * @returns string
- */
-function enforceRaDecDeletion(val) {
-  return (val.endsWith('.') || val.endsWith(' '))? val.slice(0, val.length - 1): val;
-}
-
-/**
- * Returns the string without all parts that are not matched by regex
+ * Returns the string without all parts that are not matched by regex.
+ * Regex mustn't generate overlapping sections of selection
  * @param value string that is to be sanitized
  * @param regex regex that is to be kept
  * @returns string
@@ -57,6 +24,21 @@ function sanitize(value, regex) {
   return !!matched ? matched.join('') : '';
 }
 
+/* --- RA DEC --- */
+/**
+ * oninput handler for RA and DEC Field
+ */
+function raDecInputHandler() {
+  const target = event.target;
+  const rawInput = event.data
+  if (!rawInput) {
+    const val = target.value;
+    target.value = (val.endsWith('.') || val.endsWith(' '))? val.slice(0, val.length - 1): val;
+  }
+  else {
+    target.value = enforceRaDecRules(target.value, rawInput.match(/[+\-]/));
+  }
+}
 /**
  * Returns correctly formatted RA/DEC string
  * @param val value of the input
@@ -77,7 +59,6 @@ function enforceRaDecRules(val, overwriteSign) {
   val = sanitize(val, /\d/g)
   return sign + raDecSpacing(val);
 }
-
 /**
  * Returns input with correct spacing and decimal point for RA/DEC fields
  * @param val value of the input (without sign)
@@ -95,6 +76,56 @@ function raDecSpacing(val) {
   return val
 }
 
+/* --- date time --- */
+/**
+ * oninput handler for DateTime fields
+ */
+function dateTimeInputHandler() {
+  abstractDateTimeInputHandler([[4, '-'], [7, '-'], [10, ' '], [13, ':']])
+}
+/**
+ * oninput handler for Date fields
+ */
+function dateInputHandler() {
+  abstractDateTimeInputHandler([[4, '-'], [7, '-']])
+}
+/**
+ * oninput handler for Time fields
+ */
+function timeInputHandler() {
+  abstractDateTimeInputHandler([[2, ':']])
+}
+/**
+ * Abstract handler for date time related inputs
+ * @param format nested Array of index and character that is present in format. e.g. [[2, ':']] for hh:mm
+ */
+function abstractDateTimeInputHandler(format) {
+  const target = event.target;
+  const rawInput = event.data
+  let val = target.value;
+  if (!rawInput) {
+    val = format.map(keyval=> keyval[1]).join('').includes(val[val.length - 1])? val.slice(0, val.length - 1): val;
+  }
+  else {
+    val = enforceDateTimeRules(target.value, format);
+  }
+  target.value = val
+}
+/**
+ * Returns correctly formatted string according to format
+ * @param val value of the input
+ * @param format format given as nested Array. See abstractDateTimeInputHandler for example
+ * @returns string
+ */
+function enforceDateTimeRules(val, format) {
+  val = sanitize(val, /\d/g)
+  for (let [seperatorIndex, seperatorCharacter] of format) {
+    if (val.length < seperatorIndex + 1) return val;
+    val = val.slice(0,seperatorIndex) + seperatorCharacter + val.slice(seperatorIndex);
+  }
+  return val
+}
+/* --- on page load --- */
 
 /**
  * Checks the first radio button of a group of radio buttons, if none are selected
@@ -118,6 +149,8 @@ function checkRadioIfNoneSelected() {
       selected_or_first_radio.click();
   }
 }
+
+/* --- dynamic display of form elements --- */
 
 /**
  * disables all inputs that are part of the dependency_type, but not of the given dependency
@@ -186,6 +219,8 @@ function updateDateDependency(el) {
     end.value = end.min;
   }
 }
+
+/* --- Form Submission and Error handling --- */
 
 /**
  * submits form to specified address. In case of failure it marks the errors in html. In case of success user gets redirected.
