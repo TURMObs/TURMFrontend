@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.forms.fields import Field
 from django.db import models
 
@@ -195,7 +194,12 @@ class TURMDateDuration(TURMField):
                 ).add_on_value_changed("dateInputHandler()"),
                 start[1],
             ),
-            (TURMDateInput(end[0].name, *args, **kwargs).add_on_value_changed("dateInputHandler()"), end[1]),
+            (
+                TURMDateInput(end[0].name, *args, **kwargs).add_on_value_changed(
+                    "dateInputHandler()"
+                ),
+                end[1],
+            ),
         ]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
@@ -222,7 +226,12 @@ class TURMDateTimeDuration(TURMField):
                 ).add_on_value_changed("dateTimeInputHandler()"),
                 start[1],
             ),
-            (TURMDateTimeInput(end[0].name, *args, **kwargs).add_on_value_changed("dateTimeInputHandler()"), end[1]),
+            (
+                TURMDateTimeInput(end[0].name, *args, **kwargs).add_on_value_changed(
+                    "dateTimeInputHandler()"
+                ),
+                end[1],
+            ),
         ]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)
@@ -249,7 +258,12 @@ class TURMTimeDuration(TURMField):
                 ).add_on_value_changed("timeInputHandler()"),
                 start[1],
             ),
-            (TURMTimeInput(end[0].name, *args, **kwargs).add_on_value_changed("timeInputHandler()"), end[1]),
+            (
+                TURMTimeInput(end[0].name, *args, **kwargs).add_on_value_changed(
+                    "timeInputHandler()"
+                ),
+                end[1],
+            ),
         ]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)

@@ -201,6 +201,7 @@ class TURMDateTimeInput(_TURMDateTimeInput):
         super().__init__(name, max_length=16, *args, **kwargs)
         self.attrs["placeholder"] = "YYYY-MM-DD hh:mm"
 
+
 class TURMDateInput(_TURMDateTimeInput):
     def __init__(self, name, *args, **kwargs):
         super().__init__(name, max_length=10, *args, **kwargs)
