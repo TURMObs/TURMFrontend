@@ -58,10 +58,10 @@ class CelestialTargetForm(forms.Form):
         self.fields["catalog_id"] = TURMGridField(target_widgets, (2, 1))
         self.fields["ra"] = TURMField.init_from_model(
             CelestialTarget._meta.get_field("ra"), label_name="RA"
-        ).add_attrs({"placeholder": "hh mm ss", "onbeforeinput": "raDecInputHandler()"})
+        ).add_attrs({"placeholder": "hh mm ss", "oninput": "raDecInputHandler()"})
         self.fields["dec"] = TURMField.init_from_model(
             CelestialTarget._meta.get_field("dec"), label_name="DEC"
-        ).add_attrs({"placeholder": "hh mm ss", "onbeforeinput": "raDecInputHandler()"})
+        ).add_attrs({"placeholder": "hh mm ss", "oninput": "raDecInputHandler()"})
 
 
 class TURMProjectForm(forms.Form):

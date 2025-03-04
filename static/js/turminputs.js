@@ -23,34 +23,76 @@ function dateInput() {
   });
 }
 
+/**
+ * oninput handler for RA and DEC Field
+ */
 function raDecInputHandler() {
   const target = event.target;
-  const beforeValue = target.value;
-  target.addEventListener("input", (afterEvent) => {
-    if (!afterEvent.data) {
-      return; //check deletion
-    }
-    else {
-      //const val = limitToNumeric(beforeValue, afterEvent.data);
-      target.value = enforceRaDecRules(target.value);
-    }
-  });
+  const rawInput = event.data
+  if (!rawInput) {
+    target.value = enforceRaDecDeletion(target.value);
+  }
+  else {
+    target.value = enforceRaDecRules(target.value, rawInput.match(/[+\-]/));
+  }
 }
 
-function limitToNumeric(before, value) {
-  return value;
+/**
+ * Auto removes spaces and dots at the end of string
+ * @param val input string
+ * @returns string
+ */
+function enforceRaDecDeletion(val) {
+  return (val.endsWith('.') || val.endsWith(' '))? val.slice(0, val.length - 1): val;
 }
 
-function enforceRaDecRules(val) {
-  if (val.length < 1) return val;
-    if (!(val[0] === '+' || val[0] === '-')) val = '+' + val;
-    if (val.length < 3) return val;
-    if (val[3] !== ' ') val = val.slice(0,3) + ' ' + val.slice(3);
-    if (val.length < 6) return val;
-    if (val[6] !== ' ') val = val.slice(0,6) + ' ' + val.slice(6);
-    if (val.length < 9) return val;
-    if (!(val[9] === '.' || val[9] === ',')) val = val.slice(0,9) + '.' + val.slice(9);
-    return val;
+/**
+ * Returns the string without all parts that are not matched by regex
+ * @param value string that is to be sanitized
+ * @param regex regex that is to be kept
+ * @returns string
+ */
+function sanitize(value, regex) {
+  const matched = value.match(regex);
+  return !!matched ? matched.join('') : '';
+}
+
+/**
+ * Returns correctly formatted RA/DEC string
+ * @param val value of the input
+ * @param overwriteSign for when a + or - is typed later on
+ * @returns string
+ */
+function enforceRaDecRules(val, overwriteSign) {
+  let sign = ''
+  if (!overwriteSign) {
+    if (val.length < 1) return val;
+    if (val[0] === '+' || val[0] === '-') {
+      sign = val[0];
+      val = val.slice(1, val.length);
+    }
+  }
+  else sign = overwriteSign;
+
+  val = sanitize(val, /\d/g)
+  return sign + raDecSpacing(val);
+}
+
+/**
+ * Returns input with correct spacing and decimal point for RA/DEC fields
+ * @param val value of the input (without sign)
+ */
+function raDecSpacing(val) {
+  const firstSpaceIndex = 2
+  const secondSpaceIndex = 5
+  const decimalPointIndex = 8
+  if (val.length < firstSpaceIndex + 1) return val;
+  if (val[firstSpaceIndex] !== ' ') val = val.slice(0,firstSpaceIndex) + ' ' + val.slice(firstSpaceIndex); // first space
+  if (val.length < secondSpaceIndex + 1) return val;
+  if (val[secondSpaceIndex] !== ' ') val = val.slice(0,secondSpaceIndex) + ' ' + val.slice(secondSpaceIndex); // second space
+  if (val.length < decimalPointIndex + 1) return val;
+  if (!(val[decimalPointIndex] === '.')) val = val.slice(0,decimalPointIndex) + '.' + val.slice(decimalPointIndex); // decimal point
+  return val
 }
 
 
