@@ -11,6 +11,49 @@ function discardInput(event, el, suppressed) {
   event.preventDefault();
 }
 
+function dateInput() {
+  const target = event.target;
+  const beforeValue = target.value;
+  target.addEventListener("input", (afterEvent) => {
+    if (!!afterEvent.data) {
+
+    } else {
+      handleDeletion(afterEvent, base, )
+    }
+  });
+}
+
+function raDecInputHandler() {
+  const target = event.target;
+  const beforeValue = target.value;
+  target.addEventListener("input", (afterEvent) => {
+    if (!afterEvent.data) {
+      return; //check deletion
+    }
+    else {
+      //const val = limitToNumeric(beforeValue, afterEvent.data);
+      target.value = enforceRaDecRules(target.value);
+    }
+  });
+}
+
+function limitToNumeric(before, value) {
+  return value;
+}
+
+function enforceRaDecRules(val) {
+  if (val.length < 1) return val;
+    if (!(val[0] === '+' || val[0] === '-')) val = '+' + val;
+    if (val.length < 3) return val;
+    if (val[3] !== ' ') val = val.slice(0,3) + ' ' + val.slice(3);
+    if (val.length < 6) return val;
+    if (val[6] !== ' ') val = val.slice(0,6) + ' ' + val.slice(6);
+    if (val.length < 9) return val;
+    if (!(val[9] === '.' || val[9] === ',')) val = val.slice(0,9) + '.' + val.slice(9);
+    return val;
+}
+
+
 /**
  * Checks the first radio button of a group of radio buttons, if none are selected
  * Is supposed to be called on page load
