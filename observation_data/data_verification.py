@@ -1,6 +1,8 @@
 import decimal
 import logging
 import re
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 from django.utils import timezone
 
@@ -53,13 +55,16 @@ def _assert_matches_regex(name, value, regex):
         return {name: "Invalid format."}
 
 
-def _check_overlapping_observation(
-    start_observation, end_observation, observatory, exclude_observation_ids
+def _check_for_overlap(
+    start_observation: datetime,
+    end_observation: datetime,
+    observatory,
+    exclude_observation_ids,
 ) -> list:
     """
     Check if an observation overlaps with any existing observations.
-    :param start_observation: Start time of the observation
-    :param end_observation: End time of the observation
+    :param start_observation: Start datetime of the observation
+    :param end_observation: End datetime of the observation
     :param observatory: Observatory name
     :param exclude_observation_ids: List of observations to exclude from the check
     :return: List of overlapping observation times
@@ -87,6 +92,55 @@ def _check_overlapping_observation(
             }
         )
     return overlapping_times
+
+
+def _check_overlapping_observation(
+    start_observation,
+    end_observation,
+    observatory,
+    exclude_observation_ids,
+    start_scheduling=None,
+    end_scheduling=None,
+    date_included=True,
+) -> list:
+    """
+    Check if an observation overlaps with any existing observations.
+    :param start_observation: Start (date-)time of the observation
+    :param end_observation: End (date-)time of the observation
+    :param observatory: Observatory name
+    :param exclude_observation_ids: List of observations to exclude from the check
+    :param start_scheduling: Start scheduling. Used for checking overlapping observations for timed observations
+    :param end_scheduling: End scheduling. Used for checking overlapping observations for timed observations
+    :param date_included: Boolean indicating if the date is included in the time. If start_scheduling and end_scheduling are provided, date_included has to be False
+    :return: List of overlapping observation times
+    """
+    if (start_scheduling or end_scheduling) and date_included:
+        logger.warning(
+            "Date verification failed: Date_included has to be False if start_scheduling and end_scheduling are provided."
+        )
+        return []
+
+    if date_included:
+        return _check_for_overlap(
+            start_observation, end_observation, observatory, exclude_observation_ids
+        )
+
+    overlapping = []
+    for day in range((end_scheduling - start_scheduling).days + 1):
+        current_date = start_scheduling + timedelta(days=day)
+        start = timezone.make_aware(
+            datetime.combine(current_date, start_observation), dt_timezone.utc
+        )
+        end = timezone.make_aware(
+            datetime.combine(current_date, end_observation), dt_timezone.utc
+        )
+        if end_scheduling < start_scheduling:
+            end += timedelta(days=1)
+        overlapping += _check_for_overlap(
+            start, end, observatory, exclude_observation_ids
+        )
+
+    return overlapping
 
 
 def verify_field_integrity(name, value, observation_type):
@@ -150,10 +204,12 @@ def verify_field_integrity(name, value, observation_type):
             | "start_scheduling"
             | "end_scheduling"
             | "observation_type"
+            | "start_observation_time"
+            | "end_observation_time"
         ):
             return None
         case _:
-            return {name: "Unknown field."}
+            return {name: "Data verification encountered unknown field."}
 
 
 def verify_filter_selection(filters, observatory):
@@ -176,18 +232,44 @@ def verify_filter_selection(filters, observatory):
 
 
 def validate_observation_time(
-    start_time, end_time, observatory, exclude_observation_ids
+    start_time,
+    end_time,
+    observatory,
+    exclude_observation_ids,
+    date_included=True,
+    start_scheduling=None,
+    end_scheduling=None,
 ):
     """
     Validate that the start time is before the end time and that the observation does not overlap with existing observations for the selected Observatory.
     Also checks that the start time is in the future.
-    :param start_time: Start time
-    :param end_time: End time
+    :param start_time: Start (date-)time
+    :param end_time: End (date-)time
     :param observatory: Observatory name
+    :param exclude_observation_ids: List of observations to exclude from the check
+    :param date_included: Boolean indicating if the date is included in the time
+    :param start_scheduling: Start scheduling. Used for checking overlapping observations for timed observations
+    :param end_scheduling: End scheduling. Used for checking overlapping observations for timed observations
     :return: Error if the time range is invalid or None if the time range is valid
     """
 
     errors = {}
+
+    overlapping = _check_overlapping_observation(
+        start_time,
+        end_time,
+        observatory,
+        exclude_observation_ids,
+        start_scheduling,
+        end_scheduling,
+        date_included,
+    )
+    if len(overlapping) != 0:
+        errors = {**errors, "overlapping_observations": overlapping}
+
+    if not date_included:
+        return errors
+
     if start_time >= end_time:
         errors = {**errors, "time_range": "Start time must be before end time."}
 
@@ -200,20 +282,14 @@ def validate_observation_time(
             "year_range": "Start time must be within the next 10 years.",
         }
 
-    overlapping = _check_overlapping_observation(
-        start_time, end_time, observatory, exclude_observation_ids
-    )
-    if len(overlapping) != 0:
-        errors = {**errors, "overlapping_observations": overlapping}
-
     return errors
 
 
 def validate_schedule_time(start_scheduling, end_scheduling):
     """
     Validate that the start time is before the end time. Also checks that the start time is in the future.
-    :param start_scheduling: Start time
-    :param end_scheduling: End time
+    :param start_scheduling: Start date
+    :param end_scheduling: End date
     :return: Error if the time range is invalid or None if the time range is valid
     """
     errors = {}
@@ -222,7 +298,7 @@ def validate_schedule_time(start_scheduling, end_scheduling):
             **errors,
             "scheduling_range": "Start scheduling must be before end scheduling.",
         }
-    if start_scheduling <= timezone.now():
+    if start_scheduling <= timezone.now().date():
         errors = {
             **errors,
             "start_scheduling": "Start scheduling must be in the future.",

@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.forms.fields import Field
 from django.db import models
+
 from observation_request.TURMInput import (
     _TURMInput,
     TURMIntegerInput,
@@ -12,6 +13,7 @@ from observation_request.TURMInput import (
     TURMDateInput,
     _TURMChoiceInput,
     TURMCharInput,
+    TURMTimeInput,
 )
 
 
@@ -191,7 +193,7 @@ class TURMDateDuration(TURMField):
                     minimum=datetime.date(datetime.now()),
                     *args,
                     **kwargs,
-                ).add_on_value_changed("update_date_dependency(this)"),
+                ).add_on_value_changed("updateDateDependency(this)"),
                 start[1],
             ),
             (TURMDateInput(end[0].name, *args, **kwargs), end[1]),
@@ -219,10 +221,37 @@ class TURMDateTimeDuration(TURMField):
                     minimum=datetime.now().strftime("%Y-%m-%dT23:59"),
                     *args,
                     **kwargs,
-                ).add_on_value_changed("update_date_dependency(this)"),
+                ).add_on_value_changed("updateDateDependency(this)"),
                 start[1],
-            ),  # "%Y-%m-%dT%X"
+            ),
             (TURMDateTimeInput(end[0].name, *args, **kwargs), end[1]),
+        ]
+        widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
+        super().__init__(widget=widget, label_name="", *args, **kwargs)
+
+
+class TURMTimeDuration(TURMField):
+    """
+    provides two Time inputs for a duration
+    """
+
+    def __init__(
+        self,
+        start: tuple[models.Field, str],
+        end: tuple[models.Field, str],
+        *args,
+        **kwargs,
+    ):
+        sub_widgets = [
+            (
+                TURMTimeInput(
+                    start[0].name,
+                    *args,
+                    **kwargs,
+                ),
+                start[1],
+            ),
+            (TURMTimeInput(end[0].name, *args, **kwargs), end[1]),
         ]
         widget = TURMGridInput(widgets=sub_widgets, grid_dim=(2, 1), *args, **kwargs)
         super().__init__(widget=widget, label_name="", *args, **kwargs)

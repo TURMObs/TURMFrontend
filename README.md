@@ -44,7 +44,7 @@ NC_PORT=8080
 NC_USER=<user>
 NC_PASSWORD=<password>
 NC_URL=http://localhost:8080
-SECRET_KEY="django-insecure-k$b$^f\#%axr_@sur%@5u9ru2sau$xddv7%wb@kr(vp^y5ad!vu"
+SECRET_KEY="django-insecure-k\$b\$^f\#%axr_@sur%@5u9ru2sau\$xddv7%wb@kr(vp^y5ad!vu"
 BASE_URL="https://localhost:8000"
 CONFIG_PATH="./default_config.json"
 ```
