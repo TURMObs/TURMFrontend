@@ -7,7 +7,7 @@
  */
 function sanitize(value, regex) {
   const matched = value.match(regex);
-  return !!matched ? matched.join('') : '';
+  return !!matched ? matched.join("") : "";
 }
 
 /* --- RA DEC --- */
@@ -16,12 +16,14 @@ function sanitize(value, regex) {
  */
 function raDecInputHandler() {
   const target = event.target;
-  const rawInput = event.data
+  const rawInput = event.data;
   if (!rawInput) {
     const val = target.value;
-    target.value = (val.endsWith('.') || val.endsWith(' '))? val.slice(0, val.length - 1): val;
-  }
-  else {
+    target.value =
+      val.endsWith(".") || val.endsWith(" ")
+        ? val.slice(0, val.length - 1)
+        : val;
+  } else {
     target.value = enforceRaDecRules(target.value, rawInput.match(/[+\-]/));
   }
 }
@@ -32,17 +34,16 @@ function raDecInputHandler() {
  * @returns string
  */
 function enforceRaDecRules(val, overwriteSign) {
-  let sign = ''
+  let sign = "";
   if (!overwriteSign) {
     if (val.length < 1) return val;
-    if (val[0] === '+' || val[0] === '-') {
+    if (val[0] === "+" || val[0] === "-") {
       sign = val[0];
       val = val.slice(1, val.length);
     }
-  }
-  else sign = overwriteSign;
+  } else sign = overwriteSign;
 
-  val = sanitize(val, /\d/g)
+  val = sanitize(val, /\d/g);
   return sign + raDecSpacing(val);
 }
 /**
@@ -50,16 +51,19 @@ function enforceRaDecRules(val, overwriteSign) {
  * @param val value of the input (without sign)
  */
 function raDecSpacing(val) {
-  const firstSpaceIndex = 2
-  const secondSpaceIndex = 5
-  const decimalPointIndex = 8
+  const firstSpaceIndex = 2;
+  const secondSpaceIndex = 5;
+  const decimalPointIndex = 8;
   if (val.length < firstSpaceIndex + 1) return val;
-  if (val[firstSpaceIndex] !== ' ') val = val.slice(0,firstSpaceIndex) + ' ' + val.slice(firstSpaceIndex); // first space
+  if (val[firstSpaceIndex] !== " ")
+    val = val.slice(0, firstSpaceIndex) + " " + val.slice(firstSpaceIndex); // first space
   if (val.length < secondSpaceIndex + 1) return val;
-  if (val[secondSpaceIndex] !== ' ') val = val.slice(0,secondSpaceIndex) + ' ' + val.slice(secondSpaceIndex); // second space
+  if (val[secondSpaceIndex] !== " ")
+    val = val.slice(0, secondSpaceIndex) + " " + val.slice(secondSpaceIndex); // second space
   if (val.length < decimalPointIndex + 1) return val;
-  if (!(val[decimalPointIndex] === '.')) val = val.slice(0,decimalPointIndex) + '.' + val.slice(decimalPointIndex); // decimal point
-  return val
+  if (!(val[decimalPointIndex] === "."))
+    val = val.slice(0, decimalPointIndex) + "." + val.slice(decimalPointIndex); // decimal point
+  return val;
 }
 
 /* --- date time --- */
@@ -67,35 +71,47 @@ function raDecSpacing(val) {
  * oninput handler for DateTime fields
  */
 function dateTimeInputHandler() {
-  abstractDateTimeInputHandler([[4, '-'], [7, '-'], [10, ' '], [13, ':']])
+  abstractDateTimeInputHandler([
+    [4, "-"],
+    [7, "-"],
+    [10, " "],
+    [13, ":"],
+  ]);
 }
 /**
  * oninput handler for Date fields
  */
 function dateInputHandler() {
-  abstractDateTimeInputHandler([[4, '-'], [7, '-']])
+  abstractDateTimeInputHandler([
+    [4, "-"],
+    [7, "-"],
+  ]);
 }
 /**
  * oninput handler for Time fields
  */
 function timeInputHandler() {
-  abstractDateTimeInputHandler([[2, ':']])
+  abstractDateTimeInputHandler([[2, ":"]]);
 }
 /**
  * Abstract handler for date time related inputs
- * @param format nested Array of index and character that is present in format. e.g. [[4, '-'], [7, '-']] for yyyy-mm-dd
+ * @param format nested Array of index and character that is present in format. e.g. [[2, ':']] for hh:mm
  */
 function abstractDateTimeInputHandler(format) {
   const target = event.target;
-  const rawInput = event.data
+  const rawInput = event.data;
   let val = target.value;
   if (!rawInput) {
-    val = format.map(keyval=> keyval[1]).join('').includes(val[val.length - 1])? val.slice(0, val.length - 1): val;
-  }
-  else {
+    val = format
+      .map((keyval) => keyval[1])
+      .join("")
+      .includes(val[val.length - 1])
+      ? val.slice(0, val.length - 1)
+      : val;
+  } else {
     val = enforceDateTimeRules(target.value, format);
   }
-  target.value = val
+  target.value = val;
 }
 /**
  * Returns correctly formatted string according to format
@@ -104,12 +120,15 @@ function abstractDateTimeInputHandler(format) {
  * @returns string
  */
 function enforceDateTimeRules(val, format) {
-  val = sanitize(val, /\d/g)
-  for (let [separatorIndex, separatorCharacter] of format) {
-    if (val.length < separatorIndex + 1) return val;
-    val = val.slice(0,separatorIndex) + separatorCharacter + val.slice(separatorIndex);
+  val = sanitize(val, /\d/g);
+  for (let [seperatorIndex, seperatorCharacter] of format) {
+    if (val.length < seperatorIndex + 1) return val;
+    val =
+      val.slice(0, seperatorIndex) +
+      seperatorCharacter +
+      val.slice(seperatorIndex);
   }
-  return val
+  return val;
 }
 
 /* --- Numbers --- */
@@ -118,7 +137,7 @@ function enforceDateTimeRules(val, format) {
  */
 function integerInputHandler() {
   const target = event.target;
-  target.value = sanitize(target.value, /\d/g)
+  target.value = sanitize(target.value, /\d/g);
 }
 
 /**
@@ -126,27 +145,27 @@ function integerInputHandler() {
  */
 function decimalInputHandler() {
   const target = event.target;
-  let val = target.value
-  const decimalIndexPoint = val.indexOf(".")
-  const decimalIndexComma = val.indexOf(",")
+  let val = target.value;
+  const decimalIndexPoint = val.indexOf(".");
+  const decimalIndexComma = val.indexOf(",");
 
   if (decimalIndexPoint === -1 && decimalIndexComma === -1) {
     target.value = sanitize(val, /\d/g);
-    return
+    return;
   }
 
   let minDecimalIndex;
   if (decimalIndexPoint === -1) {
     minDecimalIndex = decimalIndexComma;
-  }
-  else if (decimalIndexComma === -1) minDecimalIndex = decimalIndexPoint;
-  else minDecimalIndex = Math.min(decimalIndexPoint, decimalIndexComma)
+  } else if (decimalIndexComma === -1) minDecimalIndex = decimalIndexPoint;
+  else minDecimalIndex = Math.min(decimalIndexPoint, decimalIndexComma);
   const decimalCharacter = val[minDecimalIndex];
-  val = sanitize(val, /\d/g)
-  target.value = val.slice(0, minDecimalIndex) + decimalCharacter + val.slice(minDecimalIndex, val.length)
+  val = sanitize(val, /\d/g);
+  target.value =
+    val.slice(0, minDecimalIndex) +
+    decimalCharacter +
+    val.slice(minDecimalIndex, val.length);
 }
-
-
 
 /* --- on page load --- */
 
