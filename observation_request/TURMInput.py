@@ -265,7 +265,7 @@ class _TURMChoiceInput(_TURMInput):
                 html_render += '<div class="tooltip">'
 
             html_render += f'<input id="id_{name}_{i}" value="{self.choices[i][1]}"{self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
-            html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][1]}</label>'
+            html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
 
             if self.tooltip:
                 html_render += f'<span class="tooltip-text">{self.tooltip}</span>'
