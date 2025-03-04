@@ -83,7 +83,7 @@ function timeInputHandler() {
 }
 /**
  * Abstract handler for date time related inputs
- * @param format nested Array of index and character that is present in format. e.g. [[2, ':']] for hh:mm
+ * @param format nested Array of index and character that is present in format. e.g. [[4, '-'], [7, '-']] for yyyy-mm-dd
  */
 function abstractDateTimeInputHandler(format) {
   const target = event.target;
@@ -105,9 +105,9 @@ function abstractDateTimeInputHandler(format) {
  */
 function enforceDateTimeRules(val, format) {
   val = sanitize(val, /\d/g)
-  for (let [seperatorIndex, seperatorCharacter] of format) {
-    if (val.length < seperatorIndex + 1) return val;
-    val = val.slice(0,seperatorIndex) + seperatorCharacter + val.slice(seperatorIndex);
+  for (let [separatorIndex, separatorCharacter] of format) {
+    if (val.length < separatorIndex + 1) return val;
+    val = val.slice(0,separatorIndex) + separatorCharacter + val.slice(separatorIndex);
   }
   return val
 }
