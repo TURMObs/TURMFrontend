@@ -48,7 +48,7 @@ class TURMField(Field):
                 return TURMCheckboxInput(
                     name=model_field.name,
                     choices=[
-                        (str(name).title(), str(name))
+                        (str(name), str(name))
                         for name in model_field.remote_field.model.objects.all()
                     ],
                     *args,
