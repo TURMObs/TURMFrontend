@@ -44,7 +44,8 @@ function enforceRaDecRules(val, overwriteSign) {
   } else sign = overwriteSign;
 
   val = sanitize(val, /\d/g);
-  return sign + raDecSpacing(val);
+  val = raDecSpacing(val);
+  return sign + val.slice(0, 14)
 }
 /**
  * Returns input with correct spacing and decimal point for RA/DEC fields
