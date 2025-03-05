@@ -17,21 +17,40 @@ function sanitize(value, regex) {
 function raDecInputHandler() {
   const target = event.target;
   const rawInput = event.data;
+  let val = target.value;
+  if (val === "") return;
   if (!rawInput) {
-    const val = target.value;
-    target.value =
+    val =
       val.endsWith(".") || val.endsWith(" ")
         ? val.slice(0, val.length - 1)
         : val;
-  } else {
-    target.value = enforceRaDecRules(target.value, rawInput.match(/[+\-]/));
   }
+  let sign;
+  let newValue;
+  [newValue, sign] = enforceRaDecRules(val, !rawInput ?"" :  rawInput.match(/[+\-]/) );
+  const cursorPos = target.selectionStart;
+  const offset = !rawInput ? 0 : getRaDecOffset(target.value.length, newValue.length, sign);
+  target.value = newValue;
+  target.setSelectionRange(cursorPos + offset, cursorPos + offset);
 }
+
+function getRaDecOffset(before, after, sign) {
+  const firstSpaceIndex = sign ? 4 : 3;
+  const secondSpaceIndex = sign ? 7 : 6;
+  const decimalPointIndex = sign ? 10 : 9;
+  let out = 0;
+  if (before > decimalPointIndex) return 0;
+  if (before <= firstSpaceIndex && after > firstSpaceIndex) out++;
+  if (before <= secondSpaceIndex && after > secondSpaceIndex) out++;
+  if (after > decimalPointIndex) out++;
+  return out;
+}
+
 /**
  * Returns correctly formatted RA/DEC string
  * @param val value of the input
  * @param overwriteSign for when a + or - is typed later on
- * @returns string
+ * @returns
  */
 function enforceRaDecRules(val, overwriteSign) {
   let sign = "";
@@ -42,26 +61,30 @@ function enforceRaDecRules(val, overwriteSign) {
       val = val.slice(1, val.length);
     }
   } else sign = overwriteSign;
-
+  const lastChar = val.slice(val.length - 1, val.length)
   val = sanitize(val, /\d/g);
-  val = raDecSpacing(val);
-  return sign + val.slice(0, 14)
+  val = raDecSpacing(val, lastChar);
+  return  [sign + val.slice(0, 14), sign !== ''];
 }
 /**
  * Returns input with correct spacing and decimal point for RA/DEC fields
  * @param val value of the input (without sign)
+ * @param lastChar
  */
-function raDecSpacing(val) {
+function raDecSpacing(val, lastChar) {
   const firstSpaceIndex = 2;
   const secondSpaceIndex = 5;
   const decimalPointIndex = 8;
-  if (val.length < firstSpaceIndex + 1) return val;
+  if (val.length === firstSpaceIndex && lastChar === " ") return val + " ";
+  if (val.length <= firstSpaceIndex) return val;
   if (val[firstSpaceIndex] !== " ")
     val = val.slice(0, firstSpaceIndex) + " " + val.slice(firstSpaceIndex); // first space
-  if (val.length < secondSpaceIndex + 1) return val;
+  if (val.length === secondSpaceIndex && lastChar === " ") return val + " ";
+  if (val.length <= secondSpaceIndex) return val;
   if (val[secondSpaceIndex] !== " ")
     val = val.slice(0, secondSpaceIndex) + " " + val.slice(secondSpaceIndex); // second space
-  if (val.length < decimalPointIndex + 1) return val;
+  if (val.length === decimalPointIndex && lastChar === ".") return val + ".";
+  if (val.length <= decimalPointIndex) return val;
   if (!(val[decimalPointIndex] === "."))
     val = val.slice(0, decimalPointIndex) + "." + val.slice(decimalPointIndex); // decimal point
   return val;
