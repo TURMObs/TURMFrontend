@@ -148,7 +148,7 @@ class TURMIntegerInput(_TURMNumericInput):
             *args,
             **kwargs,
         )
-        self.attrs["oninput"] = "discardInput(event, this, '[^\\\\d*\\\\s*]')"
+        self.attrs["oninput"] = "integerInputHandler()"
 
 
 class TURMFloatInput(_TURMNumericInput):
@@ -175,21 +175,18 @@ class TURMFloatInput(_TURMNumericInput):
             *args,
             **kwargs,
         )
-        self.attrs["oninput"] = (
-            "discard_input(event, this, '[^\\\\d*\\\\s*\\\\.*]')"  # todo restrict multiple dots
-        )
+        self.attrs["oninput"] = "decimalInputHandler()"
 
 
 """ --- TURM Choice Inputs """
 
 
 class _TURMDateTimeInput(_TURMInput):
-    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
+    def __init__(self, name, max_length=None, *args, **kwargs):
         super().__init__(name, *args, **kwargs)
-        if minimum:
-            self.attrs["min"] = minimum
-        if maximum:
-            self.attrs["max"] = maximum
+        if max_length:
+            self.attrs["maxlength"] = max_length
+        self.attrs["type"] = "text"
 
     def render(self, name, value, attrs=None, renderer=None):
         return mark_safe(f"<input {self._render_attrs(attrs)}></input>")
@@ -200,21 +197,21 @@ class _TURMDateTimeInput(_TURMInput):
 
 
 class TURMDateTimeInput(_TURMDateTimeInput):
-    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
-        super().__init__(name, minimum, maximum, *args, **kwargs)
-        self.attrs["type"] = "datetime-local"
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(name, max_length=16, *args, **kwargs)
+        self.attrs["placeholder"] = "YYYY-MM-DD hh:mm"
 
 
 class TURMDateInput(_TURMDateTimeInput):
-    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
-        super().__init__(name, minimum, maximum, *args, **kwargs)
-        self.attrs["type"] = "date"
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(name, max_length=10, *args, **kwargs)
+        self.attrs["placeholder"] = "YYYY-MM-DD"
 
 
 class TURMTimeInput(_TURMDateTimeInput):
-    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
-        super().__init__(name, minimum, maximum, *args, **kwargs)
-        self.attrs["type"] = "time"
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(name, max_length=5, *args, **kwargs)
+        self.attrs["placeholder"] = "hh:mm"
 
 
 """ --- TURM Choice Inputs """

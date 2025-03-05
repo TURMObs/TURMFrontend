@@ -1,15 +1,197 @@
 /**
- * event hook that prevents the specified characters from being typed into a textfield
- * @param event html event that was triggered
- * @param el the HTML element that triggered the event
- * @param suppressed RegExp of what should be suppressed
+ * Returns the string without all parts that are not matched by regex.
+ * Regex mustn't generate overlapping sections of selection
+ * @param value string that is to be sanitized
+ * @param regex regex that is to be kept
+ * @returns string
  */
-
-function discardInput(event, el, suppressed) {
-  el.value = el.value.replace(RegExp(suppressed), "");
-  event.stopPropagation();
-  event.preventDefault();
+function sanitize(value, regex) {
+  const matched = value.match(regex);
+  return !!matched ? matched.join("") : "";
 }
+
+/* --- RA DEC --- */
+/**
+ * oninput handler for RA and DEC Field
+ */
+function raDecInputHandler() {
+  const target = event.target;
+  const rawInput = event.data;
+  let val = target.value;
+  if (val === "") return;
+  if (!rawInput) {
+    val =
+      val.endsWith(".") || val.endsWith(" ")
+        ? val.slice(0, val.length - 1)
+        : val;
+  }
+  let sign;
+  let newValue;
+  [newValue, sign] = enforceRaDecRules(val, !rawInput ?"" :  rawInput.match(/[+\-]/) );
+  const cursorPos = target.selectionStart;
+  const offset = !rawInput ? 0 : getRaDecOffset(target.value.length, newValue.length, sign);
+  target.value = newValue;
+  target.setSelectionRange(cursorPos + offset, cursorPos + offset);
+}
+
+function getRaDecOffset(before, after, sign) {
+  const firstSpaceIndex = sign ? 4 : 3;
+  const secondSpaceIndex = sign ? 7 : 6;
+  const decimalPointIndex = sign ? 10 : 9;
+  let out = 0;
+  if (before > decimalPointIndex) return 0;
+  if (before <= firstSpaceIndex && after > firstSpaceIndex) out++;
+  if (before <= secondSpaceIndex && after > secondSpaceIndex) out++;
+  if (after > decimalPointIndex) out++;
+  return out;
+}
+
+/**
+ * Returns correctly formatted RA/DEC string
+ * @param val value of the input
+ * @param overwriteSign for when a + or - is typed later on
+ * @returns
+ */
+function enforceRaDecRules(val, overwriteSign) {
+  let sign = "";
+  if (!overwriteSign) {
+    if (val.length < 1) return val;
+    if (val[0] === "+" || val[0] === "-") {
+      sign = val[0];
+      val = val.slice(1, val.length);
+    }
+  } else sign = overwriteSign;
+  const lastChar = val.slice(val.length - 1, val.length)
+  val = sanitize(val, /\d/g);
+  val = raDecSpacing(val, lastChar);
+  return  [sign + val.slice(0, 14), sign !== ''];
+}
+/**
+ * Returns input with correct spacing and decimal point for RA/DEC fields
+ * @param val value of the input (without sign)
+ * @param lastChar
+ */
+function raDecSpacing(val, lastChar) {
+  const firstSpaceIndex = 2;
+  const secondSpaceIndex = 5;
+  const decimalPointIndex = 8;
+  if (val.length === firstSpaceIndex && lastChar === " ") return val + " ";
+  if (val.length <= firstSpaceIndex) return val;
+  if (val[firstSpaceIndex] !== " ")
+    val = val.slice(0, firstSpaceIndex) + " " + val.slice(firstSpaceIndex); // first space
+  if (val.length === secondSpaceIndex && lastChar === " ") return val + " ";
+  if (val.length <= secondSpaceIndex) return val;
+  if (val[secondSpaceIndex] !== " ")
+    val = val.slice(0, secondSpaceIndex) + " " + val.slice(secondSpaceIndex); // second space
+  if (val.length === decimalPointIndex && lastChar === ".") return val + ".";
+  if (val.length <= decimalPointIndex) return val;
+  if (!(val[decimalPointIndex] === "."))
+    val = val.slice(0, decimalPointIndex) + "." + val.slice(decimalPointIndex); // decimal point
+  return val;
+}
+
+/* --- date time --- */
+/**
+ * oninput handler for DateTime fields
+ */
+function dateTimeInputHandler() {
+  abstractDateTimeInputHandler([
+    [4, "-"],
+    [7, "-"],
+    [10, " "],
+    [13, ":"],
+  ]);
+}
+/**
+ * oninput handler for Date fields
+ */
+function dateInputHandler() {
+  abstractDateTimeInputHandler([
+    [4, "-"],
+    [7, "-"],
+  ]);
+}
+/**
+ * oninput handler for Time fields
+ */
+function timeInputHandler() {
+  abstractDateTimeInputHandler([[2, ":"]]);
+}
+/**
+ * Abstract handler for date time related inputs
+ * @param format nested Array of index and character that is present in format. e.g. [[4, "-"], [7, "-"]] for hh:mm
+ */
+function abstractDateTimeInputHandler(format) {
+  const target = event.target;
+  const rawInput = event.data;
+  let val = target.value;
+  if (!rawInput) {
+    val = format
+      .map((keyval) => keyval[1])
+      .join("")
+      .includes(val[val.length - 1])
+      ? val.slice(0, val.length - 1)
+      : val;
+  } else {
+    val = enforceDateTimeRules(target.value, format);
+  }
+  target.value = val;
+}
+/**
+ * Returns correctly formatted string according to format
+ * @param val value of the input
+ * @param format format given as nested Array. See abstractDateTimeInputHandler for example
+ * @returns string
+ */
+function enforceDateTimeRules(val, format) {
+  val = sanitize(val, /\d/g);
+  for (let [separatorIndex, separatorCharacter] of format) {
+    if (val.length < separatorIndex + 1) return val;
+    val =
+      val.slice(0, separatorIndex) +
+      separatorCharacter +
+      val.slice(separatorIndex);
+  }
+  return val;
+}
+
+/* --- Numbers --- */
+/**
+ * oninput handler for Integer fields
+ */
+function integerInputHandler() {
+  const target = event.target;
+  target.value = sanitize(target.value, /\d/g);
+}
+
+/**
+ * oninput handler for Decimal fields
+ */
+function decimalInputHandler() {
+  const target = event.target;
+  let val = target.value;
+  const decimalIndexPoint = val.indexOf(".");
+  const decimalIndexComma = val.indexOf(",");
+
+  if (decimalIndexPoint === -1 && decimalIndexComma === -1) {
+    target.value = sanitize(val, /\d/g);
+    return;
+  }
+
+  let minDecimalIndex;
+  if (decimalIndexPoint === -1) {
+    minDecimalIndex = decimalIndexComma;
+  } else if (decimalIndexComma === -1) minDecimalIndex = decimalIndexPoint;
+  else minDecimalIndex = Math.min(decimalIndexPoint, decimalIndexComma);
+  const decimalCharacter = val[minDecimalIndex];
+  val = sanitize(val, /\d/g);
+  target.value =
+    val.slice(0, minDecimalIndex) +
+    decimalCharacter +
+    val.slice(minDecimalIndex, val.length);
+}
+
+/* --- on page load --- */
 
 /**
  * Checks the first radio button of a group of radio buttons, if none are selected
@@ -33,6 +215,8 @@ function checkRadioIfNoneSelected() {
       selected_or_first_radio.click();
   }
 }
+
+/* --- dynamic display of form elements --- */
 
 /**
  * disables all inputs that are part of the dependency_type, but not of the given dependency
@@ -101,6 +285,8 @@ function updateDateDependency(el) {
     end.value = end.min;
   }
 }
+
+/* --- Form Submission and Error handling --- */
 
 /**
  * submits form to specified address. In case of failure it marks the errors in html. In case of success user gets redirected.
