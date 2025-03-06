@@ -85,7 +85,7 @@ class TURMProjectForm(forms.Form):
 def filter_set_dependency_generator(filter):
     dependency = {Dependency.observatory.value: []}
     for observatory in Observatory.objects.filter(
-        filter_set__filter_type__icontains=filter
+        filter_set__filter_type__exact=filter
     ).iterator():
         dependency[Dependency.observatory.value].append(str(observatory))
     return dependency
