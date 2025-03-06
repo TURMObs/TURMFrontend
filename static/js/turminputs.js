@@ -27,9 +27,14 @@ function raDecInputHandler() {
   }
   let sign;
   let newValue;
-  [newValue, sign] = enforceRaDecRules(val, !rawInput ?"" :  rawInput.match(/[+\-]/) );
+  [newValue, sign] = enforceRaDecRules(
+    val,
+    !rawInput ? "" : rawInput.match(/[+\-]/),
+  );
   const cursorPos = target.selectionStart;
-  const offset = !rawInput ? 0 : getRaDecOffset(target.value.length, newValue.length, sign);
+  const offset = !rawInput
+    ? 0
+    : getRaDecOffset(target.value.length, newValue.length, sign);
   target.value = newValue;
   target.setSelectionRange(cursorPos + offset, cursorPos + offset);
 }
@@ -61,10 +66,10 @@ function enforceRaDecRules(val, overwriteSign) {
       val = val.slice(1, val.length);
     }
   } else sign = overwriteSign;
-  const lastChar = val.slice(val.length - 1, val.length)
+  const lastChar = val.slice(val.length - 1, val.length);
   val = sanitize(val, /\d/g);
   val = raDecSpacing(val, lastChar);
-  return  [sign + val.slice(0, 14), sign !== ''];
+  return [sign + val.slice(0, 14), sign !== ""];
 }
 /**
  * Returns input with correct spacing and decimal point for RA/DEC fields
@@ -110,7 +115,6 @@ function timeInputHandler() {
   abstractDateTimeInputHandler("hh:dd");
 }
 
-
 /**
  * Abstract handler for date time related inputs
  * @param format string of the given format. e.g. "yyyy-mm-dd"
@@ -119,35 +123,46 @@ function abstractDateTimeInputHandler(format) {
   const target = event.target;
   const cursorPosBefore = target.selectionStart;
   const formattingIndices = getFormattingIndices(format);
-  const isDeletion = event.data === null
+  const isDeletion = event.data === null;
 
-  event.target.addEventListener("input", _ => {
-    // format existing input
-    let lastChar = '';
-    if (!isDeletion &&  target.value !== undefined) lastChar = target.value.charAt(cursorPosBefore);
-    let val = enforceDateTimeRules(target.value, lastChar, format);
+  event.target.addEventListener(
+    "input",
+    (_) => {
+      // format existing input
+      let lastChar = "";
+      if (!isDeletion && target.value !== undefined)
+        lastChar = target.value.charAt(cursorPosBefore);
+      let val = enforceDateTimeRules(target.value, lastChar, format);
 
-    // compute new cursor position
-    const cursorPosAfter = target.selectionStart;
-    let cursorPos = getNewCursorPos(formattingIndices, cursorPosBefore, cursorPosAfter);
-    cursorPos = Math.min(cursorPos, val.length);
-    if (isDeletion && cursorPos > 0 && !val[cursorPos-1].match(/\d/)) cursorPos--;
+      // compute new cursor position
+      const cursorPosAfter = target.selectionStart;
+      let cursorPos = getNewCursorPos(
+        formattingIndices,
+        cursorPosBefore,
+        cursorPosAfter,
+      );
+      cursorPos = Math.min(cursorPos, val.length);
+      if (isDeletion && cursorPos > 0 && !val[cursorPos - 1].match(/\d/))
+        cursorPos--;
 
-    // add formatting string to end
-    val = val.slice(0, format.length) + format.slice(val.length, format.length);
+      // add formatting string to end
+      val =
+        val.slice(0, format.length) + format.slice(val.length, format.length);
 
-    //set values
-    target.value = val;
-    target.setSelectionRange(cursorPos, cursorPos);
-  }, {"once": true})
+      //set values
+      target.value = val;
+      target.setSelectionRange(cursorPos, cursorPos);
+    },
+    { once: true },
+  );
 }
 
 /** Returns indices of non-alphabetical characters
  * @param format string representing format
  */
 function getFormattingIndices(format) {
-  let matchedIndices = []
-  let re = /[^A-z]/g
+  let matchedIndices = [];
+  let re = /[^A-z]/g;
   let match;
   while ((match = re.exec(format)) != null) matchedIndices.push(match.index);
   return matchedIndices;
@@ -181,7 +196,7 @@ function enforceDateTimeRules(val, lastChar, format) {
   for (let separatorIndex of indices) {
     if (val.length < separatorIndex) return val;
     if (val.length === separatorIndex && lastChar === format[separatorIndex]) {
-      console.log("test")
+      console.log("test");
       return val + format[separatorIndex];
     }
     val =
