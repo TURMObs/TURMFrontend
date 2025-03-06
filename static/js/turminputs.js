@@ -155,7 +155,7 @@ function getFormattingIndices(format) {
 
 /**
  * Returns new cursor position
- * @param format formating string that is used
+ * @param format formatting string that is used
  * @param oldPos cursor position before input
  * @param newPos cursor position after input
  * @returns {*}
