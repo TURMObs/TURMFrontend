@@ -127,6 +127,21 @@
                         </button>
                     </div>
                     <table class="table observations-table">
+                        <colgroup>
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="50%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                            {% if perms.accounts.can_see_all_observations %}
+                                <col width="50%" />
+                                <col width="0%" />
+                            {% endif %}
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th class="expand-row-container"></th>
@@ -253,6 +268,17 @@
                         <p class="no-completed-observations-text text">No completed observations yet.</p>
                     {% else %}
                         <table class="table observations-table">
+                            <colgroup>
+                                <col width="0%" />
+                                <col width="0%" />
+                                <col width="50%" />
+                                <col width="0%" />
+                                <col width="0%" />
+                                {% if perms.accounts.can_see_all_observations %}
+                                    <col width="50%" />
+                                {% endif %}
+                                <col width="0%" />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th class="expand-row-container"></th>
