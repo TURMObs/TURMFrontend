@@ -182,35 +182,33 @@ class TURMFloatInput(_TURMNumericInput):
 
 
 class _TURMDateTimeInput(_TURMInput):
-    def __init__(self, name, max_length=None, *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
         super().__init__(name, *args, **kwargs)
-        if max_length:
-            self.attrs["maxlength"] = max_length
         self.attrs["type"] = "text"
 
     def render(self, name, value, attrs=None, renderer=None):
         return mark_safe(f"<input {self._render_attrs(attrs)}></input>")
 
     def add_on_value_changed(self, on_value_changed):
-        self.attrs["oninput"] = on_value_changed
+        self.attrs["onbeforeinput"] = on_value_changed
         return self
 
 
 class TURMDateTimeInput(_TURMDateTimeInput):
     def __init__(self, name, *args, **kwargs):
-        super().__init__(name, max_length=16, *args, **kwargs)
+        super().__init__(name, *args, **kwargs)
         self.attrs["placeholder"] = "YYYY-MM-DD hh:mm"
 
 
 class TURMDateInput(_TURMDateTimeInput):
     def __init__(self, name, *args, **kwargs):
-        super().__init__(name, max_length=10, *args, **kwargs)
+        super().__init__(name, *args, **kwargs)
         self.attrs["placeholder"] = "YYYY-MM-DD"
 
 
 class TURMTimeInput(_TURMDateTimeInput):
     def __init__(self, name, *args, **kwargs):
-        super().__init__(name, max_length=5, *args, **kwargs)
+        super().__init__(name, *args, **kwargs)
         self.attrs["placeholder"] = "hh:mm"
 
 

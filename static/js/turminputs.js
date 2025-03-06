@@ -95,48 +95,57 @@ function raDecSpacing(val, lastChar) {
  * oninput handler for DateTime fields
  */
 function dateTimeInputHandler() {
-  abstractDateTimeInputHandler([
-    [4, "-"],
-    [7, "-"],
-    [10, " "],
-    [13, ":"],
-  ]);
+  abstractDateTimeInputHandler("YYYY-MM-DD hh:mm");
 }
 /**
  * oninput handler for Date fields
  */
 function dateInputHandler() {
-  abstractDateTimeInputHandler([
-    [4, "-"],
-    [7, "-"],
-  ]);
+  abstractDateTimeInputHandler("YYYY-MM-DD");
 }
 /**
  * oninput handler for Time fields
  */
 function timeInputHandler() {
-  abstractDateTimeInputHandler([[2, ":"]]);
+  abstractDateTimeInputHandler("hh:dd");
 }
+
+
 /**
  * Abstract handler for date time related inputs
  * @param format nested Array of index and character that is present in format. e.g. [[4, "-"], [7, "-"]] for hh:mm
  */
 function abstractDateTimeInputHandler(format) {
   const target = event.target;
+  const cursorPosBefore = target.selectionStart;
   const rawInput = event.data;
-  let val = target.value;
-  if (!rawInput) {
-    val = format
-      .map((keyval) => keyval[1])
-      .join("")
-      .includes(val[val.length - 1])
-      ? val.slice(0, val.length - 1)
-      : val;
-  } else {
-    val = enforceDateTimeRules(target.value, format);
-  }
-  target.value = val;
+  const formattingIndices = getFormattingIndices(format);
+
+  event.target.addEventListener("input", _ => {
+    let val = enforceDateTimeRules(target.value, format);
+    const cursorPosAfter = target.selectionStart;
+    const cursorPos = getNewCursorPos(formattingIndices, cursorPosBefore, cursorPosAfter);
+    target.value = val.slice(0, format.length) + format.slice(val.length, format.length);
+    target.setSelectionRange(cursorPos, cursorPos);
+  }, {"once": true})
 }
+
+function getFormattingIndices(format) {
+  let matchedIndices = []
+  let re = /[^A-z]/g
+  let match;
+  while ((match = re.exec(format)) != null) matchedIndices.push(match.index);
+  return matchedIndices;
+}
+
+function getNewCursorPos(format, oldPos, newPos) {
+  let createdOffset = 0;
+  for (let separatorIndex of format) {
+    if (oldPos <= separatorIndex && newPos > separatorIndex) createdOffset++;
+  }
+  return newPos + createdOffset;
+}
+
 /**
  * Returns correctly formatted string according to format
  * @param val value of the input
@@ -144,12 +153,13 @@ function abstractDateTimeInputHandler(format) {
  * @returns string
  */
 function enforceDateTimeRules(val, format) {
+  const indices = getFormattingIndices(format);
   val = sanitize(val, /\d/g);
-  for (let [separatorIndex, separatorCharacter] of format) {
+  for (let separatorIndex of indices) {
     if (val.length < separatorIndex + 1) return val;
     val =
       val.slice(0, separatorIndex) +
-      separatorCharacter +
+      format[separatorIndex] +
       val.slice(separatorIndex);
   }
   return val;
