@@ -89,10 +89,12 @@ class Command(BaseCommand):
 
             obs, created = Observatory.objects.update_or_create(
                 name=observatory["name"],
-                horizon_offset=observatory["horizon_offset"],
-                min_stars=observatory["min_stars"],
-                max_HFR=observatory["max_HFR"],
-                max_guide_error=observatory["max_guide_error"],
+                defaults={
+                    "horizon_offset": observatory["horizon_offset"],
+                    "min_stars": observatory["min_stars"],
+                    "max_HFR": observatory["max_HFR"],
+                    "max_guide_error": observatory["max_guide_error"],
+                },
             )
             created_observatories.append(obs)
             obs_mapping[observatory["name"]] = observatory["filters"]
@@ -167,8 +169,8 @@ class Command(BaseCommand):
                     ).first()
                 obj, created = ObservatoryExposureSettings.objects.update_or_create(
                     observatory=obs,
-                    exposure_settings=exposure_settings,
                     observation_type=observation_type,
+                    defaults={"exposure_settings": exposure_settings},
                 )
                 created_exposure_settings.append(obj)
                 if not created:
@@ -210,8 +212,10 @@ class Command(BaseCommand):
                 continue
             obj, created = Filter.objects.update_or_create(
                 filter_type=filter_type,
-                moon_separation_angle=f["moon_separation_angle"],
-                moon_separation_width=f["moon_separation_width"],
+                defaults={
+                    "moon_separation_angle": f["moon_separation_angle"],
+                    "moon_separation_width": f["moon_separation_width"],
+                },
             )
             created_filters.append(obj)
             for obs, filters in observatory_mapping.items():
@@ -246,7 +250,6 @@ class Command(BaseCommand):
             self.stdout.write("Created Default request settings.")
 
         settings, _ = DefaultRequestSettings.objects.update_or_create(
-            id=0,
-            settings=data["request_settings_defaults"],
+            id=0, defaults={"settings": data["request_settings_defaults"]}
         )
         return settings
