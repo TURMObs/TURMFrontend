@@ -121,10 +121,11 @@ function abstractDateTimeInputHandler(format) {
   const formattingIndices = getFormattingIndices(format);
 
   event.target.addEventListener("input", _ => {
-    const lastChar = target.value[target.length];
-    let val = enforceDateTimeRules(target.value, lastChar , format);
+    const lastChar = target.value !== undefined ? target.value.charAt(cursorPosBefore) : '';
+    let val = enforceDateTimeRules(target.value, format);
     const cursorPosAfter = target.selectionStart;
     let cursorPos = getNewCursorPos(formattingIndices, cursorPosBefore, cursorPosAfter);
+    cursorPos = !lastChar.match(/\d/) ? cursorPos - 1 : cursorPos;
     target.value = val.slice(0, format.length) + format.slice(val.length, format.length);
     target.setSelectionRange(cursorPos, cursorPos);
   }, {"once": true})
@@ -149,16 +150,14 @@ function getNewCursorPos(format, oldPos, newPos) {
 /**
  * Returns correctly formatted string according to format
  * @param val value of the input
- * @param lastChar last character in input
  * @param format format given as nested Array. See abstractDateTimeInputHandler for example
  * @returns string
  */
-function enforceDateTimeRules(val, lastChar, format) {
+function enforceDateTimeRules(val, format) {
   const indices = getFormattingIndices(format);
   val = sanitize(val, /\d/g);
   for (let separatorIndex of indices) {
     if (val.length < separatorIndex + 1) return val;
-   if (val.length === separatorIndex && lastChar === format[separatorIndex]) return val + format[separatorIndex];
     val =
       val.slice(0, separatorIndex) +
       format[separatorIndex] +
