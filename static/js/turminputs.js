@@ -428,7 +428,6 @@ function handleErrors(dict) {
         escapeGrid = true;
       }
       const field = addErrorMessage(name, dict[key][0], escapeGrid);
-      console.log(field, field.getBoundingClientRect())
       if (!element) element = field;
       else if (field.getBoundingClientRect().top < element.getBoundingClientRect().top) {
         element = field;
@@ -436,7 +435,6 @@ function handleErrors(dict) {
     } else {
       for (let subKey in dict.target) {
         const field = addErrorMessage(subKey, dict[key][subKey][0]);
-      console.log(field, field.getBoundingClientRect())
         if (!element) element = field;
         else if (field.getBoundingClientRect().top < element.getBoundingClientRect().top) {
           element = field;
