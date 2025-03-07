@@ -428,11 +428,18 @@ function handleErrors(dict) {
       ) {
         name = "start_observation";
         escapeGrid = true;
-        if (key === "overlapping_observations") message = "overlapping with observation: " + dict[key][0].start_observation + " - " + dict[key][0].end_observation;
+        if (key === "overlapping_observations")
+          message =
+            "overlapping with observation: " +
+            dict[key][0].start_observation +
+            " - " +
+            dict[key][0].end_observation;
       }
       const field = addErrorMessage(name, message, escapeGrid);
       if (!element) element = field;
-      else if (field.getBoundingClientRect().top < element.getBoundingClientRect().top) {
+      else if (
+        field.getBoundingClientRect().top < element.getBoundingClientRect().top
+      ) {
         element = field;
       }
     } else {
@@ -440,7 +447,10 @@ function handleErrors(dict) {
         const message = dict[key][subKey][0];
         const field = addErrorMessage(subKey, message);
         if (!element) element = field;
-        else if (field.getBoundingClientRect().top < element.getBoundingClientRect().top) {
+        else if (
+          field.getBoundingClientRect().top <
+          element.getBoundingClientRect().top
+        ) {
           element = field;
         }
       }
@@ -461,11 +471,11 @@ function addErrorMessage(name, message, escapeGrid = false) {
   error.classList.add("error-msg");
   error.innerHTML = iconElement + messageElement;
 
-
   // default case
   let element = document.getElementById("id_" + name);
   // expert_case
-  if (element === null || element.disabled) element = document.getElementById("id_exp_" + name);
+  if (element === null || element.disabled)
+    element = document.getElementById("id_exp_" + name);
   // select or radio
   if (element === null) element = document.getElementById("id_" + name + "_0");
   // other unknown
@@ -498,7 +508,8 @@ function clearErrorMessages() {
 }
 
 function findLabelForControl(element) {
-  const labels = Array.from(document.getElementsByTagName('label'))
-      .filter(el => el.htmlFor === element.id);
-  return labels[0]
+  const labels = Array.from(document.getElementsByTagName("label")).filter(
+    (el) => el.htmlFor === element.id,
+  );
+  return labels[0];
 }

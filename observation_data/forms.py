@@ -266,7 +266,8 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         exposure_settings = [
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("frames_per_filter"), is_expert=True
+                    ExpertObservation._meta.get_field("frames_per_filter"),
+                    is_expert=True,
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("frames_per_filter", ""),
@@ -359,7 +360,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_schedule"] = TURMDateDuration(
             (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
             (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
-            is_expert=True
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -375,7 +376,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_schedule_time"] = TURMTimeDuration(
             (ExpertObservation._meta.get_field("start_observation_time"), "Start Time"),
             (ExpertObservation._meta.get_field("end_observation_time"), "End Time"),
-            is_expert=True
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -411,7 +412,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 "Start Observation",
             ),
             (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
-            is_expert=True
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [

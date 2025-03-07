@@ -194,7 +194,7 @@ class TURMFloatInput(_TURMNumericInput):
 
 class _TURMDateTimeInput(_TURMInput):
     def __init__(self, name, id=None, *args, **kwargs):
-        super().__init__(name, id,*args, **kwargs)
+        super().__init__(name, id, *args, **kwargs)
         self.attrs["type"] = "text"
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -213,13 +213,13 @@ class TURMDateTimeInput(_TURMDateTimeInput):
 
 class TURMDateInput(_TURMDateTimeInput):
     def __init__(self, name, id=None, *args, **kwargs):
-        super().__init__(name, id,*args, **kwargs)
+        super().__init__(name, id, *args, **kwargs)
         self.attrs["placeholder"] = "YYYY-MM-DD"
 
 
 class TURMTimeInput(_TURMDateTimeInput):
     def __init__(self, name, id=None, *args, **kwargs):
-        super().__init__(name, id,*args, **kwargs)
+        super().__init__(name, id, *args, **kwargs)
         self.attrs["placeholder"] = "hh:mm"
 
 
@@ -240,7 +240,7 @@ class _TURMChoiceInput(_TURMInput):
     on_click = None
     tooltip = None
 
-    def __init__(self, name,choices, id=None, *args, **kwargs):
+    def __init__(self, name, choices, id=None, *args, **kwargs):
         super().__init__(name=name, id=id, *args, **kwargs)
         self.choices = choices
 
@@ -311,8 +311,8 @@ class TURMRadioInput(_TURMChoiceInput):
 class TURMCheckboxInput(_TURMChoiceInput):
     tooltip = None
 
-    def __init__(self, name,choices, id=None, *args, **kwargs):
-        super().__init__(name=name, id=id,choices=choices, *args, **kwargs)
+    def __init__(self, name, choices, id=None, *args, **kwargs):
+        super().__init__(name=name, id=id, choices=choices, *args, **kwargs)
         self.attrs["type"] = "checkbox"
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=True):
@@ -333,16 +333,14 @@ class TURMGridInput(_TURMInput):
     def __init__(
         self, widgets: list[tuple[_TURMInput, str]], grid_dim=(1, 1), *args, **kwargs
     ):
-        super().__init__(name="", id="",*args, **kwargs)
+        super().__init__(name="", id="", *args, **kwargs)
         self.widgets = widgets
         self.grid_dim = grid_dim
 
     def render(self, name, value, attrs=None, renderer=None):
         html_render = f'<div class="grid-input-div" style="{self.render_rows_style()}">'
         for widget, w_name in self.widgets:
-            html_render += (
-                f'<div><label for="{widget.attrs["id"]}">{w_name}</label>'
-            )
+            html_render += f'<div><label for="{widget.attrs["id"]}">{w_name}</label>'
             html_render += widget.render(
                 widget.attrs["name"],
                 value,
