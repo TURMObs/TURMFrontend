@@ -243,6 +243,23 @@ function decimalInputHandler() {
     val.slice(minDecimalIndex, val.length);
 }
 
+/* --- Text --- */
+/**
+ * oninput handler for Target Name field
+ */
+function targetNameInputHandler() {
+  const target = event.target;
+  target.value = sanitize(target.value, /\S/g);
+}
+
+/**
+ * oninput handler for Catalogue field
+ */
+function catalogueIdInputHandler() {
+  const target = event.target;
+  target.value = sanitize(target.value, /\S/g);
+}
+
 /* --- on page load --- */
 
 /**
