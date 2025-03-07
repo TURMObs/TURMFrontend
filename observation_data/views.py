@@ -17,7 +17,6 @@ from observation_data.models import (
 from accounts.models import ObservatoryUser, UserPermission
 from observation_data.serializers import get_serializer
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -98,31 +97,6 @@ def create_observation(request):
 
 @require_POST
 @api_view(["POST"])
-def finish_observation(request, observation_id):
-    user = request.user
-    observation, response = _fetch_observation(user, observation_id)
-    if response:
-        return response
-    can_finish = (
-        user.has_perm(UserPermission.CAN_EDIT_ALL_OBSERVATIONS)
-        or user == observation.user
-    )
-    if not can_finish:
-        return Response(
-            {"error": "Permission denied"},
-            status=status.HTTP_403_FORBIDDEN,
-        )
-
-    if observation.project_status == ObservationStatus.UPLOADED:
-        observation.project_status = ObservationStatus.PENDING_COMPLETION
-    else:
-        observation.project_status = ObservationStatus.COMPLETED
-    observation.save()
-    return Response(status=status.HTTP_202_ACCEPTED)
-
-
-@require_POST
-@api_view(["POST"])
 def edit_observation(request, observation_id):
     """
     Edit an observation which is identified by the observation id.
@@ -188,6 +162,68 @@ def edit_observation(request, observation_id):
 
     serializer.save()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@require_POST
+@api_view(["POST"])
+def finish_observation(request, observation_id):
+    user = request.user
+    observation, response = _fetch_observation(user, observation_id)
+    if response:
+        return response
+    can_finish = (
+        user.has_perm(UserPermission.CAN_EDIT_ALL_OBSERVATIONS)
+        or user == observation.user
+    )
+    if not can_finish:
+        return Response(
+            {"error": "Permission denied"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if observation.project_status == ObservationStatus.UPLOADED:
+        observation.project_status = ObservationStatus.PENDING_COMPLETION
+    else:
+        observation.project_status = ObservationStatus.COMPLETED
+    observation.save()
+    return Response(status=status.HTTP_202_ACCEPTED)
+
+
+@require_POST
+@api_view(["POST"])
+def toggle_pause_observation(request, observation_id):
+    """
+    Pauses the observation with the passed id, or sets the status to Pending.
+    User must be the owner of the observation or admin to pause the observation.
+    :param request: HTTP request with observation data
+    :param observation_id: The id of the observation to be paused
+    :return: HTTP response success or error with error message
+    """
+    user = request.user
+    obs, response = _fetch_observation(user, observation_id)
+    if response:
+        return response
+
+    if not user == obs.user and not user.has_perm(
+        UserPermission.CAN_EDIT_ALL_OBSERVATIONS
+    ):
+        logger.info(
+            f"User {user.get_username()} does not have permission to pause observation {observation_id}."
+        )
+        return Response(
+            {
+                f"User {user.get_username()} does not have permission to pause observation {observation_id}."
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    if obs.project_status == ObservationStatus.PAUSED:
+        obs.project_status = ObservationStatus.PENDING
+    else:
+        obs.project_status = ObservationStatus.PAUSED
+    obs.save()
+
+    return Response(status=status.HTTP_202_ACCEPTED)
 
 
 @require_POST

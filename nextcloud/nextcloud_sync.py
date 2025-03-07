@@ -164,6 +164,7 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
     observations = AbstractObservation.objects.instance_of(ScheduledObservation).filter(
         Q(project_status=ObservationStatus.PENDING)
         | Q(project_status=ObservationStatus.UPLOADED)
+        | Q(project_status=ObservationStatus.PAUSED)
     )
 
     excluded_observations = []
@@ -207,8 +208,11 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
             obs.save()
             continue
 
-        if obs.project_status == ObservationStatus.PENDING:
-            # If the status is pending, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
+        if (
+            obs.project_status == ObservationStatus.PENDING
+            or obs.project_status == ObservationStatus.PAUSED
+        ):
+            # If the status is pending or paused, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
             # No further actions required.
             obs.save()
             continue
@@ -334,7 +338,7 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     for obs in scheduled_observations:
         if obs.start_scheduling > today or obs.end_scheduling < today:
             continue
-        if today != obs.next_upload:
+        if today > obs.next_upload:
             continue
         pending_observations = chain(pending_observations, [obs])
 

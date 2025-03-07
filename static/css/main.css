@@ -19,6 +19,7 @@
   --status-success: #32cd32;
   --status-failed: #ff4500;
   --status-neutral: #808080;
+  --status-paused: #ff8c00;
 
   --radius-sm: 6px;
   --radius-md: 8px;

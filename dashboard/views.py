@@ -18,8 +18,8 @@ def dashboard(request):
     completed_observations = observations.filter(
         Q(project_status=ObservationStatus.COMPLETED)
         | Q(project_status=ObservationStatus.ERROR)
-        | Q(project_status=ObservationStatus.FAILED)
         | Q(project_status=ObservationStatus.PENDING_DELETION)
+        | Q(project_status=ObservationStatus.FAILED)
     ).order_by("-created_at")
 
     active_observations = observations.filter(
