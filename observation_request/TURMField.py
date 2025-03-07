@@ -189,6 +189,7 @@ class TURMDateDuration(TURMField):
         self,
         start: tuple[models.Field, str],
         end: tuple[models.Field, str],
+        is_expert=False,
         *args,
         **kwargs,
     ):
@@ -196,13 +197,14 @@ class TURMDateDuration(TURMField):
             (
                 TURMDateInput(
                     start[0].name,
+                    id= ("id_exp_" if is_expert else "id_") + start[0].name,
                     *args,
                     **kwargs,
                 ).add_on_value_changed("dateInputHandler()"),
                 start[1],
             ),
             (
-                TURMDateInput(end[0].name, *args, **kwargs).add_on_value_changed(
+                TURMDateInput(end[0].name, id= ("id_exp_" if is_expert else "id_") + end[0].name, *args, **kwargs).add_on_value_changed(
                     "dateInputHandler()"
                 ),
                 end[1],
@@ -221,6 +223,7 @@ class TURMDateTimeDuration(TURMField):
         self,
         start: tuple[models.Field, str],
         end: tuple[models.Field, str],
+        is_expert=False,
         *args,
         **kwargs,
     ):
@@ -228,13 +231,14 @@ class TURMDateTimeDuration(TURMField):
             (
                 TURMDateTimeInput(
                     start[0].name,
+                    id=("id_exp_" if is_expert else "id_") + start[0].name,
                     *args,
                     **kwargs,
                 ).add_on_value_changed("dateTimeInputHandler()"),
                 start[1],
             ),
             (
-                TURMDateTimeInput(end[0].name, *args, **kwargs).add_on_value_changed(
+                TURMDateTimeInput(end[0].name, id= ("id_exp_" if is_expert else "id_") + end[0].name, *args, **kwargs).add_on_value_changed(
                     "dateTimeInputHandler()"
                 ),
                 end[1],
@@ -253,6 +257,7 @@ class TURMTimeDuration(TURMField):
         self,
         start: tuple[models.Field, str],
         end: tuple[models.Field, str],
+        is_expert=False,
         *args,
         **kwargs,
     ):
@@ -260,13 +265,14 @@ class TURMTimeDuration(TURMField):
             (
                 TURMTimeInput(
                     start[0].name,
+                    id= ("id_exp_" if is_expert else "id_") + start[0].name,
                     *args,
                     **kwargs,
                 ).add_on_value_changed("timeInputHandler()"),
                 start[1],
             ),
             (
-                TURMTimeInput(end[0].name, *args, **kwargs).add_on_value_changed(
+                TURMTimeInput(end[0].name, id=("id_exp_" if is_expert else "id_") + end[0].name, *args, **kwargs).add_on_value_changed(
                     "timeInputHandler()"
                 ),
                 end[1],
