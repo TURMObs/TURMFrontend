@@ -314,7 +314,10 @@
                                             </div>
                                         </td>
                                         <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                        <td class="text-align-left">{{ observation.target.name }}</td>
+                                        <td class="table-cell-truncate text-align-left"
+                                            tooltip-when-truncated="{{ observation.target.name }}">
+                                            {{ observation.target.name }}
+                                        </td>
                                         <td class="text-align-left">{{ observation.observation_type }}</td>
                                         <td>
                                             <div class="filter-set-container">
