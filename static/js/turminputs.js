@@ -419,22 +419,26 @@ function handleErrors(dict) {
     if (key !== "target") {
       let name = key;
       let escapeGrid = false;
+      let message = dict[key][0];
       if (
         key === "time_range" ||
         key === "start_time" ||
-        key === "year_range"
+        key === "year_range" ||
+        key === "overlapping_observations"
       ) {
         name = "start_observation";
         escapeGrid = true;
+        if (key === "overlapping_observations") message = "overlapping with observation: " + dict[key][0].start_observation + " - " + dict[key][0].end_observation;
       }
-      const field = addErrorMessage(name, dict[key][0], escapeGrid);
+      const field = addErrorMessage(name, message, escapeGrid);
       if (!element) element = field;
       else if (field.getBoundingClientRect().top < element.getBoundingClientRect().top) {
         element = field;
       }
     } else {
       for (let subKey in dict.target) {
-        const field = addErrorMessage(subKey, dict[key][subKey][0]);
+        const message = dict[key][subKey][0];
+        const field = addErrorMessage(subKey, message);
         if (!element) element = field;
         else if (field.getBoundingClientRect().top < element.getBoundingClientRect().top) {
           element = field;
@@ -444,7 +448,6 @@ function handleErrors(dict) {
   }
   if (!!element) element.scrollIntoView();
 }
-
 /**
  * Adds an error note under the element with the message text.
  * @param name of the field that the error is for
