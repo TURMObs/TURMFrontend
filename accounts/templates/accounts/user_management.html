@@ -205,9 +205,13 @@
                     {% if invitations %}
                         {% for invitation in invitations %}
                             <tr class="table-row">
-                                <td class="table-cell-truncate text-align-left">{{ invitation.email }}</td>
+                                <td class="table-cell-truncate text-align-left"
+                                    tooltip-when-truncated="{{ invitation.email }}">{{ invitation.email }}</td>
                                 {% if invitation.username != invitation.email %}
-                                    <td class="table-cell-truncate">{{ invitation.username }}</td>
+                                    <td class="table-cell-truncate"
+                                        tooltip-when-truncated="{{ invitation.username }}">
+                                        {{ invitation.username }}
+                                    </td>
                                 {% else %}
                                     <td>-</td>
                                 {% endif %}
@@ -285,9 +289,13 @@
                         {% if target_user.deletion_pending == False %}
                             <tr id="user-{{ target_user.id }}"
                                 class="table-row {% if target_user.id == current_user.id %}table-row-highlight-current-user{% elif target_user.lifetime and target_user.lifetime < time_now %}table-row-highlight-inactive-user{% endif %}">
-                                <td class="table-cell-truncate text-align-left">{{ target_user.email }}</td>
+                                <td class="table-cell-truncate text-align-left"
+                                    tooltip-when-truncated="{{ target_user.email }}">{{ target_user.email }}</td>
                                 {% if target_user.username != target_user.email %}
-                                    <td class="table-cell-truncate">{{ target_user.username }}</td>
+                                    <td class="table-cell-truncate"
+                                        tooltip-when-truncated="{{ target_user.username }}">
+                                        {{ target_user.username }}
+                                    </td>
                                 {% else %}
                                     <td>-</td>
                                 {% endif %}
