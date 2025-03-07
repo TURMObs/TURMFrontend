@@ -171,7 +171,9 @@
                                     </td>
                                     <td class="text-align-left">{{ observation.observatory.name }}</td>
                                     <td class="table-cell-truncate text-align-left"
-                                        title="{{ observation.target.name }}">{{ observation.target.name }}</td>
+                                        tooltip-when-truncated="{{ observation.target.name }}">
+                                        {{ observation.target.name }}
+                                    </td>
                                     <td class="text-align-left">{{ observation.observation_type }}</td>
                                     <td>
                                         <div class="filter-set-container">
@@ -180,7 +182,7 @@
                                     </td>
                                     {% if perms.accounts.can_see_all_observations %}
                                         <td class="table-cell-truncate text-align-right"
-                                            title="{{ observation.user.username }}">
+                                            tooltip-when-truncated="{{ observation.user.username }}">
                                             {{ observation.user.username }}
                                         </td>
                                         <td class="text-align-right">{{ observation.priority }}</td>
@@ -321,7 +323,7 @@
                                         </td>
                                         {% if perms.accounts.can_see_all_observations %}
                                             <td class="table-cell-truncate text-align-right"
-                                                title="{{ observation.user.username }}">
+                                                tooltip-when-truncated="{{ observation.user.username }}">
                                                 {{ observation.user.username }}
                                             </td>
                                         {% endif %}
