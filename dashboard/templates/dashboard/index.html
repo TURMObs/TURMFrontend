@@ -60,6 +60,10 @@
             background-color: var(--status-neutral);
         }
 
+        .status-failed {
+            background-color: var(--status-failed);
+        }
+
         .filter-set-container {
             display: flex;
             gap: 8px;
@@ -156,10 +160,47 @@
                                         <th class="text-align-right">User</th>
                                         <th class="text-align-right">Priority</th>
                                     {% endif %}
-                                    <th class="text-align-right">Progress</th>
-                                    <th class="text-align-right">Status</th>
-                                    <th class="text-align-right">Created</th>
-                                    <th class="actions-container"></th>
+                                    <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
+                                    <td class="text-align-right">
+                                        <div class="project-status-container">
+                                            {% if observation.project_status == ObservationStatus.PENDING %}
+                                                <span class="project-status-dot status-pending"></span>
+                                            {% elif observation.project_status == ObservationStatus.UPLOADED %}
+                                                <span class="project-status-dot status-uploaded"></span>
+                                            {% elif observation.project_status == ObservationStatus.COMPLETED %}
+                                                <span class="project-status-dot status-completed"></span>
+                                            {% elif observation.project_status == ObservationStatus.ERROR %}
+                                                <span class="project-status-dot status-error"></span>
+                                            {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
+                                                <span class="project-status-dot status-pending-deletion"></span>
+                                            {% elif observation.project_status == ObservationStatus.FAILED %}
+                                                <span class="project-status-dot status-failed"></span>
+                                            {% elif observation.project_status == ObservationStatus.PENDING_COMPLETION %}
+                                                <span class="project-status-dot status-completed"></span>
+                                            {% endif %}
+                                            <span class="text">{{ observation.project_status }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
+                                    <td class="actions-container">
+                                        <a href="{% url 'edit-observation-request' observation.id %}"
+                                           title="Edit Observation"
+                                           {% if observation.project_status != ObservationStatus.PENDING %} class="icon-btn disabled-link" {% else %} class="icon-btn" {% endif %}>
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        <a href="#"
+                                           onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
+                                           title="Delete Observation"
+                                           class="icon-btn">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                        <a href="#"
+                                           onclick="finish_observation('{% url 'finish-observation' observation.id %}'); return false;"
+                                           title="Finish Observation"
+                                           class="icon-btn">
+                                            <i class="bx bx-check"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -298,6 +339,7 @@
                                     <th class="text-align-left">Type</th>
                                     <th class="text-align-left">Filters</th>
                                     {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">User</th>{% endif %}
+                                    <th class="text-align-right">Status</th>
                                     <th class="text-align-right">Created</th>
                                 </tr>
                             </thead>
@@ -322,6 +364,24 @@
                                         {% if perms.accounts.can_see_all_observations %}
                                             <td class="table-cell-truncate text-align-right">{{ observation.user.username }}</td>
                                         {% endif %}
+                                        <td class="text-align-right">
+                                            <div class="project-status-container">
+                                                {% if observation.project_status == ObservationStatus.PENDING %}
+                                                    <span class="project-status-dot status-pending"></span>
+                                                {% elif observation.project_status == ObservationStatus.UPLOADED %}
+                                                    <span class="project-status-dot status-uploaded"></span>
+                                                {% elif observation.project_status == ObservationStatus.COMPLETED %}
+                                                    <span class="project-status-dot status-completed"></span>
+                                                {% elif observation.project_status == ObservationStatus.ERROR %}
+                                                    <span class="project-status-dot status-error"></span>
+                                                {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
+                                                    <span class="project-status-dot status-pending-deletion"></span>
+                                                {% elif observation.project_status == ObservationStatus.FAILED %}
+                                                    <span class="project-status-dot status-failed"></span>
+                                                {% endif %}
+                                                <span class="text">{{ observation.project_status }}</span>
+                                            </div>
+                                        </td>
                                         <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                                     </tr>
                                     <tr class="expander-row"

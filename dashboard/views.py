@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 
 from accounts.models import UserPermission
@@ -14,11 +15,15 @@ def dashboard(request):
     else:
         observations = AbstractObservation.objects.filter(user=request.user)
 
-    active_observations = observations.exclude(
-        project_status=ObservationStatus.COMPLETED
-    ).order_by("-created_at")
     completed_observations = observations.filter(
-        project_status=ObservationStatus.COMPLETED
+        Q(project_status=ObservationStatus.COMPLETED)
+        | Q(project_status=ObservationStatus.ERROR)
+        | Q(project_status=ObservationStatus.FAILED)
+        | Q(project_status=ObservationStatus.PENDING_DELETION)
+    ).order_by("-created_at")
+
+    active_observations = observations.filter(
+        ~Q(id__in=completed_observations.values_list("id", flat=True))
     ).order_by("-created_at")
 
     return render(
