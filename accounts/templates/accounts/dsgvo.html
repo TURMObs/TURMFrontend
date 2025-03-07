@@ -38,28 +38,27 @@
         // Delete User Data
         document.getElementById('deleteBtn').addEventListener('click', async function () {
             const user_id = {{ request.user.id }}
-
-        });
-        if (await showConfirmModal("Delete Account", "Are you sure you want to delete your account including all user data and observations. This action cannot be undone.", "Delete")) {
-            try {
-                const response = await fetch(`{{ subpath }}/accounts/delete-user/${user_id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken(),
-                    },
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    await showAlertModal("Account deleted", "Your user data will be deleted in the next 30 days. You will be logged out.");
-                    window.location.href = '/';
-                } else {
+            if (await showConfirmModal("Delete Account", "Are you sure you want to delete your account including all user data and observations. This action cannot be undone.", "Delete")) {
+                try {
+                    const response = await fetch(`{{ subpath }}/accounts/delete-user/${user_id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken(),
+                        },
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        await showAlertModal("Account deleted", "Your user data will be deleted in the next 30 days. You will be logged out.");
+                        window.location.href = '/';
+                    } else {
+                        await showAlertModal("Error deleting account", "An error occurred while deleting your user data.");
+                    }
+                } catch (error) {
                     await showAlertModal("Error deleting account", "An error occurred while deleting your user data.");
                 }
-            } catch (error) {
-                await showAlertModal("Error deleting account", "An error occurred while deleting your user data.");
             }
-        }
+        });
 
     </script>
 {% endblock %}
