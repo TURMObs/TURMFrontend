@@ -255,7 +255,7 @@ function targetNameInputHandler() {
 /**
  * oninput handler for Catalogue field
  */
-function catalogueIdInputHandler() {
+function catalogIdInputHandler() {
   const target = event.target;
   target.value = sanitize(target.value, /\S/g);
 }
