@@ -170,7 +170,8 @@
                                         </div>
                                     </td>
                                     <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                    <td class="table-cell-truncate text-align-left">{{ observation.target.name }}</td>
+                                    <td class="table-cell-truncate text-align-left"
+                                        title="{{ observation.target.name }}">{{ observation.target.name }}</td>
                                     <td class="text-align-left">{{ observation.observation_type }}</td>
                                     <td>
                                         <div class="filter-set-container">
@@ -178,7 +179,10 @@
                                         </div>
                                     </td>
                                     {% if perms.accounts.can_see_all_observations %}
-                                        <td class="table-cell-truncate text-align-right">{{ observation.user.username }}</td>
+                                        <td class="table-cell-truncate text-align-right"
+                                            title="{{ observation.user.username }}">
+                                            {{ observation.user.username }}
+                                        </td>
                                         <td class="text-align-right">{{ observation.priority }}</td>
                                     {% endif %}
                                     <td class="text-align-right">{{ observation.project_completion|floatformat:"0" }}%</td>
@@ -316,7 +320,10 @@
                                             </div>
                                         </td>
                                         {% if perms.accounts.can_see_all_observations %}
-                                            <td class="table-cell-truncate text-align-right">{{ observation.user.username }}</td>
+                                            <td class="table-cell-truncate text-align-right"
+                                                title="{{ observation.user.username }}">
+                                                {{ observation.user.username }}
+                                            </td>
                                         {% endif %}
                                         <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                                     </tr>
