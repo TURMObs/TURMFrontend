@@ -32,7 +32,7 @@ class TURMField(Field):
             case models.DecimalField:
                 return TURMFloatInput(
                     name=model_field.name,
-                    id="exp_" + model_field.name if is_expert else "id_" + model_field.name,
+                    id="id_exp_" + model_field.name if is_expert else "id_" + model_field.name,
                     measurement_unit=measurement_unit,
                     *args,
                     **kwargs,
@@ -40,7 +40,7 @@ class TURMField(Field):
             case models.IntegerField:
                 return TURMIntegerInput(
                     name=model_field.name,
-                    id="exp_" + model_field.name if is_expert else "id_" + model_field.name,
+                    id="id_exp_" + model_field.name if is_expert else "id_" + model_field.name,
                     measurement_unit=measurement_unit,
                     *args,
                     **kwargs,
@@ -48,7 +48,7 @@ class TURMField(Field):
             case models.ManyToManyField:
                 return TURMCheckboxInput(
                     name=model_field.name,
-                    id="exp_" + model_field.name if is_expert else "id_" + model_field.name,
+                    id="id_exp_" + model_field.name if is_expert else "id_" + model_field.name,
                     choices=[
                         (str(name), str(name))
                         for name in model_field.remote_field.model.objects.all()
@@ -59,7 +59,7 @@ class TURMField(Field):
             case models.ForeignKey:
                 return TURMRadioInput(
                     name=model_field.name,
-                    id="exp_" + model_field.name if is_expert else "id_" + model_field.name,
+                    id="id_exp_" + model_field.name if is_expert else "id_" + model_field.name,
                     choices=[
                         (str(name), str(name))
                         for name in model_field.remote_field.model.objects.all()

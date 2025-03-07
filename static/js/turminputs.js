@@ -399,12 +399,10 @@ function submitForm(event, form, postAddress, redirectAddress) {
                   name = "start_observation";
                   escapeGrid = true;
                 }
-                let element = document.getElementById("id_" + name);
-                addErrorMessage(element, jsonResponse[key][0], escapeGrid);
+                addErrorMessage(name, jsonResponse[key][0], escapeGrid);
               } else {
                 for (let subKey in jsonResponse.target) {
-                  let element = document.getElementById("id_" + subKey);
-                  addErrorMessage(element, jsonResponse[key][subKey][0]);
+                  addErrorMessage(subKey, jsonResponse[key][subKey][0]);
                 }
               }
             }
@@ -435,17 +433,21 @@ function gatherDefaultValues() {
 
 /**
  * Adds an error note under the element with the message text.
- * @param element that the error is for
+ * @param name of the field that the error is for
  * @param message text that should be displayed
  * @param escapeGrid when the element is in a grid-input-div this param specifies if it should be displayed in the same cell or under the whole grid (useful for duration inputs)
  */
-function addErrorMessage(element, message, escapeGrid = false) {
+function addErrorMessage(name, message, escapeGrid = false) {
   const messageElement = "<span>" + message + "</span>";
   const iconElement = '<i class="bx bx-error-circle"></i>';
   const error = document.createElement("div");
   error.classList.add("error-msg");
   error.innerHTML = iconElement + messageElement;
 
+
+  let element = document.getElementById("id_" + name);
+  if (element === null || element.disabled) element = document.getElementById("id_exp_" + name);
+  if (element === null) element = document.getElementById("form");
   // find place to insert error
   let container = element.parentElement;
   if (container.classList.contains("tooltip"))

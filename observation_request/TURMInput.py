@@ -29,7 +29,7 @@ class _TURMInput(Widget):
         if id:
             self.attrs["id"] = id
         else:
-            self.attrs["id"] = name
+            self.attrs["id"] = "id_" + name
 
     def _render_attrs(self, attr):
         return _render_attrs_static(self.attrs | attr)
@@ -341,12 +341,12 @@ class TURMGridInput(_TURMInput):
         html_render = f'<div class="grid-input-div" style="{self.render_rows_style()}">'
         for widget, w_name in self.widgets:
             html_render += (
-                f'<div><label for="id_{widget.attrs["name"]}">{w_name}</label>'
+                f'<div><label for="{widget.attrs["id"]}">{w_name}</label>'
             )
             html_render += widget.render(
                 widget.attrs["name"],
                 value,
-                {"id": f"id_{widget.attrs['name']}"},
+                attrs,
                 renderer,
             )
             html_render += "</div>"
