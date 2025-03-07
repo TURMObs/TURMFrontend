@@ -12,8 +12,6 @@ from observation_data.models import (
     ScheduledObservation,
     ObservationStatus,
     ObservationType,
-    ExpertObservation,
-    ExoplanetObservation,
 )
 from observation_data.serializers import get_serializer
 import logging
