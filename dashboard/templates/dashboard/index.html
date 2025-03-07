@@ -301,6 +301,7 @@
                                     <col width="50%" />
                                 {% endif %}
                                 <col width="0%" />
+                                <col width="0%" />
                             </colgroup>
                             <thead>
                                 <tr>
@@ -312,6 +313,7 @@
                                     {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">User</th>{% endif %}
                                     <th class="text-align-right">Status</th>
                                     <th class="text-align-right">Created</th>
+                                    <th class="actions-container"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -360,6 +362,14 @@
                                             </div>
                                         </td>
                                         <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
+                                        <td class="actions-container">
+                                            <a href="#"
+                                               onclick="deleteObservation('{% url 'delete-observation' observation.id %}'); return false;"
+                                               title="Delete Observation"
+                                               class="icon-btn {% if observation.project_status == ObservationStatus.PENDING_DELETION %}disabled-link{% endif %}">
+                                                <i class="bx bx-trash"></i>
+                                            </a>
+                                        </td>
                                     </tr>
                                     <tr class="expander-row"
                                         id="expander-{{ observation.id }}"
