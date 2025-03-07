@@ -1,5 +1,15 @@
+function fetchSimbadCoordinatesOnEnter() {
+  if (event.key === "Enter" || event.keyCode === 13) {
+    fetchSimbadCoordinates();
+    event.preventDefault();
+  }
+}
+
 async function fetchSimbadCoordinates() {
   let catalog_id = document.getElementById("id_catalog_id").value;
+  if (catalog_id == "") {
+    return;
+  }
 
   // see here for query documentation: https://simbad.cds.unistra.fr/guide/sim-fscript.htx
   const url = "https://simbad.u-strasbg.fr/simbad/sim-script";
