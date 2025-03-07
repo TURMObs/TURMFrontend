@@ -126,7 +126,7 @@ def update_non_scheduled_observations(today: datetime.date = timezone.now().date
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
-        if isinstance(obs, ExpertObservation) or isinstance(obs, ExoplanetObservation):
+        if "start_observation" in obs.__dict__ and "end_observation" in obs.__dict__:
             if not obs.start_observation and obs.end_observation:
                 continue
 
