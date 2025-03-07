@@ -47,9 +47,16 @@ class CelestialTargetForm(forms.Form):
 
         self.fields["name"] = TURMField.init_from_model(
             CelestialTarget._meta.get_field("name")
-        ).add_attrs({"placeholder": "OrionNebula", "oninput": "targetNameInputHandler()"})
+        ).add_attrs(
+            {"placeholder": "OrionNebula", "oninput": "targetNameInputHandler()"}
+        )
         target_widgets = [
-            (TURMCharInput("catalog_id", "M42").add_attrs({"oninput": "catalogueIdInputHandler()"}), "Catalog ID"),
+            (
+                TURMCharInput("catalog_id", "M42").add_attrs(
+                    {"oninput": "catalogueIdInputHandler()"}
+                ),
+                "Catalog ID",
+            ),
             (
                 TURMButtonInput("Fetch SIMBAD coordinates", "fetchSimbadCoordinates()"),
                 " ",
