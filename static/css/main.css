@@ -12,6 +12,7 @@
   --color-light: #ffffff;
   --color-error: #ed2f1a;
   --color-error-dark: #8a1306;
+  --color-error-light: #fb6d6d4d;
 
   --status-pending: #ffa500;
   --status-active: #1e90ff;
@@ -49,11 +50,23 @@
 }
 
 body {
-  background:
-    url(../img/HeartNebula.jpg) no-repeat,
-    var(--color-gray-500);
+  background-color: var(--color-gray-500);
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(../img/HeartNebula.jpg);
+  background-repeat: no-repeat;
   background-size: cover;
   background-position: top center;
+  z-index: -1;
 }
 
 /* typography */
@@ -290,8 +303,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: 100%;
-  max-width: 0;
+  max-width: 1px;
 }
 
 .table th {

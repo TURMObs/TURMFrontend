@@ -23,6 +23,7 @@ class ObservationStatus(models.TextChoices):
     ERROR = "Error"
     COMPLETED = "Completed"
     PENDING_DELETION = "Pending Deletion"
+    PENDING_COMPLETION = "Pending Completion"
     FAILED = "Failed"
 
 
@@ -172,3 +173,12 @@ class ExpertObservation(ScheduledObservation):
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
+
+
+class DefaultRequestSettings(models.Model):
+    """
+    Model for default values for observation requests.
+    """
+
+    id = models.IntegerField(primary_key=True, default=0)
+    settings = models.JSONField(default=dict)

@@ -1127,6 +1127,10 @@ class NextcloudSyncTestCase(django.test.TestCase):
 
         update_observations(self._day(2))
         self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
+        self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.UPLOADED)
+
+        update_observations(self._day(2))
+        self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
         self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.COMPLETED)
 
         nm.delete(self.prefix)

@@ -34,8 +34,12 @@
             margin: 16px 0;
         }
 
-        .table-row-highlight {
+        .table-row-highlight-current-user {
             background-color: var(--color-gray-500);
+        }
+
+        .table-row-highlight-inactive-user {
+            background-color: var(--color-error-light);
         }
 
         .generate-invitation-submit {
@@ -179,6 +183,14 @@
         <div>
             <p class="text-xl">Open Invitations</p>
             <table class="table data-table">
+                <colgroup>
+                    <col width="50%" />
+                    <col width="50%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                </colgroup>
                 <thead>
                     <tr>
                         <th class="text-align-left">Email</th>
@@ -248,6 +260,15 @@
         <div>
             <p class="text-xl">All Users</p>
             <table class="table data-table">
+                <colgroup>
+                    <col width="50%" />
+                    <col width="50%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                    <col width="0%" />
+                </colgroup>
                 <thead>
                     <tr>
                         <th class="text-align-left">Email</th>
@@ -263,7 +284,7 @@
                     {% for target_user in users %}
                         {% if target_user.deletion_pending == False %}
                             <tr id="user-{{ target_user.id }}"
-                                class="table-row {% if target_user.id == current_user.id %}table-row-highlight{% endif %}">
+                                class="table-row {% if target_user.id == current_user.id %}table-row-highlight-current-user{% elif target_user.lifetime and target_user.lifetime < time_now %}table-row-highlight-inactive-user{% endif %}">
                                 <td class="table-cell-truncate text-align-left">{{ target_user.email }}</td>
                                 {% if target_user.username != target_user.email %}
                                     <td class="table-cell-truncate">{{ target_user.username }}</td>
@@ -357,10 +378,10 @@
 
             const formData = new FormData(form);
 
-            if (document.getElementById('quotaField').style.display === 'none') {
+            if (!form.elements['set_quota'].checked) {
                 formData.delete('quota');
             }
-            if (document.getElementById('lifetimeField').style.display === 'none') {
+            if (!form.elements['set_lifetime'].checked) {
                 formData.delete('lifetime');
             }
 
@@ -390,7 +411,7 @@
                 });
                 let linkData = await generateResponse.json();
                 if (generateResponse.ok) {
-                  const link = linkData['link'];
+                    const link = linkData['link'];
                     if (await showConfirmModal("Invitation created", "Invitation Link:\n" + link, "Copy link", "Close")) {
                         navigator.clipboard.writeText(link);
                     }

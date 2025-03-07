@@ -50,6 +50,11 @@ class ObservatoryUser(AbstractUser):
     quota = models.IntegerField(null=True)
     lifetime = models.DateField(null=True)
     deletion_pending = models.BooleanField(default=False)
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=150, unique=False)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     def has_perm(self, perm: UserPermission, obj=None):
         """

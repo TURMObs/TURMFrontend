@@ -148,7 +148,7 @@ class TURMIntegerInput(_TURMNumericInput):
             *args,
             **kwargs,
         )
-        self.attrs["oninput"] = "discard_input(event, this, '[^\\\\d*\\\\s*]')"
+        self.attrs["oninput"] = "discardInput(event, this, '[^\\\\d*\\\\s*]')"
 
 
 class TURMFloatInput(_TURMNumericInput):
@@ -209,6 +209,12 @@ class TURMDateInput(_TURMDateTimeInput):
     def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
         super().__init__(name, minimum, maximum, *args, **kwargs)
         self.attrs["type"] = "date"
+
+
+class TURMTimeInput(_TURMDateTimeInput):
+    def __init__(self, name, minimum=None, maximum=None, *args, **kwargs):
+        super().__init__(name, minimum, maximum, *args, **kwargs)
+        self.attrs["type"] = "time"
 
 
 """ --- TURM Choice Inputs """
@@ -353,6 +359,11 @@ class TURMGridInput(_TURMInput):
     def add_dependencies(self, dependencies):
         for widget, _ in self.widgets:
             widget.add_dependencies(dependencies)
+        return self
+
+    def add_attrs(self, attrs):
+        for widget, _ in self.widgets:
+            widget.add_attrs(attrs)
         return self
 
     def add_dependency_generator(self, dependency_generator):

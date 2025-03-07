@@ -19,7 +19,6 @@
         }
 
         .observations-table {
-            min-width: 1024px;
             margin: 16px 0px;
         }
 
@@ -74,10 +73,9 @@
         .actions-container {
             height: 100%;
             display: flex;
+            gap: 4px;
             flex-direction: row;
-            justify-content: space-between;
             align-items: center;
-            width: 90px;
         }
 
         .expand-row-container {
@@ -133,6 +131,21 @@
                         </button>
                     </div>
                     <table class="table observations-table">
+                        <colgroup>
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="50%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                            {% if perms.accounts.can_see_all_observations %}
+                                <col width="50%" />
+                                <col width="0%" />
+                            {% endif %}
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                            <col width="0%" />
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th class="expand-row-container"></th>
@@ -161,7 +174,7 @@
                                         </div>
                                     </td>
                                     <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                    <td class="text-align-left">{{ observation.target.name }}</td>
+                                    <td class="table-cell-truncate text-align-left">{{ observation.target.name }}</td>
                                     <td class="text-align-left">{{ observation.observation_type }}</td>
                                     <td>
                                         <div class="filter-set-container">
@@ -187,6 +200,8 @@
                                                 <span class="project-status-dot status-pending-deletion"></span>
                                             {% elif observation.project_status == ObservationStatus.FAILED %}
                                                 <span class="project-status-dot status-failed"></span>
+                                            {% elif observation.project_status == ObservationStatus.PENDING_COMPLETION %}
+                                                <span class="project-status-dot status-completed"></span>
                                             {% endif %}
                                             <span class="text">{{ observation.project_status }}</span>
                                         </div>
@@ -203,6 +218,12 @@
                                            title="Delete Observation"
                                            class="icon-btn">
                                             <i class="bx bx-trash"></i>
+                                        </a>
+                                        <a href="#"
+                                           onclick="finish_observation('{% url 'finish-observation' observation.id %}'); return false;"
+                                           title="Finish Observation"
+                                           class="icon-btn">
+                                            <i class="bx bx-check"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -231,11 +252,18 @@
                                                 <p>Binning: {{ observation.binning }}</p>
                                                 <p>Gain: {{ observation.gain }}</p>
                                                 <p>Offset: {{ observation.offset }}</p>
-                                                <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                                <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                <p>Cadence: {{ observation.cadence }}</p>
+                                                {% if observation.start_observation %}
+                                                    <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                    <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                {% elif observation.start_scheduling %}
+                                                    <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                    <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                    {% if observation.start_observation_time %}
+                                                        <p>Start Observation Time: {{ observation.start_observation_time|date:"H:i" }}</p>
+                                                        <p>End Observation Time: {{ observation.end_observation_time|date:"H:i" }}</p>
+                                                    {% endif %}
+                                                    <p>Cadence: {{ observation.cadence }}</p>
+                                                {% endif %}
                                                 <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
                                                 <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
                                                 <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
@@ -253,6 +281,17 @@
                         <p class="no-completed-observations-text text">No completed observations yet.</p>
                     {% else %}
                         <table class="table observations-table">
+                            <colgroup>
+                                <col width="0%" />
+                                <col width="0%" />
+                                <col width="50%" />
+                                <col width="0%" />
+                                <col width="0%" />
+                                {% if perms.accounts.can_see_all_observations %}
+                                    <col width="50%" />
+                                {% endif %}
+                                <col width="0%" />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th class="expand-row-container"></th>
@@ -333,14 +372,18 @@
                                                     <p>Binning: {{ observation.binning }}</p>
                                                     <p>Gain: {{ observation.gain }}</p>
                                                     <p>Offset: {{ observation.offset }}</p>
-                                                    <p>
-                                                        Start
-                                                        Observation: {{ observation.start_observation|date:"d.m.Y" }}
-                                                    </p>
-                                                    <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
-                                                    <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                    <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                    <p>Cadence: {{ observation.cadence }}</p>
+                                                    {% if observation.start_observation %}
+                                                        <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
+                                                        <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                    {% elif observation.start_scheduling %}
+                                                        <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                        <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                        {% if observation.start_observation_time %}
+                                                            <p>Start Observation Time: {{ observation.start_observation_time|date:"H:i" }}</p>
+                                                            <p>End Observation Time: {{ observation.end_observation_time|date:"H:i" }}</p>
+                                                        {% endif %}
+                                                        <p>Cadence: {{ observation.cadence }}</p>
+                                                    {% endif %}
                                                     <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
                                                     <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
                                                     <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
@@ -403,6 +446,30 @@
                     await showAlertModal("Failed to delete Observation", "An error occurred while deleting your observation.\n" + jsonResponse["error"]);
                 } catch (err) {
                     await showAlertModal("Failed to delete Observation", "An unknown error occurred while deleting your observation. Please try again.");
+                }
+            }
+        }
+
+        async function finish_observation(url) {
+            if (await showConfirmModal("Finish Observation", "Are you sure you want to mark this observation as completed?", "Finish Observation")) {
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": '{{ csrf_token }}',
+                        },
+                        method: "POST",
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    const jsonResponse = await response.json();
+                    await showAlertModal("Failed to complete Observation", "An error occurred while completing your observation.\n" + jsonResponse["error"]);
+                } catch (err) {
+                    await showAlertModal("Failed to complete Observation", "An unknown error occurred while deleting your observation. Please try again.");
                 }
             }
         }
