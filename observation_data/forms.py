@@ -252,7 +252,12 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             .add_dependencies(
                 {Dependency.observation_type.value: [ObservationType.EXPERT]}
             )
-            .add_attrs({"placeholder": self.default_values.get("exposure_time", ""), "expert": "expert"})
+            .add_attrs(
+                {
+                    "placeholder": self.default_values.get("exposure_time", ""),
+                    "expert": "expert",
+                }
+            )
         )
         self.fields["exposure_time_expert"].required = False
 
@@ -262,7 +267,10 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("frames_per_filter")
                 ).add_attrs(
-                    {"placeholder": self.default_values.get("frames_per_filter", ""), "expert": "expert"}
+                    {
+                        "placeholder": self.default_values.get("frames_per_filter", ""),
+                        "expert": "expert",
+                    }
                 ),
                 "Frames per Filter",
             ),
@@ -270,32 +278,55 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("dither_every")
                 ).add_attrs(
-                    {"placeholder": self.default_values.get("dither_every", ""), "expert": "expert"}
+                    {
+                        "placeholder": self.default_values.get("dither_every", ""),
+                        "expert": "expert",
+                    }
                 ),
                 "Dither Every",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("binning")
-                ).add_attrs({"placeholder": self.default_values.get("binning", ""), "expert": "expert"}),
+                ).add_attrs(
+                    {
+                        "placeholder": self.default_values.get("binning", ""),
+                        "expert": "expert",
+                    }
+                ),
                 "Binning",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("subframe")
-                ).add_attrs({"placeholder": self.default_values.get("subframe", ""), "expert": "expert"}),
+                ).add_attrs(
+                    {
+                        "placeholder": self.default_values.get("subframe", ""),
+                        "expert": "expert",
+                    }
+                ),
                 "Sub Frame",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("gain")
-                ).add_attrs({"placeholder": self.default_values.get("gain", ""), "expert": "expert"}),
+                ).add_attrs(
+                    {
+                        "placeholder": self.default_values.get("gain", ""),
+                        "expert": "expert",
+                    }
+                ),
                 "Gain",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("offset")
-                ).add_attrs({"placeholder": self.default_values.get("offset", ""), "expert": "expert"}),
+                ).add_attrs(
+                    {
+                        "placeholder": self.default_values.get("offset", ""),
+                        "expert": "expert",
+                    }
+                ),
                 "Offset",
             ),
         ]
@@ -362,7 +393,12 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ],
                 }
             )
-            .add_attrs({"placeholder": self.default_values.get("cadence", ""), "expert": "expert"})
+            .add_attrs(
+                {
+                    "placeholder": self.default_values.get("cadence", ""),
+                    "expert": "expert",
+                }
+            )
         )
         self.fields["exp_cadence"].required = False
 
@@ -392,7 +428,12 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ]
                 }
             )
-            .add_attrs({"placeholder": self.default_values.get("minimum_altitude", ""), "expert": "expert"})
+            .add_attrs(
+                {
+                    "placeholder": self.default_values.get("minimum_altitude", ""),
+                    "expert": "expert",
+                }
+            )
         )
         self.fields["exp_minimum_altitude"].required = False
 
@@ -404,7 +445,8 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     {
                         "placeholder": self.default_values.get(
                             "moon_separation_angle", ""
-                        ), "expert": "expert"
+                        ),
+                        "expert": "expert",
                     }
                 ),
                 "Moon Separation Angle",
@@ -416,7 +458,8 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     {
                         "placeholder": self.default_values.get(
                             "moon_separation_width", ""
-                        ), "expert": "expert"
+                        ),
+                        "expert": "expert",
                     }
                 ),
                 "Moon Separation Width",
@@ -434,6 +477,11 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             .add_dependencies(
                 {Dependency.observation_type.value: [ObservationType.EXPERT]}
             )
-            .add_attrs({"placeholder": self.default_values.get("priority", ""), "expert": "expert"})
+            .add_attrs(
+                {
+                    "placeholder": self.default_values.get("priority", ""),
+                    "expert": "expert",
+                }
+            )
         )
         self.fields["priority"].required = False
