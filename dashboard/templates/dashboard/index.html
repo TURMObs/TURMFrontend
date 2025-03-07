@@ -137,6 +137,7 @@
                             <colgroup>
                                 <col width="0%" />
                                 <col width="0%" />
+                                <col width="0%" />
                                 <col width="50%" />
                                 <col width="0%" />
                                 <col width="0%" />
@@ -153,6 +154,7 @@
                                 <tr>
                                     <th class="expand-row-container"></th>
                                     <th class="text-align-left">Observatory</th>
+                                    <th class="text-align-right">ID</th>
                                     <th class="text-align-left">Target</th>
                                     <th class="text-align-left">Type</th>
                                     <th class="text-align-left">Filters</th>
@@ -162,7 +164,6 @@
                                     {% endif %}
                                     <th class="text-align-right">Progress</th>
                                     <th class="text-align-right">Status</th>
-                                    <th class="text-align-right">Created</th>
                                     <th class="actions-container"></th>
                                 </tr>
                             </thead>
@@ -177,6 +178,7 @@
                                             </div>
                                         </td>
                                         <td class="text-align-left">{{ observation.observatory.name }}</td>
+                                        <td class="text-align-right">{{ observation.target.catalog_id|default:"-" }}</td>
                                         <td class="table-cell-truncate text-align-left"
                                             tooltip-when-truncated="{{ observation.target.name }}">
                                             {{ observation.target.name }}
@@ -215,7 +217,6 @@
                                                 <span class="text">{{ observation.project_status }}</span>
                                             </div>
                                         </td>
-                                        <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                                         <td class="actions-container">
                                             <a href="{% url 'edit-observation-request' observation.id %}"
                                                title="Edit Observation"
@@ -241,6 +242,7 @@
                                         style="display: none">
                                         <td colspan="5">
                                             <div class="expander-content">
+                                                <p>Created at: {{ observation.created_at|date:"d.m.Y H:i" }}</p>
                                                 <p>Exposure time: {{ observation.exposure_time }}</p>
                                                 {% if observation.observation_type == ObservationType.IMAGING %}
                                                     <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
@@ -294,6 +296,7 @@
                             <colgroup>
                                 <col width="0%" />
                                 <col width="0%" />
+                                <col width="0%" />
                                 <col width="50%" />
                                 <col width="0%" />
                                 <col width="0%" />
@@ -307,12 +310,12 @@
                                 <tr>
                                     <th class="expand-row-container"></th>
                                     <th class="text-align-left">Observatory</th>
+                                    <th class="text-align-right">ID</th>
                                     <th class="text-align-left">Target</th>
                                     <th class="text-align-left">Type</th>
                                     <th class="text-align-left">Filters</th>
                                     {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">User</th>{% endif %}
                                     <th class="text-align-right">Status</th>
-                                    <th class="text-align-right">Created</th>
                                     <th class="actions-container"></th>
                                 </tr>
                             </thead>
@@ -327,6 +330,7 @@
                                             </div>
                                         </td>
                                         <td class="text-align-left">{{ observation.observatory.name }}</td>
+                                        <td class="text-align-right">{{ observation.target.catalog_id|default:"-" }}</td>
                                         <td class="table-cell-truncate text-align-left"
                                             tooltip-when-truncated="{{ observation.target.name }}">
                                             {{ observation.target.name }}
@@ -361,7 +365,6 @@
                                                 <span class="text">{{ observation.project_status }}</span>
                                             </div>
                                         </td>
-                                        <td class="text-align-right">{{ observation.created_at|date:"d.m.Y" }}</td>
                                         <td class="actions-container">
                                             <a href="#"
                                                onclick="deleteObservation('{% url 'delete-observation' observation.id %}'); return false;"
@@ -376,6 +379,7 @@
                                         style="display: none">
                                         <td colspan="5">
                                             <div class="expander-content">
+                                                <p>Created at: {{ observation.created_at|date:"d.m.Y H:i" }}</p>
                                                 <p>Exposure time: {{ observation.exposure_time }}</p>
                                                 {% if observation.observation_type == ObservationType.IMAGING %}
                                                     <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
