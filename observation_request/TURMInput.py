@@ -246,7 +246,6 @@ class _TURMChoiceInput(_TURMInput):
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=False):
         label_attrs = self.attrs | attrs
-        name = label_attrs["name"]
         label_attrs.pop("type", None)
         label_attrs.pop("name", None)
         label_attrs.pop("id", None)
