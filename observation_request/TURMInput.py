@@ -23,9 +23,13 @@ class _TURMInput(Widget):
     requires subclasses to implement the @render function
     """
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attrs["name"] = name
+        if id:
+            self.attrs["id"] = id
+        else:
+            self.attrs["id"] = name
 
     def _render_attrs(self, attr):
         return _render_attrs_static(self.attrs | attr)
@@ -48,10 +52,11 @@ class TURMCharInput(_TURMInput):
         self,
         name: str,
         placeholder: str,
+        id=None,
         *args,
         **kwargs,
     ):
-        super().__init__(name=name, *args, **kwargs)
+        super().__init__(name=name, id=id, *args, **kwargs)
         self.attrs["type"] = "text"
         self.attrs["placeholder"] = placeholder
 
@@ -65,10 +70,11 @@ class TURMButtonInput(_TURMInput):
         self,
         name: str,
         onclick: str,
+        id=None,
         *args,
         **kwargs,
     ):
-        super().__init__(name, *args, **kwargs)
+        super().__init__(name, id, *args, **kwargs)
         self.attrs["onclick"] = onclick
         self.attrs["type"] = "button"
 
@@ -97,6 +103,7 @@ class _TURMNumericInput(_TURMInput):
     def __init__(
         self,
         name: str,
+        id=None,
         measurement_unit=None,
         minimum=None,
         maximum=None,
@@ -104,7 +111,7 @@ class _TURMNumericInput(_TURMInput):
         *args,
         **kwargs,
     ):
-        super().__init__(name=name, *args, **kwargs)
+        super().__init__(name, id, *args, **kwargs)
         self.measurement_unit = measurement_unit
         self.attrs["type"] = "text"
         self.attrs["inputmode"] = "numeric"
@@ -129,7 +136,8 @@ class TURMIntegerInput(_TURMNumericInput):
 
     def __init__(
         self,
-        name,
+        name: str,
+        id=None,
         measurement_unit=None,
         minimum: int = None,
         maximum: int = None,
@@ -141,6 +149,7 @@ class TURMIntegerInput(_TURMNumericInput):
             step = int(step)
         super().__init__(
             name=name,
+            id=id,
             measurement_unit=measurement_unit,
             minimum=minimum,
             maximum=maximum,
@@ -158,7 +167,8 @@ class TURMFloatInput(_TURMNumericInput):
 
     def __init__(
         self,
-        name,
+        name: str,
+        id=None,
         measurement_unit=None,
         minimum: float = None,
         maximum: float = None,
@@ -168,6 +178,7 @@ class TURMFloatInput(_TURMNumericInput):
     ):
         super().__init__(
             name=name,
+            id=id,
             measurement_unit=measurement_unit,
             minimum=minimum,
             maximum=maximum,
@@ -182,8 +193,8 @@ class TURMFloatInput(_TURMNumericInput):
 
 
 class _TURMDateTimeInput(_TURMInput):
-    def __init__(self, name, *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    def __init__(self, name, id=None, *args, **kwargs):
+        super().__init__(name, id,*args, **kwargs)
         self.attrs["type"] = "text"
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -195,20 +206,20 @@ class _TURMDateTimeInput(_TURMInput):
 
 
 class TURMDateTimeInput(_TURMDateTimeInput):
-    def __init__(self, name, *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    def __init__(self, name, id=None, *args, **kwargs):
+        super().__init__(name, id, *args, **kwargs)
         self.attrs["placeholder"] = "YYYY-MM-DD hh:mm"
 
 
 class TURMDateInput(_TURMDateTimeInput):
-    def __init__(self, name, *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    def __init__(self, name, id=None, *args, **kwargs):
+        super().__init__(name, id,*args, **kwargs)
         self.attrs["placeholder"] = "YYYY-MM-DD"
 
 
 class TURMTimeInput(_TURMDateTimeInput):
-    def __init__(self, name, *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    def __init__(self, name, id=None, *args, **kwargs):
+        super().__init__(name, id,*args, **kwargs)
         self.attrs["placeholder"] = "hh:mm"
 
 
@@ -229,8 +240,8 @@ class _TURMChoiceInput(_TURMInput):
     on_click = None
     tooltip = None
 
-    def __init__(self, name, choices, *args, **kwargs):
-        super().__init__(name=name, *args, **kwargs)
+    def __init__(self, name,choices, id=None, *args, **kwargs):
+        super().__init__(name=name, id=id, *args, **kwargs)
         self.choices = choices
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=False):
@@ -238,6 +249,7 @@ class _TURMChoiceInput(_TURMInput):
         name = label_attrs["name"]
         label_attrs.pop("type", None)
         label_attrs.pop("name", None)
+        label_attrs.pop("id", None)
         label_attrs.pop("required", None)
         label_attrs.pop("onclick", None)
 
@@ -259,8 +271,8 @@ class _TURMChoiceInput(_TURMInput):
             if self.tooltip:
                 html_render += '<div class="tooltip">'
 
-            html_render += f'<input id="id_{name}_{i}" value="{self.choices[i][1]}"{self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
-            html_render += f'<label for="id_{name}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
+            html_render += f'<input id="{self.attrs["id"]}_{i}" value="{self.choices[i][1]}"{self._render_attrs(attrs)}{dependency_attr}{on_click_attr}>'
+            html_render += f'<label for="{self.attrs["id"]}_{i}" {_render_attrs_static(label_attrs)}>{self.choices[i][0]}</label>'
 
             if self.tooltip:
                 html_render += f'<span class="tooltip-text">{self.tooltip}</span>'
@@ -285,8 +297,8 @@ class _TURMChoiceInput(_TURMInput):
 
 
 class TURMRadioInput(_TURMChoiceInput):
-    def __init__(self, name, choices, *args, **kwargs):
-        super().__init__(name=name, choices=choices, *args, **kwargs)
+    def __init__(self, name, choices, id=None, *args, **kwargs):
+        super().__init__(name=name, id=id, choices=choices, *args, **kwargs)
         self.attrs["type"] = "radio"
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=False):
@@ -299,8 +311,8 @@ class TURMRadioInput(_TURMChoiceInput):
 class TURMCheckboxInput(_TURMChoiceInput):
     tooltip = None
 
-    def __init__(self, name, choices, *args, **kwargs):
-        super().__init__(name=name, choices=choices, *args, **kwargs)
+    def __init__(self, name,choices, id=None, *args, **kwargs):
+        super().__init__(name=name, id=id,choices=choices, *args, **kwargs)
         self.attrs["type"] = "checkbox"
 
     def render(self, name, value, attrs=None, renderer=None, individual_divs=True):
@@ -321,7 +333,7 @@ class TURMGridInput(_TURMInput):
     def __init__(
         self, widgets: list[tuple[_TURMInput, str]], grid_dim=(1, 1), *args, **kwargs
     ):
-        super().__init__(name="", *args, **kwargs)
+        super().__init__(name="", id="",*args, **kwargs)
         self.widgets = widgets
         self.grid_dim = grid_dim
 

@@ -265,7 +265,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         exposure_settings = [
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("frames_per_filter")
+                    ExpertObservation._meta.get_field("frames_per_filter"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("frames_per_filter", ""),
@@ -276,7 +276,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("dither_every")
+                    ExpertObservation._meta.get_field("dither_every"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("dither_every", ""),
@@ -287,7 +287,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("binning")
+                    ExposureSettings._meta.get_field("binning"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("binning", ""),
@@ -298,7 +298,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("subframe")
+                    ExposureSettings._meta.get_field("subframe"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("subframe", ""),
@@ -309,7 +309,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("gain")
+                    ExposureSettings._meta.get_field("gain"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("gain", ""),
@@ -320,7 +320,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("offset")
+                    ExposureSettings._meta.get_field("offset"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("offset", ""),
