@@ -196,7 +196,6 @@ function enforceDateTimeRules(val, lastChar, format) {
   for (let separatorIndex of indices) {
     if (val.length < separatorIndex) return val;
     if (val.length === separatorIndex && lastChar === format[separatorIndex]) {
-      console.log("test");
       return val + format[separatorIndex];
     }
     val =
