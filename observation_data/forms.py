@@ -66,6 +66,7 @@ class CelestialTargetForm(forms.Form):
             ),
         ]
         self.fields["catalog_id"] = TURMGridField(target_widgets, (2, 1))
+        self.fields["catalog_id"].required = False
         self.fields["ra"] = TURMField.init_from_model(
             CelestialTarget._meta.get_field("ra"), label_name="RA"
         ).add_attrs({"placeholder": "hh mm ss", "oninput": "raDecInputHandler()"})
@@ -268,7 +269,8 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         exposure_settings = [
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("frames_per_filter")
+                    ExpertObservation._meta.get_field("frames_per_filter"),
+                    is_expert=True,
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("frames_per_filter", ""),
@@ -279,7 +281,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("dither_every")
+                    ExpertObservation._meta.get_field("dither_every"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("dither_every", ""),
@@ -290,7 +292,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("binning")
+                    ExposureSettings._meta.get_field("binning"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("binning", ""),
@@ -301,7 +303,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("subframe")
+                    ExposureSettings._meta.get_field("subframe"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("subframe", ""),
@@ -312,7 +314,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("gain")
+                    ExposureSettings._meta.get_field("gain"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("gain", ""),
@@ -323,7 +325,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("offset")
+                    ExposureSettings._meta.get_field("offset"), is_expert=True
                 ).add_attrs(
                     {
                         "placeholder": self.default_values.get("offset", ""),
@@ -361,6 +363,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_schedule"] = TURMDateDuration(
             (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
             (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -376,6 +379,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_schedule_time"] = TURMTimeDuration(
             (ExpertObservation._meta.get_field("start_observation_time"), "Start Time"),
             (ExpertObservation._meta.get_field("end_observation_time"), "End Time"),
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -411,6 +415,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 "Start Observation",
             ),
             (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
