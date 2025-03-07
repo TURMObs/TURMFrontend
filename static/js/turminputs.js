@@ -248,7 +248,7 @@ function decimalInputHandler() {
  */
 function targetNameInputHandler() {
   const target = event.target;
-  target.value = sanitize(target.value, /\S/g);
+  target.value = sanitize(target.value, /\w/g).slice(0, 64);
 }
 
 /**
