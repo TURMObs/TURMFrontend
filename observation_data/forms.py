@@ -53,7 +53,10 @@ class CelestialTargetForm(forms.Form):
         target_widgets = [
             (
                 TURMCharInput("catalog_id", "M42").add_attrs(
-                    {"oninput": "catalogIdInputHandler()"}
+                    {
+                        "oninput": "catalogIdInputHandler()",
+                        "onkeypress": "fetchSimbadCoordinatesOnEnter()",
+                    }
                 ),
                 "Catalog ID",
             ),
