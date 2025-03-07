@@ -300,7 +300,7 @@
         <script>
             const truncatedElements = document.querySelectorAll('.table-cell-truncate');
             const setTitleIfTruncated = (element) => {
-                if (element.offsetWidth < element.scrollWidth) {
+                if (element.clientWidth < element.scrollWidth) {
                     const tooltipText = element.getAttribute('tooltip-when-truncated');
                     if (tooltipText) {
                         element.setAttribute('title', tooltipText);

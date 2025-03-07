@@ -214,13 +214,13 @@
                                             <i class="bx bx-edit"></i>
                                         </a>
                                         <a href="#"
-                                           onclick="delete_observation('{% url 'delete-observation' observation.id %}'); return false;"
+                                           onclick="deleteObservation('{% url 'delete-observation' observation.id %}'); return false;"
                                            title="Delete Observation"
                                            class="icon-btn">
                                             <i class="bx bx-trash"></i>
                                         </a>
                                         <a href="#"
-                                           onclick="finish_observation('{% url 'finish-observation' observation.id %}'); return false;"
+                                           onclick="finishObservation('{% url 'finish-observation' observation.id %}'); return false;"
                                            title="Finish Observation"
                                            class="icon-btn">
                                             <i class="bx bx-check"></i>
@@ -413,7 +413,7 @@
          * Sends api request to delete observation with the given id.
          * @param {string} url - The url to send the request to.
          */
-        async function delete_observation(url) {
+        async function deleteObservation(url) {
             if (await showConfirmModal("Delete Observation", "Are you sure you want to delete this observation? This action cannot be undone.", "Delete")) {
                 try {
                     const response = await fetch(url, {
@@ -437,7 +437,7 @@
             }
         }
 
-        async function finish_observation(url) {
+        async function finishObservation(url) {
             if (await showConfirmModal("Finish Observation", "Are you sure you want to mark this observation as completed?", "Finish Observation")) {
                 try {
                     const response = await fetch(url, {
