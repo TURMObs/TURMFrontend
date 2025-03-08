@@ -350,7 +350,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     (s_val.value, s_key)
                     for s_key, s_val in SchedulingType._member_map_.items()
                 ],
-                label_name="Time Constrains",
+                label_name="Time Constraints",
             )
             .add_on_click(
                 lambda s_type: f"hideInputs('{Dependency.scheduling.value}','{s_type}')"
