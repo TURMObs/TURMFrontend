@@ -170,7 +170,9 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
 
     targets = [
         {
-            "name": instance.target.name,
+            "name": instance.target.catalog_id
+            if instance.target.catalog_id
+            else instance.target.name,
             "RA": instance.target.ra,
             "DEC": instance.target.dec,
             "startDateTime": "",

@@ -1704,6 +1704,34 @@ class JsonFormattingTestCase(django.test.TestCase):
             serialized_json,
         )
 
+    def test_dynamic_target_name(self):
+        data = {
+            "observatory": "TURMX",
+            "target": {
+                "name": "TEST1",
+                "ra": "22 32 01",
+                "dec": "40 49 24",
+            },
+            "observation_type": ObservationType.IMAGING,
+            "exposure_time": 300.0,
+            "filter_set": ["H"],
+            "frames_per_filter": 100,
+        }
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        serializer = ImagingObservationSerializer(ImagingObservation.objects.get(target__name="TEST1"))
+        self.assertEqual(serializer.data["targets"][0]["name"], "TEST1")
+        ImagingObservation.objects.all().delete()
+        data["target"]["catalog_id"] = "TEST2"
+        response = self.client.post(
+            path="/observation-data/create/", data=data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201, response.json())
+        serializer = ImagingObservationSerializer(ImagingObservation.objects.get(target__catalog_id="TEST2"))
+        self.assertEqual(serializer.data["targets"][0]["name"], "TEST2")
+
 
 class ObservationManagementTestCase(django.test.TestCase):
     old_prefix = ""
