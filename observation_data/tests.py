@@ -271,6 +271,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             "offset": 1,
             "moon_separation_angle": 30.0,
             "moon_separation_width": 7.0,
+            "batch_size": 5,
             "minimum_altitude": 35,
             "priority": 100,
         }
@@ -417,6 +418,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
+        data["batch_size"] = 5
         data["minimum_altitude"] = 35
         data["priority"] = 100
         data["offset"] = 1
@@ -517,6 +519,7 @@ class ObservationCreationTestCase(django.test.TestCase):
             self.assertEqual(obs.end_observation, end_observation)
             self.assertEqual(obs.start_observation_time, start_observation_time)
             self.assertEqual(obs.end_observation_time, end_observation_time)
+            self.assertEqual(obs.batch_size, 5)
 
         return response
 
@@ -762,6 +765,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
+        data["batch_size"] = 5
         data["minimum_altitude"] = 35
         data["priority"] = 100
         data["offset"] = 1
@@ -786,6 +790,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
+        data["batch_size"] = 5
         data["minimum_altitude"] = 35
         data["priority"] = 100
         data["required_amount"] = 100
@@ -813,6 +818,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         data["cadence"] = 1
         data["moon_separation_angle"] = 30.0
         data["moon_separation_width"] = 7.0
+        data["batch_size"] = 5
         data["minimum_altitude"] = 35
         data["priority"] = 100
         data["required_amount"] = 100
@@ -1111,6 +1117,7 @@ class EditObservationTestCase(django.test.TestCase):
             .isoformat(),
             "moon_separation_angle": 30.00,
             "moon_separation_width": 7,
+            "batch_size": 5,
             "minimum_altitude": 35.00,
         }
         response = self.client.post(
@@ -1383,6 +1390,7 @@ class FinishObservationTestCase(django.test.TestCase):
             "offset": 1,
             "moon_separation_angle": 30.00,
             "moon_separation_width": 7,
+            "batch_size": 5,
             "minimum_altitude": 35.00,
         }
         response = self.client.post(
@@ -1684,6 +1692,7 @@ class JsonFormattingTestCase(django.test.TestCase):
             "cadence": 1,
             "moon_separation_angle": 30.0,
             "moon_separation_width": 7.0,
+            "batch_size": 15,
             "minimum_altitude": 35,
             "priority": 100,
             "exposure_time": 60.0,
@@ -1721,7 +1730,9 @@ class JsonFormattingTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        serializer = ImagingObservationSerializer(ImagingObservation.objects.get(target__name="TEST1"))
+        serializer = ImagingObservationSerializer(
+            ImagingObservation.objects.get(target__name="TEST1")
+        )
         self.assertEqual(serializer.data["targets"][0]["name"], "TEST1")
         ImagingObservation.objects.all().delete()
         data["target"]["catalog_id"] = "TEST2"
@@ -1729,7 +1740,9 @@ class JsonFormattingTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        serializer = ImagingObservationSerializer(ImagingObservation.objects.get(target__catalog_id="TEST2"))
+        serializer = ImagingObservationSerializer(
+            ImagingObservation.objects.get(target__catalog_id="TEST2")
+        )
         self.assertEqual(serializer.data["targets"][0]["name"], "TEST2")
 
 
