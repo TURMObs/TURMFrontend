@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from nextcloud.nextcloud_manager import initialize_connection, file_exists, generate_observation_path, upload_dict
 from observation_data import observation_management
 from observation_data.models import (
     ObservationType,
@@ -219,6 +220,26 @@ def toggle_pause_observation(request, observation_id):
 
     if obs.project_status == ObservationStatus.PAUSED:
         obs.project_status = ObservationStatus.PENDING
+        obs.save()
+        initialize_connection()
+        nc_path = generate_observation_path(obs)
+        if file_exists(nc_path):
+            serializer = get_serializer(obs.observation_type)
+            serializer = serializer(obs)
+            upload_dict(nc_path, serializer.data)
+            obs.project_status = ObservationStatus.UPLOADED
+            obs.save()
+
+
+    elif obs.project_status == ObservationStatus.UPLOADED:
+        obs.project_status = ObservationStatus.PAUSED
+        obs.save()
+        initialize_connection()
+        nc_path = generate_observation_path(obs)
+        serializer_class = get_serializer(obs.observation_type)
+        serializer = serializer_class(obs)
+        upload_dict(nc_path, serializer.data)
+
     else:
         obs.project_status = ObservationStatus.PAUSED
     obs.save()
