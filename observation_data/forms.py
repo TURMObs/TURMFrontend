@@ -273,8 +273,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     is_expert=True,
                 ).add_attrs(
                     {
-                        "placeholder": self.default_values.get("frames_per_filter", ""),
-                        "expert": "expert",
+                        "placeholder": self.default_values.get("frames_per_filter", "")
                     }
                 ),
                 "Frames per Filter",
@@ -284,8 +283,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ExpertObservation._meta.get_field("dither_every"), is_expert=True
                 ).add_attrs(
                     {
-                        "placeholder": self.default_values.get("dither_every", ""),
-                        "expert": "expert",
+                        "placeholder": self.default_values.get("dither_every", "")
                     }
                 ),
                 "Dither Every",
@@ -295,8 +293,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ExposureSettings._meta.get_field("binning"), is_expert=True
                 ).add_attrs(
                     {
-                        "placeholder": self.default_values.get("binning", ""),
-                        "expert": "expert",
+                        "placeholder": self.default_values.get("binning", "")
                     }
                 ),
                 "Binning",
@@ -306,8 +303,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ExposureSettings._meta.get_field("subframe"), is_expert=True
                 ).add_attrs(
                     {
-                        "placeholder": self.default_values.get("subframe", ""),
-                        "expert": "expert",
+                        "placeholder": self.default_values.get("subframe", "")
                     }
                 ),
                 "Sub Frame",
@@ -317,8 +313,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ExposureSettings._meta.get_field("gain"), is_expert=True
                 ).add_attrs(
                     {
-                        "placeholder": self.default_values.get("gain", ""),
-                        "expert": "expert",
+                        "placeholder": self.default_values.get("gain", "")
                     }
                 ),
                 "Gain",
@@ -328,8 +323,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ExposureSettings._meta.get_field("offset"), is_expert=True
                 ).add_attrs(
                     {
-                        "placeholder": self.default_values.get("offset", ""),
-                        "expert": "expert",
+                        "placeholder": self.default_values.get("offset", "")
                     }
                 ),
                 "Offset",
@@ -445,6 +439,25 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         )
         self.fields["exp_minimum_altitude"].required = False
 
+        self.fields["exp_batch_size"] = (
+            TURMField.init_from_model(
+                ExpertObservation._meta.get_field("batch_size")
+            )
+            .add_dependencies(
+                {
+                    Dependency.observation_type.value: [
+                        ObservationType.EXPERT,
+                    ]
+                }
+            )
+            .add_attrs(
+                {
+                    "placeholder": self.default_values.get("batch_size", "")
+                }
+            )
+        )
+        self.fields["exp_batch_size"].required = False
+
         moon_separation_settings = [
             (
                 TURMField.model_field_to_input(
@@ -453,8 +466,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     {
                         "placeholder": self.default_values.get(
                             "moon_separation_angle", ""
-                        ),
-                        "expert": "expert",
+                        )
                     }
                 ),
                 "Moon Separation Angle",
@@ -466,8 +478,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     {
                         "placeholder": self.default_values.get(
                             "moon_separation_width", ""
-                        ),
-                        "expert": "expert",
+                        )
                     }
                 ),
                 "Moon Separation Width",

@@ -170,7 +170,9 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
 
     targets = [
         {
-            "name": instance.target.name,
+            "name": instance.target.catalog_id
+            if instance.target.catalog_id
+            else instance.target.name,
             "RA": instance.target.ra,
             "DEC": instance.target.dec,
             "startDateTime": "",
@@ -523,6 +525,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "cadence",
             "moon_separation_angle",
             "moon_separation_width",
+            "batch_size",
             "minimum_altitude",
             "priority",
         ]
@@ -647,6 +650,7 @@ class ExpertObservationSerializer(serializers.ModelSerializer):
             "offset": instance.offset,
             "moonSeparationAngle": instance.moon_separation_angle,
             "moonSeparationWidth": instance.moon_separation_width,
+            "batchSize": instance.batch_size,
             "requiredAmount": instance.frames_per_filter,
         }
         return _to_representation(
