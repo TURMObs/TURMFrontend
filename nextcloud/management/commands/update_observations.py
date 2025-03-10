@@ -19,7 +19,7 @@ class Command(BaseCommand):
             time_delta = options["days"]
 
         try:
-            update_observations(timezone.now() + timedelta(days=time_delta))
+            update_observations((timezone.now() + timedelta(days=time_delta)).date())
         except Exception as e:
             logger.error(f"Error updating observations: {e}")
             self.stdout.write(self.style.ERROR(f"Error updating observations: {e}"))
