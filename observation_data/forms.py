@@ -272,9 +272,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ExpertObservation._meta.get_field("frames_per_filter"),
                     is_expert=True,
                 ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("frames_per_filter", "")
-                    }
+                    {"placeholder": self.default_values.get("frames_per_filter", "")}
                 ),
                 "Frames per Filter",
             ),
@@ -282,50 +280,32 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 TURMField.model_field_to_input(
                     ExpertObservation._meta.get_field("dither_every"), is_expert=True
                 ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("dither_every", "")
-                    }
+                    {"placeholder": self.default_values.get("dither_every", "")}
                 ),
                 "Dither Every",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("binning"), is_expert=True
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("binning", "")
-                    }
-                ),
+                ).add_attrs({"placeholder": self.default_values.get("binning", "")}),
                 "Binning",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("subframe"), is_expert=True
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("subframe", "")
-                    }
-                ),
+                ).add_attrs({"placeholder": self.default_values.get("subframe", "")}),
                 "Sub Frame",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("gain"), is_expert=True
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("gain", "")
-                    }
-                ),
+                ).add_attrs({"placeholder": self.default_values.get("gain", "")}),
                 "Gain",
             ),
             (
                 TURMField.model_field_to_input(
                     ExposureSettings._meta.get_field("offset"), is_expert=True
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("offset", "")
-                    }
-                ),
+                ).add_attrs({"placeholder": self.default_values.get("offset", "")}),
                 "Offset",
             ),
         ]
@@ -440,9 +420,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_minimum_altitude"].required = False
 
         self.fields["exp_batch_size"] = (
-            TURMField.init_from_model(
-                ExpertObservation._meta.get_field("batch_size")
-            )
+            TURMField.init_from_model(ExpertObservation._meta.get_field("batch_size"))
             .add_dependencies(
                 {
                     Dependency.observation_type.value: [
@@ -450,11 +428,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     ]
                 }
             )
-            .add_attrs(
-                {
-                    "placeholder": self.default_values.get("batch_size", "")
-                }
-            )
+            .add_attrs({"placeholder": self.default_values.get("batch_size", "")})
         )
         self.fields["exp_batch_size"].required = False
 
