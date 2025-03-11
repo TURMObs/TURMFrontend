@@ -129,7 +129,9 @@ def build_observation_data(observation: AbstractObservation):
                     content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
             elif observation.start_observation:
                 content["start_observation"] = (
-                    str(observation.start_observation.replace(tzinfo=None)).strip()[:16],
+                    str(observation.start_observation.replace(tzinfo=None)).strip()[
+                        :16
+                    ],
                 )
                 content["end_observation"] = (
                     str(observation.end_observation.replace(tzinfo=None)).strip()[:16],
