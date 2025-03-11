@@ -104,6 +104,7 @@ def build_observation_data(observation: AbstractObservation):
             content["subframe"] = float(observation.subframe)
             content["gain"] = observation.gain
             content["offset"] = observation.offset
+            content["batch_size"] = observation.batch_size
             content["minimum_altitude"] = float(observation.minimum_altitude)
             content["moon_separation_angle"] = float(observation.moon_separation_angle)
             content["moon_separation_width"] = observation.moon_separation_width
