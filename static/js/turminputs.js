@@ -435,6 +435,9 @@ function handleErrors(dict) {
             " - " +
             dict[key][0].end_observation;
       }
+      if (key === "error") { // handle Quota Errors
+        message = dict[key];
+      }
       const field = addErrorMessage(name, message, escapeGrid);
       if (!element) element = field;
       else if (
