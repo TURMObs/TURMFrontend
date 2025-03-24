@@ -132,34 +132,6 @@ input[type="checkbox"]:disabled + label {
   color: var(--color-gray-400);
 }
 
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-/* Tooltip text */
-.tooltip .tooltip-text {
-  visibility: hidden;
-  width: 240px;
-  background-color: var(--color-dark);
-  color: var(--color-light);
-  text-align: center;
-  padding: 8px;
-  border-radius: var(--radius-md);
-  border: var(--border-md) solid var(--color-gray-400);
-  margin-bottom: 4px;
-  position: absolute;
-  z-index: 1;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -120px;
-}
-
-/* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover input:disabled ~ .tooltip-text {
-  visibility: visible;
-}
-
 .error-msg {
   display: flex;
   align-items: center;
