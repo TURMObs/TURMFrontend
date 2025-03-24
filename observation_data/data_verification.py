@@ -273,7 +273,7 @@ def validate_observation_time(
     if start_time >= end_time:
         errors = {**errors, "time_range": "Start time must be before end time."}
 
-    if start_time <= timezone.now():
+    if start_time < timezone.now():
         errors = {**errors, "start_time": "Start time must be in the future."}
 
     if start_time.year >= timezone.now().year + 10:
