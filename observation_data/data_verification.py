@@ -186,6 +186,8 @@ def verify_field_integrity(name, value, observation_type):
             return _assert_number_in_range(name, value, 0.0, 180.0)
         case "moon_separation_width":
             return _assert_number_in_range(name, value, 0, 14)
+        case "batch_size":
+            return _assert_number_in_range(name, value, 1, 100000)
         case "minimum_altitude":
             return _assert_number_in_range(name, value, 0.0, 60.0)
         case "priority":

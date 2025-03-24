@@ -247,8 +247,8 @@
                                                 {% if observation.observation_type == ObservationType.IMAGING %}
                                                     <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
                                                 {% elif observation.observation_type == ObservationType.EXOPLANET %}
-                                                    <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                    <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                    <p>Start Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}</p>
+                                                    <p>End Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}</p>
                                                 {% elif observation.observation_type == ObservationType.VARIABLE %}
                                                     <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
                                                 {% elif observation.observation_type == ObservationType.MONITORING %}
@@ -263,9 +263,10 @@
                                                     <p>Binning: {{ observation.binning }}</p>
                                                     <p>Gain: {{ observation.gain }}</p>
                                                     <p>Offset: {{ observation.offset }}</p>
+                                                    <p>Batch Size: {{ observation.batch_size }}</p>
                                                     {% if observation.start_observation %}
-                                                        <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                        <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                        <p>Start Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}</p>
+                                                        <p>End Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}</p>
                                                     {% elif observation.start_scheduling %}
                                                         <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
                                                         <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
@@ -386,9 +387,9 @@
                                                 {% elif observation.observation_type == ObservationType.EXOPLANET %}
                                                     <p>
                                                         Start
-                                                        Observation: {{ observation.start_observation|date:"d.m.Y" }}
+                                                        Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
                                                     </p>
-                                                    <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                    <p>End Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}</p>
                                                 {% elif observation.observation_type == ObservationType.VARIABLE %}
                                                     <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
                                                 {% elif observation.observation_type == ObservationType.MONITORING %}
@@ -402,9 +403,10 @@
                                                     <p>Binning: {{ observation.binning }}</p>
                                                     <p>Gain: {{ observation.gain }}</p>
                                                     <p>Offset: {{ observation.offset }}</p>
+                                                    <p>Batch Size: {{ observation.batch_size }}</p>
                                                     {% if observation.start_observation %}
-                                                        <p>Start Observation: {{ observation.start_observation|date:"d.m.Y" }}</p>
-                                                        <p>End Observation: {{ observation.end_observation|date:"d.m.Y" }}</p>
+                                                        <p>Start Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}</p>
+                                                        <p>End Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}</p>
                                                     {% elif observation.start_scheduling %}
                                                         <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
                                                         <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>

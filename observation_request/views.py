@@ -81,10 +81,10 @@ def build_observation_data(observation: AbstractObservation):
             content["frames_per_filter"] = observation.frames_per_filter
         case ObservationType.EXOPLANET:
             content["start_observation"] = (
-                str(observation.start_observation.replace(tzinfo=None)).strip(),
+                str(observation.start_observation.replace(tzinfo=None)).strip()[:16],
             )
             content["end_observation"] = (
-                str(observation.end_observation.replace(tzinfo=None)).strip(),
+                str(observation.end_observation.replace(tzinfo=None)).strip()[:16],
             )
         case ObservationType.VARIABLE:
             content["frames_per_filter"] = observation.frames_per_filter
@@ -104,6 +104,7 @@ def build_observation_data(observation: AbstractObservation):
             content["subframe"] = float(observation.subframe)
             content["gain"] = observation.gain
             content["offset"] = observation.offset
+            content["batch_size"] = observation.batch_size
             content["minimum_altitude"] = float(observation.minimum_altitude)
             content["moon_separation_angle"] = float(observation.moon_separation_angle)
             content["moon_separation_width"] = observation.moon_separation_width
@@ -128,10 +129,12 @@ def build_observation_data(observation: AbstractObservation):
                     content["schedule_type"] = forms.SchedulingType.SCHEDULE.name
             elif observation.start_observation:
                 content["start_observation"] = (
-                    str(observation.start_observation.replace(tzinfo=None)).strip(),
+                    str(observation.start_observation.replace(tzinfo=None)).strip()[
+                        :16
+                    ],
                 )
                 content["end_observation"] = (
-                    str(observation.end_observation.replace(tzinfo=None)).strip(),
+                    str(observation.end_observation.replace(tzinfo=None)).strip()[:16],
                 )
                 content["schedule_type"] = forms.SchedulingType.TIMED.name
             else:
