@@ -260,6 +260,19 @@ class ObservationCreationTestCase(django.test.TestCase):
             flat=True,
         )
 
+    def test_monitoring_insert_today(self):
+        base_time = datetime.now(timezone.utc)
+        self._test_observation_insert(
+            ObservationType.MONITORING,
+            {
+                "frames_per_filter": 100,
+                "start_scheduling": base_time.date(),
+                "end_scheduling": base_time.date() + timedelta(days=2),
+                "cadence": 1,
+                "minimum_altitude": 35.0,
+            },
+        )
+
     @staticmethod
     def _get_base_expert_request():
         return {
