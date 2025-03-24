@@ -452,7 +452,16 @@ body::before {
   margin-left: -120px;
 }
 
+.tooltip .tooltip-text.tooltip-text-below{
+  margin-bottom: -80px;
+}
+
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover input:disabled ~ .tooltip-text {
+.tooltip:hover *:disabled~.tooltip-text {
+  visibility: visible;
+}
+
+
+.tooltip:hover .tooltip-text-below {
   visibility: visible;
 }
