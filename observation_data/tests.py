@@ -260,6 +260,19 @@ class ObservationCreationTestCase(django.test.TestCase):
             flat=True,
         )
 
+    def test_monitoring_insert_today(self):
+        base_time = datetime.now(timezone.utc)
+        self._test_observation_insert(
+            ObservationType.MONITORING,
+            {
+                "frames_per_filter": 100,
+                "start_scheduling": base_time.date(),
+                "end_scheduling": base_time.date() + timedelta(days=2),
+                "cadence": 1,
+                "minimum_altitude": 35.0,
+            },
+        )
+
     @staticmethod
     def _get_base_expert_request():
         return {
@@ -582,7 +595,9 @@ class ObservationCreationTestCase(django.test.TestCase):
     def test_expert_invalid_scheduling(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
         errors = self._test_expert_options(
-            400, start_scheduling=base_time.date(), end_scheduling=base_time.date()
+            400,
+            start_scheduling=base_time.date(),
+            end_scheduling=(base_time - timedelta(days=1)).date(),
         )
         self.assertEqual(
             errors,
@@ -605,7 +620,7 @@ class ObservationCreationTestCase(django.test.TestCase):
         errors = self._test_expert_options(
             400,
             start_scheduling=base_time.date(),
-            end_scheduling=base_time.date(),
+            end_scheduling=(base_time - timedelta(days=1)).date(),
             start_observation_time=base_time.replace(
                 hour=0, minute=0, second=0, microsecond=0
             )

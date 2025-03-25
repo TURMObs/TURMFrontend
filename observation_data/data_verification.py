@@ -275,7 +275,7 @@ def validate_observation_time(
     if start_time >= end_time:
         errors = {**errors, "time_range": "Start time must be before end time."}
 
-    if start_time <= timezone.now():
+    if start_time < timezone.now():
         errors = {**errors, "start_time": "Start time must be in the future."}
 
     if start_time.year >= timezone.now().year + 10:
@@ -295,12 +295,12 @@ def validate_schedule_time(start_scheduling, end_scheduling):
     :return: Error if the time range is invalid or None if the time range is valid
     """
     errors = {}
-    if start_scheduling >= end_scheduling:
+    if start_scheduling > end_scheduling:
         errors = {
             **errors,
             "scheduling_range": "Start scheduling must be before end scheduling.",
         }
-    if start_scheduling <= timezone.now().date():
+    if start_scheduling < timezone.now().date():
         errors = {
             **errors,
             "start_scheduling": "Start scheduling must be in the future.",
