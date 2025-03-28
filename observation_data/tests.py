@@ -1959,6 +1959,14 @@ class ObservationManagementTestCase(django.test.TestCase):
 
 
 class ConfigurationLoadingTestCase(django.test.TestCase):
+    def setUp(self):
+        load_dotenv()
+        admin_username = os.getenv("ADMIN_EMAIL")
+        if not admin_username:
+            self.fail("ADMIN_EMAIL environment variable not set")
+        call_command("generate_admin_user")
+        self.user = ObservatoryUser.objects.get(username=admin_username)
+
     def _assert_exposure_settings_exists(self, exp_setting):
         self.assertTrue(
             ObservatoryExposureSettings.objects.filter(
@@ -2235,3 +2243,42 @@ class ConfigurationLoadingTestCase(django.test.TestCase):
         ]:
             self.assertNotIn(filter_type, turmx_filter_set)
             self.assertIn(filter_type, turmx2_filter_set)
+
+    def test_delete(self):
+        out = io.StringIO()
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config2.json",
+            stdout=out,
+        )
+        filters = Filter.objects.all()
+        self.assertEqual(filters.count(), 10)
+        self.assertIn(
+            Filter.objects.get(filter_type="S"),
+            Observatory.objects.get(name="TURMX2").filter_set.all(),
+        )
+        ImagingObservation.objects.create(
+            observatory=Observatory.objects.get(name="TURMX2"),
+            target=CelestialTarget.objects.create(name="Test", ra="0", dec="0"),
+            user=self.user,
+            created_at=tz.now(),
+            observation_type=ObservationType.IMAGING,
+            project_status=ObservationStatus.PENDING,
+            project_completion=0.0,
+            priority=10,
+            exposure_time=10.0,
+            frames_per_filter=100,
+        )
+        call_command(
+            "load_configuration",
+            "./observation_data/test_data/dummy_config.json",
+            "--delete",
+            stdout=out,
+        )
+        filters = Filter.objects.all()
+        self.assertEqual(filters.count(), 10)
+        self.assertNotIn(
+            Filter.objects.get(filter_type="S"),
+            Observatory.objects.get(name="TURMX2").filter_set.all(),
+        )
+        self.assertEqual(ImagingObservation.objects.count(), 1)

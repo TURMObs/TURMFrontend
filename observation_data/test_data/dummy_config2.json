@@ -1,0 +1,162 @@
+{
+  "observatories": [
+    {
+      "name": "TURMX",
+      "horizon_offset": 0.0,
+      "min_stars": -1,
+      "max_HFR": 4.0,
+      "max_guide_error": 1000.0,
+      "filters": [
+        "Luminance",
+        "Red",
+        "Green",
+        "Blue",
+        "Hydrogen",
+        "Oxygen",
+        "Sulfur"
+      ],
+      "exposure_settings": [
+        {
+          "type": "IMAGING",
+          "gain": 100,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 1.0
+        },
+        {
+          "type": "EXOPLANET",
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 0.25
+        },
+        {
+          "type": "VARIABLE",
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 0.25
+        },
+        {
+          "type": "MONITOR",
+          "gain": 0,
+          "offset": 50,
+          "binning": 1,
+          "subframe": 0.25
+        }
+      ]
+    },
+    {
+      "name": "TURMX2",
+      "horizon_offset": 0.0,
+      "min_stars": -1,
+      "max_HFR": 6.0,
+      "max_guide_error": 1000.0,
+      "filters": [
+        "Luminance",
+        "Red",
+        "Green",
+        "Blue",
+        "Hydrogen",
+        "Oxygen",
+        "Sulfur",
+        "Sloan_R",
+        "Sloan_G",
+        "Sloan_I"
+      ],
+      "exposure_settings": [
+        {
+          "type": "IMAGING",
+          "gain": 2750,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 1.0
+        },
+        {
+          "type": "EXOPLANET",
+          "gain": 0,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 0.5
+        },
+        {
+          "type": "VARIABLE",
+          "gain": 0,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 0.5
+        },
+        {
+          "type": "MONITOR",
+          "gain": 0,
+          "offset": 0,
+          "binning": 1,
+          "subframe": 0.5
+        }
+      ]
+    }
+  ],
+  "filters": [
+    {
+      "name": "Luminance",
+      "type": "L",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Red",
+      "type": "R",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Green",
+      "type": "G",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Blue",
+      "type": "B",
+      "moon_separation_angle": 100,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Hydrogen",
+      "type": "H",
+      "moon_separation_angle": 70,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Oxygen",
+      "type": "O",
+      "moon_separation_angle": 70,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sulfur",
+      "type": "S",
+      "moon_separation_angle": 70,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sloan_R",
+      "type": "SR",
+      "moon_separation_angle": 50,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sloan_G",
+      "type": "SG",
+      "moon_separation_angle": 50,
+      "moon_separation_width": 7
+    },
+    {
+      "name": "Sloan_I",
+      "type": "SI",
+      "moon_separation_angle": 50,
+      "moon_separation_width": 7
+    }
+  ],
+  "request_settings_defaults": {}
+}
