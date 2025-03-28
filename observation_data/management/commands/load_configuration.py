@@ -71,7 +71,6 @@ class Command(BaseCommand):
                 untouched_exposure_settings.delete()
                 untouched_filters.delete()
                 untouched_observatories.delete()
-                untouched_filters.delete()
             except IntegrityError as e:
                 self.stdout.write(f"Error deleting existing data: {e}")
 
