@@ -53,7 +53,10 @@ class CelestialTargetForm(forms.Form):
         target_widgets = [
             (
                 TURMCharInput("catalog_id", "M42").add_attrs(
-                    {"oninput": "catalogIdInputHandler()"}
+                    {
+                        "oninput": "catalogIdInputHandler()",
+                        "onkeypress": "fetchSimbadCoordinatesOnEnter()",
+                    }
                 ),
                 "Catalog ID",
             ),
@@ -63,6 +66,7 @@ class CelestialTargetForm(forms.Form):
             ),
         ]
         self.fields["catalog_id"] = TURMGridField(target_widgets, (2, 1))
+        self.fields["catalog_id"].required = False
         self.fields["ra"] = TURMField.init_from_model(
             CelestialTarget._meta.get_field("ra"), label_name="RA"
         ).add_attrs({"placeholder": "hh mm ss", "oninput": "raDecInputHandler()"})
@@ -265,68 +269,43 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         exposure_settings = [
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("frames_per_filter")
+                    ExpertObservation._meta.get_field("frames_per_filter"),
+                    is_expert=True,
                 ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("frames_per_filter", ""),
-                        "expert": "expert",
-                    }
+                    {"placeholder": self.default_values.get("frames_per_filter", "")}
                 ),
                 "Frames per Filter",
             ),
             (
                 TURMField.model_field_to_input(
-                    ExpertObservation._meta.get_field("dither_every")
+                    ExpertObservation._meta.get_field("dither_every"), is_expert=True
                 ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("dither_every", ""),
-                        "expert": "expert",
-                    }
+                    {"placeholder": self.default_values.get("dither_every", "")}
                 ),
                 "Dither Every",
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("binning")
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("binning", ""),
-                        "expert": "expert",
-                    }
-                ),
+                    ExposureSettings._meta.get_field("binning"), is_expert=True
+                ).add_attrs({"placeholder": self.default_values.get("binning", "")}),
                 "Binning",
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("subframe")
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("subframe", ""),
-                        "expert": "expert",
-                    }
-                ),
+                    ExposureSettings._meta.get_field("subframe"), is_expert=True
+                ).add_attrs({"placeholder": self.default_values.get("subframe", "")}),
                 "Sub Frame",
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("gain")
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("gain", ""),
-                        "expert": "expert",
-                    }
-                ),
+                    ExposureSettings._meta.get_field("gain"), is_expert=True
+                ).add_attrs({"placeholder": self.default_values.get("gain", "")}),
                 "Gain",
             ),
             (
                 TURMField.model_field_to_input(
-                    ExposureSettings._meta.get_field("offset")
-                ).add_attrs(
-                    {
-                        "placeholder": self.default_values.get("offset", ""),
-                        "expert": "expert",
-                    }
-                ),
+                    ExposureSettings._meta.get_field("offset"), is_expert=True
+                ).add_attrs({"placeholder": self.default_values.get("offset", "")}),
                 "Offset",
             ),
         ]
@@ -345,7 +324,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     (s_val.value, s_key)
                     for s_key, s_val in SchedulingType._member_map_.items()
                 ],
-                label_name="Time Constrains",
+                label_name="Time Constraints",
             )
             .add_on_click(
                 lambda s_type: f"hideInputs('{Dependency.scheduling.value}','{s_type}')"
@@ -358,6 +337,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_schedule"] = TURMDateDuration(
             (ExpertObservation._meta.get_field("start_scheduling"), "Start Scheduling"),
             (ExpertObservation._meta.get_field("end_scheduling"), "End Scheduling"),
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -373,6 +353,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         self.fields["exp_schedule_time"] = TURMTimeDuration(
             (ExpertObservation._meta.get_field("start_observation_time"), "Start Time"),
             (ExpertObservation._meta.get_field("end_observation_time"), "End Time"),
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -408,6 +389,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                 "Start Observation",
             ),
             (ExpertObservation._meta.get_field("end_observation"), "End Observation"),
+            is_expert=True,
         ).add_dependencies(
             {
                 Dependency.observation_type.value: [
@@ -437,6 +419,19 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
         )
         self.fields["exp_minimum_altitude"].required = False
 
+        self.fields["exp_batch_size"] = (
+            TURMField.init_from_model(ExpertObservation._meta.get_field("batch_size"))
+            .add_dependencies(
+                {
+                    Dependency.observation_type.value: [
+                        ObservationType.EXPERT,
+                    ]
+                }
+            )
+            .add_attrs({"placeholder": self.default_values.get("batch_size", "")})
+        )
+        self.fields["exp_batch_size"].required = False
+
         moon_separation_settings = [
             (
                 TURMField.model_field_to_input(
@@ -445,8 +440,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     {
                         "placeholder": self.default_values.get(
                             "moon_separation_angle", ""
-                        ),
-                        "expert": "expert",
+                        )
                     }
                 ),
                 "Moon Separation Angle",
@@ -458,8 +452,7 @@ class ExpertExposureSettingsForm(ExposureSettingsForm):
                     {
                         "placeholder": self.default_values.get(
                             "moon_separation_width", ""
-                        ),
-                        "expert": "expert",
+                        )
                     }
                 ),
                 "Moon Separation Width",

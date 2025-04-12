@@ -344,9 +344,7 @@ def register(request, token):
     try:
         invitation = InvitationToken.objects.get(token=token)
     except InvitationToken.DoesNotExist:
-        return register_from_invitation_template(
-            request, token, error="Invalid invitation link"
-        )
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     return register_from_invitation_template(
         request, token, form=SetPasswordForm(), email=invitation.email
@@ -359,9 +357,7 @@ def register_user(request, token):
     try:
         invitation = InvitationToken.objects.get(token=token)
     except InvitationToken.DoesNotExist:
-        return register_from_invitation_template(
-            request, token, error="Invalid invitation link"
-        )
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     form = SetPasswordForm(request.POST)
     if not form.is_valid():

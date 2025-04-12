@@ -297,5 +297,23 @@
             </div>
         </footer>
         <script src="{% static '/js/modal.js' %}"></script>
+        <script>
+            const truncatedElements = document.querySelectorAll('.table-cell-truncate');
+            const setTitleIfTruncated = (element) => {
+                if (element.clientWidth < element.scrollWidth) {
+                    const tooltipText = element.getAttribute('tooltip-when-truncated');
+                    if (tooltipText) {
+                        element.setAttribute('title', tooltipText);
+                    }
+                } else {
+                  element.removeAttribute('title');
+                }
+            };
+
+            truncatedElements.forEach(setTitleIfTruncated);
+            window.addEventListener('resize', () => {
+                truncatedElements.forEach(setTitleIfTruncated);
+            });
+        </script>
     </body>
 </html>

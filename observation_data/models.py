@@ -173,6 +173,7 @@ class ExpertObservation(ScheduledObservation):
     end_observation_time = models.TimeField(blank=True, null=True)
     moon_separation_angle = models.DecimalField(max_digits=5, decimal_places=2)
     moon_separation_width = models.IntegerField()
+    batch_size = models.IntegerField()
     minimum_altitude = models.DecimalField(max_digits=5, decimal_places=2)
 
 

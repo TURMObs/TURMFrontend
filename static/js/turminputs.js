@@ -248,7 +248,7 @@ function decimalInputHandler() {
  */
 function targetNameInputHandler() {
   const target = event.target;
-  target.value = sanitize(target.value, /\S/g);
+  target.value = sanitize(target.value, /\w/g).slice(0, 64);
 }
 
 /**
@@ -256,7 +256,7 @@ function targetNameInputHandler() {
  */
 function catalogIdInputHandler() {
   const target = event.target;
-  target.value = sanitize(target.value, /\S/g);
+  target.value = sanitize(target.value, /[\w!-\/:-@[-`{-~]/g).slice(0, 32);
 }
 
 /* --- on page load --- */
@@ -386,28 +386,7 @@ function submitForm(event, form, postAddress, redirectAddress) {
         response
           .json()
           .then((jsonResponse) => {
-            clearErrorMessages();
-            for (let key in jsonResponse) {
-              if (key !== "target") {
-                let name = key;
-                let escapeGrid = false;
-                if (
-                  key === "time_range" ||
-                  key === "start_time" ||
-                  key === "year_range"
-                ) {
-                  name = "start_observation";
-                  escapeGrid = true;
-                }
-                let element = document.getElementById("id_" + name);
-                addErrorMessage(element, jsonResponse[key][0], escapeGrid);
-              } else {
-                for (let subKey in jsonResponse.target) {
-                  let element = document.getElementById("id_" + subKey);
-                  addErrorMessage(element, jsonResponse[key][subKey][0]);
-                }
-              }
-            }
+            handleErrors(jsonResponse);
           })
           .catch((error) => console.log(error, response));
     })
@@ -433,19 +412,74 @@ function gatherDefaultValues() {
   return out;
 }
 
+function handleErrors(dict) {
+  clearErrorMessages();
+  let element;
+  for (let key in dict) {
+    if (key !== "target") {
+      let name = key;
+      let escapeGrid = false;
+      let message = dict[key][0];
+      if (
+        key === "time_range" ||
+        key === "start_time" ||
+        key === "year_range" ||
+        key === "overlapping_observations"
+      ) {
+        name = "start_observation";
+        escapeGrid = true;
+        if (key === "overlapping_observations")
+          message =
+            "overlapping with observation: " +
+            dict[key][0].start_observation +
+            " - " +
+            dict[key][0].end_observation;
+      }
+      const field = addErrorMessage(name, message, escapeGrid);
+      if (!element) element = field;
+      else if (
+        field.getBoundingClientRect().top < element.getBoundingClientRect().top
+      ) {
+        element = field;
+      }
+    } else {
+      for (let subKey in dict.target) {
+        const message = dict[key][subKey][0];
+        const field = addErrorMessage(subKey, message);
+        if (!element) element = field;
+        else if (
+          field.getBoundingClientRect().top <
+          element.getBoundingClientRect().top
+        ) {
+          element = field;
+        }
+      }
+    }
+  }
+  if (!!element) element.scrollIntoView();
+}
 /**
  * Adds an error note under the element with the message text.
- * @param element that the error is for
+ * @param name of the field that the error is for
  * @param message text that should be displayed
  * @param escapeGrid when the element is in a grid-input-div this param specifies if it should be displayed in the same cell or under the whole grid (useful for duration inputs)
  */
-function addErrorMessage(element, message, escapeGrid = false) {
+function addErrorMessage(name, message, escapeGrid = false) {
   const messageElement = "<span>" + message + "</span>";
   const iconElement = '<i class="bx bx-error-circle"></i>';
   const error = document.createElement("div");
   error.classList.add("error-msg");
   error.innerHTML = iconElement + messageElement;
 
+  // default case
+  let element = document.getElementById("id_" + name);
+  // expert_case
+  if (element === null || element.disabled)
+    element = document.getElementById("id_exp_" + name);
+  // select or radio
+  if (element === null) element = document.getElementById("id_" + name + "_0");
+  // other unknown
+  if (element === null) element = document.getElementById("form");
   // find place to insert error
   let container = element.parentElement;
   if (container.classList.contains("tooltip"))
@@ -461,6 +495,7 @@ function addErrorMessage(element, message, escapeGrid = false) {
     container = container.parentElement.parentElement;
   // write error
   container.appendChild(error);
+  return findLabelForControl(element);
 }
 
 /**
@@ -470,4 +505,11 @@ function clearErrorMessages() {
   for (let el of Array.from(document.getElementsByClassName("error-msg"))) {
     el.remove();
   }
+}
+
+function findLabelForControl(element) {
+  const labels = Array.from(document.getElementsByTagName("label")).filter(
+    (el) => el.htmlFor === element.id,
+  );
+  return labels[0];
 }
