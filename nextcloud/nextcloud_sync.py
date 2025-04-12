@@ -85,17 +85,21 @@ def update_non_scheduled_observations(today: datetime.date = timezone.now().date
         return
 
     observations = AbstractObservation.objects.filter(
-        project_status=ObservationStatus.UPLOADED
+        project_status__in=[ObservationStatus.UPLOADED, ObservationStatus.PAUSED]
     )
 
     excluded_observations = []
     for obs in observations:
         if isinstance(obs, ScheduledObservation) and obs.start_scheduling:
             excluded_observations.append(obs)
+        if obs.project_status == ObservationStatus.PAUSED and not nm.file_exists(
+            nm.generate_observation_path(obs)
+        ):
+            excluded_observations.append(obs)
 
     observations = observations.exclude(
         id__in=[obs.id for obs in excluded_observations]
-    )  # exclude all scheduled observations
+    )  # exclude all scheduled observations, as well as all observations that are not in the nextcloud
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
@@ -125,7 +129,7 @@ def update_non_scheduled_observations(today: datetime.date = timezone.now().date
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
         if "start_observation" in obs.__dict__ and "end_observation" in obs.__dict__:
-            if not obs.start_observation and obs.end_observation:
+            if not (obs.start_observation and obs.end_observation):
                 continue
 
             if obs.end_observation < timezone.make_aware(
@@ -171,10 +175,14 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
     for obs in observations:
         if not obs.start_scheduling:
             excluded_observations.append(obs)
+        if obs.project_status == ObservationStatus.PAUSED and not nm.file_exists(
+            nm.generate_observation_path(obs)
+        ):
+            excluded_observations.append(obs)
 
     observations = observations.exclude(
         id__in=[obs.id for obs in excluded_observations]
-    )  # exclude all non-scheduled observations
+    )  # exclude all non-scheduled observations, as well as all observations that are not in the nextcloud
 
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
@@ -222,6 +230,13 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
             obs.project_status = ObservationStatus.ERROR
             obs.save()
             continue
+
+        if "start_observation" in obs.__dict__ and "end_observation" in obs.__dict__:
+            if obs.start_observation and obs.end_observation:
+                if obs.end_observation < timezone.make_aware(
+                    datetime.datetime.combine(today, timezone.now().time())
+                ):
+                    partial_progress = 100.0
 
         new_upload = today + timedelta(days=obs.cadence - 1)
 
@@ -338,7 +353,7 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     for obs in scheduled_observations:
         if obs.start_scheduling > today or obs.end_scheduling < today:
             continue
-        if today > obs.next_upload:
+        if today < obs.next_upload:
             continue
         pending_observations = chain(pending_observations, [obs])
 
