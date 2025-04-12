@@ -1,7 +1,6 @@
 import io
 import json
 import os
-import unittest
 from datetime import datetime, timezone, timedelta
 
 from django.utils import timezone as tz
@@ -12,7 +11,6 @@ from django.contrib.auth.models import Permission
 from django.core.management import call_command
 from django.conf import settings
 from dotenv import load_dotenv
-from nc_py_api import NextcloudException
 
 from accounts.models import ObservatoryUser, UserPermission
 from nextcloud.nextcloud_manager import generate_observation_path

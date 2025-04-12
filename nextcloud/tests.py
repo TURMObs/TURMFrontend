@@ -1,7 +1,6 @@
 import io
 
 import django
-from django.urls import reverse
 from django.utils import timezone
 from django.core.management import call_command
 import django.test
