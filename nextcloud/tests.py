@@ -364,6 +364,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         moon_separation_width: int = 1,
         minimum_altitude: float = 10.0,
         frames_per_filter: int = 100,
+        batch_size: int = 1,
         subframe: int = 1,
     ):
         """
@@ -400,6 +401,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             moon_separation_width=moon_separation_width,
             minimum_altitude=minimum_altitude,
             frames_per_filter=frames_per_filter,
+            batch_size=batch_size,
             subframe=subframe,
         )
 
