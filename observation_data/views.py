@@ -1,5 +1,6 @@
 import logging
 
+import httpx
 from django.core.exceptions import FieldDoesNotExist, BadRequest
 from django.db.models import ManyToManyField
 from django.http import QueryDict
@@ -228,21 +229,35 @@ def toggle_pause_observation(request, observation_id):
         obs.save()
         initialize_connection()
         nc_path = generate_observation_path(obs)
-        if file_exists(nc_path):
-            serializer = get_serializer(obs.observation_type)
-            serializer = serializer(obs)
-            upload_dict(nc_path, serializer.data)
-            obs.project_status = ObservationStatus.UPLOADED
-            obs.save()
+        try:
+            if file_exists(nc_path):
+                serializer = get_serializer(obs.observation_type)
+                serializer = serializer(obs)
+                upload_dict(nc_path, serializer.data)
+                obs.project_status = ObservationStatus.UPLOADED
+                obs.save()
+        except httpx.ConnectError as e:
+            logger.error(f"Failed to connect to Nextcloud: {str(e)}")
+            return Response(
+                {"error": "Failed to connect to the nextcloud server"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     elif obs.project_status == ObservationStatus.UPLOADED:
-        obs.project_status = ObservationStatus.PAUSED
-        obs.save()
-        initialize_connection()
-        nc_path = generate_observation_path(obs)
-        serializer_class = get_serializer(obs.observation_type)
-        serializer = serializer_class(obs)
-        upload_dict(nc_path, serializer.data)
+        try:
+            obs.project_status = ObservationStatus.PAUSED
+            obs.save()
+            initialize_connection()
+            nc_path = generate_observation_path(obs)
+            serializer_class = get_serializer(obs.observation_type)
+            serializer = serializer_class(obs)
+            upload_dict(nc_path, serializer.data)
+        except httpx.ConnectError as e:
+            logger.error(f"Failed to connect to Nextcloud: {str(e)}")
+            return Response(
+                {"error": "Failed to connect to the nextcloud server"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     else:
         obs.project_status = ObservationStatus.PAUSED

@@ -241,215 +241,33 @@
                                                class="icon-btn">
                                                 <i class="bx bx-check"></i>
                                             </a>
-                                            <a href="#"
-                                               {% if observation.project_status != ObservationStatus.PAUSED %}
-                                               onclick="pause_observation('{% url 'toggle-pause-observation' observation.id %}', false); return false;"
-                                               title="Pause Observation"
-                                               class="icon-btn">
-                                                <i class="bx bx-pause"></i>
+                                            {% if observation.project_status != ObservationStatus.PAUSED %}
+                                                <a href="#"
+                                                   onclick="pause_observation('{% url 'toggle-pause-observation' observation.id %}', false); return false;"
+                                                   title="Pause Observation"
+                                                   class="icon-btn">
+                                                    <i class="bx bx-pause"></i>
+                                                </a>
                                             {% else %}
-                                                onclick="pause_observation('
-                                                {% url 'toggle-pause-observation' observation.id %}', true); return
-                                                false;"
-                                                title="Continue Observation"
-                                                class="icon-btn">
-                                                <i class="bx bx-play"></i>
+                                                <a href="#"
+                                                   onclick="pause_observation('{% url 'toggle-pause-observation' observation.id %}', true); return false;"
+                                                   title="Continue Observation"
+                                                   class="icon-btn">
+                                                    <i class="bx bx-play"></i>
+                                                </a>
                                             {% endif %}
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr class="expander-row"
-                                    id="expander-{{ observation.id }}"
-                                    style="display: none">
-                                    <td colspan="5">
-                                        <div class="expander-content">
-                                            <p>Created at: {{ observation.created_at|date:"d.m.Y H:i" }}</p>
-                                            <p>Exposure time: {{ observation.exposure_time }}</p>
-                                            {% if observation.observation_type == ObservationType.IMAGING %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                            {% elif observation.observation_type == ObservationType.EXOPLANET %}
-                                                <p>
-                                                    Start
-                                                    Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
-                                                </p>
-                                                <p>
-                                                    End
-                                                    Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
-                                                </p>
-                                            {% elif observation.observation_type == ObservationType.VARIABLE %}
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
-                                            {% elif observation.observation_type == ObservationType.MONITORING %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
-                                                <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                <p>Cadence: {{ observation.cadence }}</p>
-                                            {% elif observation.observation_type == ObservationType.EXPERT %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Dither Every: {{ observation.dither_every }}</p>
-                                                <p>Binning: {{ observation.binning }}</p>
-                                                <p>Gain: {{ observation.gain }}</p>
-                                                <p>Offset: {{ observation.offset }}</p>
-                                                <p>Batch Size: {{ observation.batch_size }}</p>
-                                                {% if observation.start_observation %}
-                                                    <p>
-                                                        Start
-                                                        Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
-                                                    </p>
-                                                    <p>
-                                                        End
-                                                        Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
-                                                    </p>
-                                                {% elif observation.start_scheduling %}
-                                                    <p>
-                                                        Start
-                                                        Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}
-                                                    </p>
-                                                    <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                    {% if observation.start_observation_time %}
-                                                        <p>
-                                                            Start Observation
-                                                            Time: {{ observation.start_observation_time|date:"H:i" }}
-                                                        </p>
-                                                        <p>
-                                                            End Observation
-                                                            Time: {{ observation.end_observation_time|date:"H:i" }}
-                                                        </p>
-                                                    {% endif %}
-                                                    <p>Cadence: {{ observation.cadence }}</p>
-                                                {% endif %}
-                                                <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
-                                                <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% endif %}
-            </div>
-            <div id="completed-observations">
-                <p class="text-xl">Completed Observations</p>
-                {% if completed_observations|length == 0 %}
-                    <p class="no-completed-observations-text text">No completed observations yet.</p>
-                {% else %}
-                    <table class="table observations-table">
-                        <colgroup>
-                            <col width="0%" />
-                            <col width="0%" />
-                            <col width="0%" />
-                            <col width="50%" />
-                            <col width="0%" />
-                            <col width="0%" />
-                            {% if perms.accounts.can_see_all_observations %}
-                                <col width="50%" />
-                            {% endif %}
-                            <col width="0%" />
-                            <col width="0%" />
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th class="expand-row-container"></th>
-                                <th class="text-align-left">Observatory</th>
-                                <th class="text-align-right">ID</th>
-                                <th class="text-align-left">Target</th>
-                                <th class="text-align-left">Type</th>
-                                <th class="text-align-left">Filters</th>
-                                {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">User</th>{% endif %}
-                                <th class="text-align-right">Status</th>
-                                <th class="actions-container"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for observation in completed_observations %}
-                                <tr class="table-row" data-id="{{ observation.id }}">
-                                    <td class="expand-row-icon-container">
-                                        <div id="expander-trigger-{{ observation.id }}"
-                                             class="icon-btn"
-                                             onclick="toggleExpander('{{ observation.id }}')">
-                                            <i class="bx bx-chevron-right"></i>
-                                        </div>
-                                    </td>
-                                    <td class="text-align-left">{{ observation.observatory.name }}</td>
-                                    <td class="text-align-right">{{ observation.target.catalog_id|default:"-" }}</td>
-                                    <td class="table-cell-truncate text-align-left"
-                                        tooltip-when-truncated="{{ observation.target.name }}">
-                                        {{ observation.target.name }}
-                                    </td>
-                                    <td class="text-align-left">{{ observation.observation_type }}</td>
-                                    <td>
-                                        <div class="filter-set-container">
-                                            {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
-                                        </div>
-                                    </td>
-                                    {% if perms.accounts.can_see_all_observations %}
-                                        <td class="table-cell-truncate text-align-right"
-                                            tooltip-when-truncated="{{ observation.user.username }}">
-                                            {{ observation.user.username }}
                                         </td>
-                                    {% endif %}
-                                    <td class="text-align-right">
-                                        <div class="project-status-container">
-                                            {% if observation.project_status == ObservationStatus.PENDING %}
-                                                <span class="project-status-dot status-pending"></span>
-                                            {% elif observation.project_status == ObservationStatus.UPLOADED %}
-                                                <span class="project-status-dot status-uploaded"></span>
-                                            {% elif observation.project_status == ObservationStatus.COMPLETED %}
-                                                <span class="project-status-dot status-completed"></span>
-                                            {% elif observation.project_status == ObservationStatus.ERROR %}
-                                                <span class="project-status-dot status-error"></span>
-                                            {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
-                                                <span class="project-status-dot status-pending-deletion"></span>
-                                            {% elif observation.project_status == ObservationStatus.FAILED %}
-                                                <span class="project-status-dot status-failed"></span>
-                                            {% endif %}
-                                            <span class="text">{{ observation.project_status }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="actions-container">
-                                        <a href="#"
-                                           onclick="deleteObservation('{% url 'delete-observation' observation.id %}'); return false;"
-                                           title="Delete Observation"
-                                           class="icon-btn {% if observation.project_status == ObservationStatus.PENDING_DELETION %}disabled-link{% endif %}">
-                                            <i class="bx bx-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr class="expander-row"
-                                    id="expander-{{ observation.id }}"
-                                    style="display: none">
-                                    <td colspan="5">
-                                        <div class="expander-content">
-                                            <p>Created at: {{ observation.created_at|date:"d.m.Y H:i" }}</p>
-                                            <p>Exposure time: {{ observation.exposure_time }}</p>
-                                            {% if observation.observation_type == ObservationType.IMAGING %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                            {% elif observation.observation_type == ObservationType.EXOPLANET %}
-                                                <p>
-                                                    Start
-                                                    Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
-                                                </p>
-                                                <p>
-                                                    End
-                                                    Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
-                                                </p>
-                                            {% elif observation.observation_type == ObservationType.VARIABLE %}
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
-                                            {% elif observation.observation_type == ObservationType.MONITORING %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
-                                                <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                <p>Cadence: {{ observation.cadence }}</p>
-                                            {% elif observation.observation_type == ObservationType.EXPERT %}
-                                                <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
-                                                <p>Dither Every: {{ observation.dither_every }}</p>
-                                                <p>Binning: {{ observation.binning }}</p>
-                                                <p>Gain: {{ observation.gain }}</p>
-                                                <p>Offset: {{ observation.offset }}</p>
-                                                <p>Batch Size: {{ observation.batch_size }}</p>
-                                                {% if observation.start_observation %}
+                                    </tr>
+                                    <tr class="expander-row"
+                                        id="expander-{{ observation.id }}"
+                                        style="display: none">
+                                        <td colspan="5">
+                                            <div class="expander-content">
+                                                <p>Created at: {{ observation.created_at|date:"d.m.Y H:i" }}</p>
+                                                <p>Exposure time: {{ observation.exposure_time }}</p>
+                                                {% if observation.observation_type == ObservationType.IMAGING %}
+                                                    <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
+                                                {% elif observation.observation_type == ObservationType.EXOPLANET %}
                                                     <p>
                                                         Start
                                                         Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
@@ -458,39 +276,221 @@
                                                         End
                                                         Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
                                                     </p>
-                                                {% elif observation.start_scheduling %}
+                                                {% elif observation.observation_type == ObservationType.VARIABLE %}
+                                                    <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
+                                                {% elif observation.observation_type == ObservationType.MONITORING %}
+                                                    <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
+                                                    <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
+                                                    <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
+                                                    <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                    <p>Cadence: {{ observation.cadence }}</p>
+                                                {% elif observation.observation_type == ObservationType.EXPERT %}
+                                                    <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
+                                                    <p>Dither Every: {{ observation.dither_every }}</p>
+                                                    <p>Binning: {{ observation.binning }}</p>
+                                                    <p>Gain: {{ observation.gain }}</p>
+                                                    <p>Offset: {{ observation.offset }}</p>
+                                                    <p>Batch Size: {{ observation.batch_size }}</p>
+                                                    {% if observation.start_observation %}
+                                                        <p>
+                                                            Start
+                                                            Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
+                                                        </p>
+                                                        <p>
+                                                            End
+                                                            Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
+                                                        </p>
+                                                    {% elif observation.start_scheduling %}
+                                                        <p>
+                                                            Start
+                                                            Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}
+                                                        </p>
+                                                        <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                        {% if observation.start_observation_time %}
+                                                            <p>
+                                                                Start Observation
+                                                                Time: {{ observation.start_observation_time|date:"H:i" }}
+                                                            </p>
+                                                            <p>
+                                                                End Observation
+                                                                Time: {{ observation.end_observation_time|date:"H:i" }}
+                                                            </p>
+                                                        {% endif %}
+                                                        <p>Cadence: {{ observation.cadence }}</p>
+                                                    {% endif %}
+                                                    <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
+                                                    <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
+                                                    <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+                <div id="completed-observations">
+                    <p class="text-xl">Completed Observations</p>
+                    {% if completed_observations|length == 0 %}
+                        <p class="no-completed-observations-text text">No completed observations yet.</p>
+                    {% else %}
+                        <table class="table observations-table">
+                            <colgroup>
+                                <col width="0%" />
+                                <col width="0%" />
+                                <col width="0%" />
+                                <col width="50%" />
+                                <col width="0%" />
+                                <col width="0%" />
+                                {% if perms.accounts.can_see_all_observations %}
+                                    <col width="50%" />
+                                {% endif %}
+                                <col width="0%" />
+                                <col width="0%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th class="expand-row-container"></th>
+                                    <th class="text-align-left">Observatory</th>
+                                    <th class="text-align-right">ID</th>
+                                    <th class="text-align-left">Target</th>
+                                    <th class="text-align-left">Type</th>
+                                    <th class="text-align-left">Filters</th>
+                                    {% if perms.accounts.can_see_all_observations %}<th class="text-align-right">User</th>{% endif %}
+                                    <th class="text-align-right">Status</th>
+                                    <th class="actions-container"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for observation in completed_observations %}
+                                    <tr class="table-row" data-id="{{ observation.id }}">
+                                        <td class="expand-row-icon-container">
+                                            <div id="expander-trigger-{{ observation.id }}"
+                                                 class="icon-btn"
+                                                 onclick="toggleExpander('{{ observation.id }}')">
+                                                <i class="bx bx-chevron-right"></i>
+                                            </div>
+                                        </td>
+                                        <td class="text-align-left">{{ observation.observatory.name }}</td>
+                                        <td class="text-align-right">{{ observation.target.catalog_id|default:"-" }}</td>
+                                        <td class="table-cell-truncate text-align-left"
+                                            tooltip-when-truncated="{{ observation.target.name }}">
+                                            {{ observation.target.name }}
+                                        </td>
+                                        <td class="text-align-left">{{ observation.observation_type }}</td>
+                                        <td>
+                                            <div class="filter-set-container">
+                                                {% for filter in observation.filter_set.all %}<p>{{ filter.filter_type }}</p>{% endfor %}
+                                            </div>
+                                        </td>
+                                        {% if perms.accounts.can_see_all_observations %}
+                                            <td class="table-cell-truncate text-align-right"
+                                                tooltip-when-truncated="{{ observation.user.username }}">
+                                                {{ observation.user.username }}
+                                            </td>
+                                        {% endif %}
+                                        <td class="text-align-right">
+                                            <div class="project-status-container">
+                                                {% if observation.project_status == ObservationStatus.PENDING %}
+                                                    <span class="project-status-dot status-pending"></span>
+                                                {% elif observation.project_status == ObservationStatus.UPLOADED %}
+                                                    <span class="project-status-dot status-uploaded"></span>
+                                                {% elif observation.project_status == ObservationStatus.COMPLETED %}
+                                                    <span class="project-status-dot status-completed"></span>
+                                                {% elif observation.project_status == ObservationStatus.ERROR %}
+                                                    <span class="project-status-dot status-error"></span>
+                                                {% elif observation.project_status == ObservationStatus.PENDING_DELETION %}
+                                                    <span class="project-status-dot status-pending-deletion"></span>
+                                                {% elif observation.project_status == ObservationStatus.FAILED %}
+                                                    <span class="project-status-dot status-failed"></span>
+                                                {% endif %}
+                                                <span class="text">{{ observation.project_status }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="actions-container">
+                                            <a href="#"
+                                               onclick="deleteObservation('{% url 'delete-observation' observation.id %}'); return false;"
+                                               title="Delete Observation"
+                                               class="icon-btn {% if observation.project_status == ObservationStatus.PENDING_DELETION %}disabled-link{% endif %}">
+                                                <i class="bx bx-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr class="expander-row"
+                                        id="expander-{{ observation.id }}"
+                                        style="display: none">
+                                        <td colspan="5">
+                                            <div class="expander-content">
+                                                <p>Created at: {{ observation.created_at|date:"d.m.Y H:i" }}</p>
+                                                <p>Exposure time: {{ observation.exposure_time }}</p>
+                                                {% if observation.observation_type == ObservationType.IMAGING %}
+                                                    <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
+                                                {% elif observation.observation_type == ObservationType.EXOPLANET %}
                                                     <p>
                                                         Start
-                                                        Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}
+                                                        Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
                                                     </p>
+                                                    <p>
+                                                        End
+                                                        Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
+                                                    </p>
+                                                {% elif observation.observation_type == ObservationType.VARIABLE %}
+                                                    <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
+                                                {% elif observation.observation_type == ObservationType.MONITORING %}
+                                                    <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
+                                                    <p>Start Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}</p>
                                                     <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
-                                                    {% if observation.start_observation_time %}
-                                                        <p>
-                                                            Start Observation
-                                                            Time: {{ observation.start_observation_time|date:"H:i" }}
-                                                        </p>
-                                                        <p>
-                                                            End Observation
-                                                            Time: {{ observation.end_observation_time|date:"H:i" }}
-                                                        </p>
-                                                    {% endif %}
                                                     <p>Cadence: {{ observation.cadence }}</p>
+                                                {% elif observation.observation_type == ObservationType.EXPERT %}
+                                                    <p>Frames per Filter: {{ observation.frames_per_filter }}</p>
+                                                    <p>Dither Every: {{ observation.dither_every }}</p>
+                                                    <p>Binning: {{ observation.binning }}</p>
+                                                    <p>Gain: {{ observation.gain }}</p>
+                                                    <p>Offset: {{ observation.offset }}</p>
+                                                    <p>Batch Size: {{ observation.batch_size }}</p>
+                                                    {% if observation.start_observation %}
+                                                        <p>
+                                                            Start
+                                                            Observation: {{ observation.start_observation|date:"d.m.Y H:i" }}
+                                                        </p>
+                                                        <p>
+                                                            End
+                                                            Observation: {{ observation.end_observation|date:"d.m.Y H:i" }}
+                                                        </p>
+                                                    {% elif observation.start_scheduling %}
+                                                        <p>
+                                                            Start
+                                                            Scheduling: {{ observation.start_scheduling|date:"d.m.Y" }}
+                                                        </p>
+                                                        <p>End Scheduling: {{ observation.end_scheduling|date:"d.m.Y" }}</p>
+                                                        {% if observation.start_observation_time %}
+                                                            <p>
+                                                                Start Observation
+                                                                Time: {{ observation.start_observation_time|date:"H:i" }}
+                                                            </p>
+                                                            <p>
+                                                                End Observation
+                                                                Time: {{ observation.end_observation_time|date:"H:i" }}
+                                                            </p>
+                                                        {% endif %}
+                                                        <p>Cadence: {{ observation.cadence }}</p>
+                                                    {% endif %}
+                                                    <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
+                                                    <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
+                                                    <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
                                                 {% endif %}
-                                                <p>Moon Separation Angle: {{ observation.moon_separation_angle }}</p>
-                                                <p>Moon Separation Width: {{ observation.moon_separation_width }}</p>
-                                                <p>Minimum Altitude: {{ observation.minimum_altitude }}</p>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 {% endblock %}
 {% block scripts %}
     <script>
@@ -521,7 +521,7 @@
          */
 
         async function pause_observation(url, isPaused) {
-            let confirmation = false;
+            let confirmation;
             if (isPaused) {
                 confirmation = await showConfirmModal("Continue Observation", "Are you sure you want to continue this observation?", "Continue");
             } else {
