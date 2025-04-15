@@ -231,11 +231,20 @@
                        aria-label="project view">
                         <span class="navbar-link-text">DASHBOARD</span>
                     </a>
-                    <a class="navbar-link"
-                       href="{% url 'create-observation-request' %}"
-                       aria-label="new project">
-                        <span class="navbar-link-text">NEW PROJECT</span>
-                    </a>
+                    {% if user.has_quota_left %}
+                        <a class="navbar-link"
+                           href="{% url 'create-observation-request' %}"
+                           aria-label="new project">
+                            <span class="navbar-link-text">NEW PROJECT</span>
+                        </a>
+                    {% else %}
+                        <div>
+                            <div class="tooltip">
+                                <span class="navbar-link-text" style="color: var(--color-gray-400)">NEW PROJECT</span>
+                                <span class="tooltip-text tooltip-text-below">Quota Exceeded</span>
+                            </div>
+                        </div>
+                    {% endif %}
                     {% if perms.accounts.can_generate_invitation %}
                         <a class="navbar-link"
                            href="{% url 'user-management' %}"
