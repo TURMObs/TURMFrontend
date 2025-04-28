@@ -22,7 +22,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--delete",
             action="store_true",
-            help="Delete all existing configurations before loading the new configuration.",
+            help="Delete objects that are no longer specified by the configuration.",
         )
 
         parser.add_argument(
@@ -50,6 +50,12 @@ class Command(BaseCommand):
             except IntegrityError as e:
                 self.stdout.write(f"Error deleting existing data: {e}")
 
+            try:
+                for obs in Observatory.objects.all():
+                    obs.filter_set.clear()
+            except IntegrityError as e:
+                self.stdout.write(f"Error deleting existing data: {e}")
+
         obs_mapping, untouched_observatories = self.load_observatories(
             overwrite, data, delete
         )
@@ -58,17 +64,13 @@ class Command(BaseCommand):
         )
         untouched_filters = self.populate_filters(overwrite, data, obs_mapping, delete)
 
-        untouched_default_settings = self.populate_default_request_settings(
-            overwrite, data
-        )
+        self.populate_default_request_settings(overwrite, data)
 
         if delete:
             try:
                 untouched_exposure_settings.delete()
                 untouched_filters.delete()
                 untouched_observatories.delete()
-                untouched_filters.delete()
-                untouched_default_settings.delete()
             except IntegrityError as e:
                 self.stdout.write(f"Error deleting existing data: {e}")
 
@@ -252,4 +254,3 @@ class Command(BaseCommand):
         settings, _ = DefaultRequestSettings.objects.update_or_create(
             id=0, defaults={"settings": data["request_settings_defaults"]}
         )
-        return settings
