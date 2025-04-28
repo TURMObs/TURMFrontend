@@ -153,7 +153,7 @@ def _to_representation(instance, additional_fields=None, exposure_fields=None):
     rep = {
         "name": f"{instance.observation_type}_{''.join([f.filter_type for f in instance.filter_set.all()])}_{instance.target.name}",
         "id": str(instance.user.username),
-        "active": True,
+        "active": instance.project_status != ObservationStatus.PAUSED,
         "priority": instance.priority,
         "ditherEvery": 0,
         "minimumAltitude": 30.0,

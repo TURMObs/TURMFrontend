@@ -45,15 +45,16 @@ def calc_progress(observation: dict) -> float:
     return round((accepted_amount / required_amount) * 100, 2)
 
 
-def get_data_from_nc(obs: AbstractObservation):
+def get_data_from_nc(obs: AbstractObservation, day_now=None):
     """
     Downloads the dict of the observation from the nextcloud.
     If an error occurs, it will be logged and the status set to error.
     Requires nextcloud connection to be initialized.
 
     :param obs: Observation to retrieve the dict from.
+    :param day_now: date; default=None. Can be changed for debugging purposes.
 
-    :return: the dictionary of the observation and the nc_path. The progress is None if an error occurs.
+    :return: the dictionary of the observation, the nc_path and an indicator if the "endDateTime" has passed. The progress is None if an error occurs.
     """
     try:
         nc_path = nm.get_observation_file(obs)
@@ -62,16 +63,39 @@ def get_data_from_nc(obs: AbstractObservation):
             logger.error(
                 f"Expected observation {obs.id} with target {obs.target.name} to be uploaded in nextcloud to retrieve progress, but could not find it under expected path: {generate_observation_path(obs)}"
             )
-            return None, None
+            return None, None, None
 
         nc_dict = nm.download_dict(nc_path)
     except NextcloudException as e:
         logger.error(
             f"Expected observation {obs.id} with target {obs.target.name} to be uploaded in nextcloud to retrieve progress, but got: {e}"
         )
-        return None, None
+        return None, None, None
 
-    return calc_progress(nc_dict), nc_path
+    partial_progress = calc_progress(nc_dict)
+    past_time = False
+    if nc_dict["targets"][0]["endDateTime"] != "":
+        dt_str = nc_dict["targets"][0]["endDateTime"]
+        fmt = "%Y-%m-%d %H:%M:%S.%f" if "." in dt_str else "%Y-%m-%d %H:%M:%S"
+        end_date = timezone.make_aware(
+            datetime.datetime.strptime(dt_str, fmt),
+            timezone.get_current_timezone(),
+        )
+        if not day_now:
+            date_now = timezone.make_aware(
+                datetime.datetime.combine(timezone.now().date(), timezone.now().time()),
+                timezone.get_current_timezone(),
+            )
+        else:
+            date_now = timezone.make_aware(
+                datetime.datetime.combine(day_now, timezone.now().time()),
+                timezone.get_current_timezone(),
+            )
+
+        if end_date <= date_now:
+            past_time = True
+
+    return partial_progress, nc_path, past_time
 
 
 def update_non_scheduled_observations(today: datetime.date = timezone.now().date()):
@@ -85,24 +109,28 @@ def update_non_scheduled_observations(today: datetime.date = timezone.now().date
         return
 
     observations = AbstractObservation.objects.filter(
-        project_status=ObservationStatus.UPLOADED
+        project_status__in=[ObservationStatus.UPLOADED, ObservationStatus.PAUSED]
     )
 
     excluded_observations = []
     for obs in observations:
         if isinstance(obs, ScheduledObservation) and obs.start_scheduling:
             excluded_observations.append(obs)
+        if obs.project_status == ObservationStatus.PAUSED and not nm.file_exists(
+            nm.generate_observation_path(obs)
+        ):
+            excluded_observations.append(obs)
 
     observations = observations.exclude(
         id__in=[obs.id for obs in excluded_observations]
-    )  # exclude all scheduled observations
+    )  # exclude all scheduled observations, as well as all observations that are not in the nextcloud
 
     logger.info(
         f"Got {len(observations)} non-scheduled observations to check for updates."
     )
 
     for obs in observations:
-        progress, nc_path = get_data_from_nc(obs)
+        progress, nc_path, past_time = get_data_from_nc(obs, today)
         if (
             progress is None or nc_path is None
         ):  # an error occurred and has already been logged
@@ -124,28 +152,22 @@ def update_non_scheduled_observations(today: datetime.date = timezone.now().date
                 )
                 obs.project_status = ObservationStatus.ERROR
                 obs.save()
-        if "start_observation" in obs.__dict__ and "end_observation" in obs.__dict__:
-            if not obs.start_observation and obs.end_observation:
-                continue
-
-            if obs.end_observation < timezone.make_aware(
-                datetime.datetime.combine(today, timezone.now().time())
-            ):
-                if progress == 0.0:
-                    obs.project_status = ObservationStatus.FAILED
-                else:
-                    obs.project_status = ObservationStatus.COMPLETED
-                try:
-                    nm.delete(nc_path)
-                    logger.info(
-                        f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}!"
-                    )
-                except NextcloudException as e:
-                    logger.error(
-                        f"Tried to delete observation {obs.id} with target {obs.target.name} because progress is 100, but got: {e}"
-                    )
-                    obs.project_status = ObservationStatus.ERROR
-                    obs.save()
+        if past_time:
+            if progress == 0.0:
+                obs.project_status = ObservationStatus.FAILED
+            else:
+                obs.project_status = ObservationStatus.COMPLETED
+            try:
+                nm.delete(nc_path)
+                logger.info(
+                    f"Deleted observation {obs.id} with target {obs.target.name} from nextcloud as it is completed. Set status to {ObservationStatus.COMPLETED}!"
+                )
+            except NextcloudException as e:
+                logger.error(
+                    f"Tried to delete observation {obs.id} with target {obs.target.name} because progress is 100, but got: {e}"
+                )
+                obs.project_status = ObservationStatus.ERROR
+                obs.save()
         obs.save()
 
 
@@ -164,16 +186,21 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
     observations = AbstractObservation.objects.instance_of(ScheduledObservation).filter(
         Q(project_status=ObservationStatus.PENDING)
         | Q(project_status=ObservationStatus.UPLOADED)
+        | Q(project_status=ObservationStatus.PAUSED)
     )
 
     excluded_observations = []
     for obs in observations:
         if not obs.start_scheduling:
             excluded_observations.append(obs)
+        if obs.project_status == ObservationStatus.PAUSED and not nm.file_exists(
+            nm.generate_observation_path(obs)
+        ):
+            excluded_observations.append(obs)
 
     observations = observations.exclude(
         id__in=[obs.id for obs in excluded_observations]
-    )  # exclude all non-scheduled observations
+    )  # exclude all non-scheduled observations, as well as all observations that are not in the nextcloud
 
     logger.info(f"Got {len(observations)} scheduled observations to check for updates.")
 
@@ -207,17 +234,23 @@ def update_scheduled_observations(today: datetime.date = timezone.now().date()):
             obs.save()
             continue
 
-        if obs.project_status == ObservationStatus.PENDING:
-            # If the status is pending, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
+        if (
+            obs.project_status == ObservationStatus.PENDING
+            or obs.project_status == ObservationStatus.PAUSED
+        ):
+            # If the status is pending or paused, the observation currently waits for the next upload during its scheduling and the prior partial observation is finished.
             # No further actions required.
             obs.save()
             continue
 
-        partial_progress, nc_path = get_data_from_nc(obs)
+        partial_progress, nc_path, past_time = get_data_from_nc(obs, today)
         if partial_progress is None:  # has already been logged
             obs.project_status = ObservationStatus.ERROR
             obs.save()
             continue
+
+        if past_time:
+            partial_progress = 100.0
 
         new_upload = today + timedelta(days=obs.cadence - 1)
 
@@ -334,7 +367,7 @@ def upload_observations(today: datetime.date = timezone.now().date()):
     for obs in scheduled_observations:
         if obs.start_scheduling > today or obs.end_scheduling < today:
             continue
-        if today != obs.next_upload:
+        if today < obs.next_upload:
             continue
         pending_observations = chain(pending_observations, [obs])
 

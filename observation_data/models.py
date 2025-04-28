@@ -25,6 +25,7 @@ class ObservationStatus(models.TextChoices):
     PENDING_DELETION = "Pending Deletion"
     PENDING_COMPLETION = "Pending Completion"
     FAILED = "Failed"
+    PAUSED = "Paused"
 
 
 class CelestialTarget(models.Model):

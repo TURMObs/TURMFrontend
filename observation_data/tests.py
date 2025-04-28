@@ -1301,7 +1301,7 @@ class FinishObservationTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, ImagingObservation.objects.get().id)
+        return data, ImagingObservation.objects.get().id
 
     def _create_exoplanet_observation(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -1328,7 +1328,7 @@ class FinishObservationTestCase(django.test.TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, ExoplanetObservation.objects.get().id)
+        return data, ExoplanetObservation.objects.get().id
 
     def _create_variable_observation(self):
         data = {
@@ -1377,7 +1377,7 @@ class FinishObservationTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, MonitoringObservation.objects.get().id)
+        return data, MonitoringObservation.objects.get().id
 
     def _create_expert_observation(self):
         base_time = datetime.now(timezone.utc) + timedelta(days=1)
@@ -1412,7 +1412,7 @@ class FinishObservationTestCase(django.test.TestCase):
             path="/observation-data/create/", data=data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201, response.json())
-        return (data, ExpertObservation.objects.get().id)
+        return data, ExpertObservation.objects.get().id
 
     def test_imaging_completion(self):
         (data, id) = self._create_imaging_observation()

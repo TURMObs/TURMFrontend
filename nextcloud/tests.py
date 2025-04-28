@@ -355,8 +355,8 @@ class NextcloudSyncTestCase(django.test.TestCase):
         binning: int = 1,
         gain: int = 10,
         offset: float = 10,
-        start_observation: datetime = timezone.now(),
-        end_observation: datetime = (timezone.now() + timedelta(days=1)),
+        start_observation: datetime = None,
+        end_observation: datetime = None,
         start_observation_time: time = None,
         end_observation_time: time = None,
         cadence: int = 1,
@@ -364,6 +364,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         moon_separation_width: int = 1,
         minimum_altitude: float = 10.0,
         frames_per_filter: int = 100,
+        batch_size: int = 1,
         subframe: int = 1,
     ):
         """
@@ -400,6 +401,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
             moon_separation_width=moon_separation_width,
             minimum_altitude=minimum_altitude,
             frames_per_filter=frames_per_filter,
+            batch_size=batch_size,
             subframe=subframe,
         )
 
@@ -773,6 +775,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         obs_dict = nm.download_dict(obs_path)
         obs_dict["targets"][0]["exposures"][0]["acceptedAmount"] = 42
         nm.upload_dict(obs_path, obs_dict)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
 
         update_observations(self._day(1))
         obs = self._get_obs_by_id(0)
@@ -1115,7 +1118,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         turmx = Observatory.objects.filter(name="TURMX")[0]
 
         self._create_expert_observation(obs_id=0, target_name="E0", start_scheduling=self._day(0), end_scheduling=self._day(1), cadence=3, observatory=turmx)
-        self._create_expert_observation(obs_id=1, target_name="E0", start_scheduling=self._day(0), end_scheduling=self._day(1), cadence=3, observatory=turmx)
+        self._create_expert_observation(obs_id=1, target_name="E0", start_scheduling=self._day(0), end_scheduling=self._day(2), cadence=3, observatory=turmx)
 
 
         upload_observations()
@@ -1129,7 +1132,7 @@ class NextcloudSyncTestCase(django.test.TestCase):
         self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
         self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.UPLOADED)
 
-        update_observations(self._day(2))
+        update_observations(self._day(3))
         self.assertEqual(self._get_obs_by_id(0).project_status, ObservationStatus.ERROR)
         self.assertEqual(self._get_obs_by_id(1).project_status, ObservationStatus.COMPLETED)
 
@@ -1244,3 +1247,195 @@ class NextcloudSyncTestCase(django.test.TestCase):
         obs = self._get_obs_by_id(0)
         self.assertFalse(self._obs_exists_in_nextcloud(obs))
         self.assertEqual(obs.project_status, ObservationStatus.COMPLETED)
+
+    def test_pause_pending(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+        self._create_imaging_observations(
+            obs_id=0,
+            target_name="I1",
+            observatory=turmx,
+        )
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        upload_observations()
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PAUSED)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        upload_observations()
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+    def test_pause_uploaded(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+        self._create_imaging_observations(obs_id=0, target_name="I1", observatory=turmx)
+        upload_observations()
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self._obs_exists_in_nextcloud(obs)
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PAUSED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+        obs_dict = nm.download_dict(generate_observation_path(obs))
+        self.assertEqual(obs_dict["active"], False)
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+        obs_dict = nm.download_dict(generate_observation_path(obs))
+        self.assertEqual(obs_dict["active"], True)
+
+    def test_pause_uploaded_timed(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+        self._create_exoplanet_observation(
+            obs_id=0,
+            target_name="I1",
+            start_observation=datetime.combine(self._day(0), time(22, 0)),
+            end_observation=datetime.combine(self._day(1), time(2, 0)),
+            observatory=turmx,
+        )
+        upload_observations(self._day(0))
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PAUSED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+        obs_dict = nm.download_dict(generate_observation_path(obs))
+        self.assertEqual(obs_dict["active"], False)
+
+        update_observations(self._day(1))
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.FAILED)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+
+    def test_pause_scheduled(self):
+        nm.initialize_connection()
+        nm.mkdir(f"{self.prefix}/TURMX/Projects")
+
+        turmx = Observatory.objects.filter(name="TURMX")[0]
+        self._create_expert_observation(
+            obs_id=0,
+            target_name="E0",
+            start_scheduling=self._day(0),
+            end_scheduling=self._day(10),
+            cadence=3,
+            observatory=turmx,
+        )
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PAUSED)
+
+        upload_observations(self._day(0))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+
+        update_observations(self._day(1))
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PENDING)
+        upload_observations(self._day(1))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PAUSED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        obs_dict = nm.download_dict(generate_observation_path(obs))
+        self.assertEqual(obs_dict["active"], False)
+        update_observations(self._day(2))
+
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.PAUSED)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+
+        upload_observations(self._day(2))
+        obs = self._get_obs_by_id(0)
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        obs_dict = nm.download_dict(generate_observation_path(obs))
+        self.assertEqual(obs_dict["active"], False)
+
+        response = self.client.post(
+            path=f"/observation-data/pause/{0}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        obs = self._get_obs_by_id(0)
+        self.assertEqual(obs.project_status, ObservationStatus.UPLOADED)
+
+        self.assertTrue(self._obs_exists_in_nextcloud(obs))
+        obs_dict = nm.download_dict(generate_observation_path(obs))
+        self.assertEqual(obs_dict["active"], True)
+
+        self._set_accepted_amount(obs, 100)
+        update_observations(self._day(3))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+
+        upload_observations(self._day(3))
+        obs = self._get_obs_by_id(0)
+        self.assertFalse(self._obs_exists_in_nextcloud(obs))
+        self.assertTrue(isinstance(obs, ExpertObservation))
+        self.assertEqual(obs.next_upload, self._day(5))
